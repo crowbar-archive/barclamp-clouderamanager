@@ -1,0 +1,75 @@
+# Copyright 2011, Dell, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: RobHirschfeld
+#
+
+barclamp:
+  name: hadoop_clouderamanager
+  display: Cloudera Manager
+  version: 0
+  requires:
+    - @crowbar
+  member:
+    - hadoop
+
+crowbar:
+  layout: 1
+  order: 200
+  run_order: 200
+  chef_order: 200
+
+rpms:
+  redhat-5.7:
+    repos:
+      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/5/x86_64/cloudera-manager/3/
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+  centos-5.7:
+    repos:
+      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/5/x86_64/cloudera-manager/3/
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+  redhat-6.2:
+    repos:
+      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/6/x86_64/cloudera-manager/3/
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+  pkgs:
+    # JDK dependency will be magically satisfied by the Java package below.
+    # - jdk
+    - hadoop-0.20
+    - hadoop-0.20-native
+    - hadoop-0.20-sbin
+    - hue-plugins
+    - hadoop-zookeeper
+    - hadoop-hbase
+    - oozie
+    - oozie-client
+    - hue
+    - cloudera-manager-plugins
+    - hue-hadoop-auth-plugin
+    - hue-oozie-auth-plugin
+    - hue-userman
+    - cloudera-manager-daemons
+    - cloudera-manager-server
+    - cloudera-manager-server-db
+    - hadoop-0.20-namenode
+    - hadoop-0.20-jobtracker
+    - hadoop-0.20-secondarynamenode
+    - hadoop-0.20-datanode
+    - hadoop-0.20-tasktracker
+
+extra_files:
+  - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
+
+smoketest:
+  timeout: 900
