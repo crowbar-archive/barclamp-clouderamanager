@@ -58,7 +58,7 @@ rpms:
     - cloudera-manager-plugins
     - hue-hadoop-auth-plugin
     - hue-oozie-auth-plugin
-    - hue-userman
+    - hue-useradmin
     - cloudera-manager-daemons
     - cloudera-manager-server
     - cloudera-manager-server-db
