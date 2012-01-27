@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-class ClouderaManagerService < ServiceObject
+class ClouderamanagerService < ServiceObject
   
   #######################################################################
   # initialize - Initialize this service class.

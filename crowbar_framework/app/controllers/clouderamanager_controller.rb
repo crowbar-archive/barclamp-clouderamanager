@@ -17,9 +17,9 @@
 # limitations under the License.
 #
 
-class ClouderaManagerController < BarclampController
+class ClouderamanagerController < BarclampController
   def initialize
-    @service_object = ClouderaManagerService.new logger
+    @service_object = ClouderamanagerService.new logger
   end
 end
 
