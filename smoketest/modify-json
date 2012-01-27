@@ -1,0 +1,8 @@
+#!/bin/bash
+# Overrides for continuous integration testing.
+# We disable cloudera manager support and let crowbar deploy hadoop in 
+# order to allow for automated testing.
+sed -e '/"dfs_replication":/ s/3/1/' \
+    -e '/"dfs_datanode_du_reserved":/ s/10737418240/0/' \
+    -e '/"use_cloudera_manager":/ s/true/false/'
+    
