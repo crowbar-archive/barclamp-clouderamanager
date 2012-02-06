@@ -39,15 +39,15 @@ nav:
 locale_additions:
   en:
     nav:
-      clouderamanager_ug: Hadoop
-      clouderamanager: Hadoop
+      clouderamanager_ug: Cloudera Manager
+      clouderamanager: Cloudera Manager
     barclamp:
       clouderamanager:
         edit_deployment: 
           deployment: Deployment        
         edit_attributes:
           core_attributes: Hadoop Core Attributes
-          cloudera_enterprise_scm: Cloudera Enterprise Support
+          use_cloudera_manager: Use Cloudera Manager
           fs_checkpoint_dir: Checkpoint Directory
           fs_checkpoint_edits_dir: Checkpoint Edits Directory
           fs_checkpoint_period: Checkpoint Time Period

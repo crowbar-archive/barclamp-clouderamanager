@@ -25,7 +25,7 @@ include_recipe "clouderamanager::cm-common"
 
 debug = node[:clouderamanager][:debug]
 
-# mysql or postgresal data backing storage
+# mysql or postgresal data backing store
 use_mysql = node[:clouderamanager][:use_mysql] 
 
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-server") if debug
@@ -42,6 +42,16 @@ pkg_list.each do |pkg|
   end
 end
 
+# Cloudera Manager needs to have this directory accessible. Without it,
+# slave node installations will fail. This is an empty directory and the
+# RPM package installer does not seem to create it.
+directory "/usr/share/cmf/packages" do
+  owner "root"
+  group "root"
+  mode "0755"
+  action :create
+end
+
 # Define the cloudera Manager service.
 # cloudera-scm-server {start|stop|restart|status}
 service "cloudera-scm-server" do
@@ -49,6 +59,7 @@ service "cloudera-scm-server" do
   action :enable 
 end
 
+# Install the Cloudera Manager database component. 
 if use_mysql
   include_recipe 'clouderamanager::mysql'
   
@@ -67,16 +78,6 @@ end
 package "cloudera-manager-server-db" do
   action :install
 end
-
-=begin
-# Can we use this to initdb - need to check ?
-# Start the cloudera-scm-server-db service.
-# cloudera-manager-server-db  {initdb|start|stop|restart|status}
-service "cloudera-scm-server-db" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ] 
-end
-=end
 
 # Setup the database tables
 if use_mysql
@@ -105,15 +106,16 @@ if use_mysql
   end
 else
   # Setup the postgresql configuration.
-  # Initialize the db only if it is empty.
+  # This will only run if the db is uninitialized.
   # Otherwise : returns 1 
   # /var/lib/cloudera-scm-server-db/data is non-empty; perhaps the database was already initialized?
   bash "cloudera-scm-server-db" do
     code <<-EOH
 /etc/init.d/cloudera-scm-server-db initdb
 EOH
-    notifies :restart, resources(:service => "cloudera-scm-server")
-    returns [0,1] 
+    # Should only notify on initial creation only.
+    # notifies :restart, resources(:service => "cloudera-scm-server")
+    returns [0, 1] 
   end
 end
 

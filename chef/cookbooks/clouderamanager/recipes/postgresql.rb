@@ -34,8 +34,22 @@ postgresql_list.each do |pkg|
   end
 end
 
+# Initialize the postgresql database.
+if !File.exists?("/var/lib/pgsql/data")
+  Chef::Log.info("CLOUDERAMANAGER : Initializing the postgresql database") if debug
+  bash "postgresql-initdb" do
+    user "root"
+    code <<-EOH
+      service postgresql initdb
+  EOH
+    notifies :restart, resources(:service => "postgresql")
+  end
+else
+  Chef::Log.info("CLOUDERAMANAGER : postgresql database already initialized") if debug
+end
+
 # Start the postgresql service.
-# postgresql {start|stop|status|restart|condrestart|condstop|reload|force-reload}
+# postgresql {start|stop|status|restart|condrestart|try-restart|reload|force-reload|initdb}
 service "postgresql" do
   supports :start => true, :stop => true, :status => true, :restart => true
   action [ :enable, :start ] 
