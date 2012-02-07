@@ -194,6 +194,11 @@ else
   
 end
 
+# Installs the Cloudera Manager server components.
+if node[:clouderamanager][:use_cloudera_manager] == "true"
+  include_recipe 'clouderamanager::cm-server'
+end
+
 #######################################################################
 # End of recipe transactions
 #######################################################################

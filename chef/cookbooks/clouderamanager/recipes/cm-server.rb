@@ -33,6 +33,7 @@ Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-server") if debug
 # Install the Cloudera Manager server packages.
 pkg_list=%w{
     cloudera-manager-daemons
+    cloudera-manager-server-db
     cloudera-manager-server
   }
 
@@ -52,7 +53,14 @@ directory "/usr/share/cmf/packages" do
   action :create
 end
 
-# Define the cloudera Manager service.
+# Define the Cloudera Manager database service.
+# cloudera-scm-server-db {initdb|start|stop|restart|status}
+service "cloudera-scm-server-db" do
+  supports :start => true, :stop => true, :restart => true, :status => true 
+  action :enable 
+end
+
+# Define the Cloudera Manager server service.
 # cloudera-scm-server {start|stop|restart|status}
 service "cloudera-scm-server" do
   supports :start => true, :stop => true, :restart => true, :status => true 
@@ -72,11 +80,6 @@ if use_mysql
   
 else
   include_recipe 'clouderamanager::postgresql'
-end
-
-# Install the Cloudera Manager server db package.
-package "cloudera-manager-server-db" do
-  action :install
 end
 
 # Setup the database tables
@@ -119,7 +122,12 @@ EOH
   end
 end
 
-# Start the cloudera SCM server.
+# Start the Cloudera Manager database service.
+service "cloudera-scm-server-db" do
+  action :start 
+end
+
+# Start the Cloudera Manager server service.
 service "cloudera-scm-server" do
   action :start 
 end
