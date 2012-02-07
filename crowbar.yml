@@ -314,30 +314,63 @@ rpms:
       - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/6/x86_64/cloudera-manager/3/
       - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
   pkgs:
-    # JDK dependency will be magically satisfied by the Java package below.
-    # - jdk
+    # CDH3U2 packages
     - hadoop-0.20
-    - hadoop-0.20-native
+    - hadoop-0.20-namenode
+    - hadoop-0.20-secondarynamenode
+    - hadoop-0.20-datanode
+    - hadoop-0.20-jobtracker
+    - hadoop-0.20-tasktracker
     - hadoop-0.20-sbin
+    - hadoop-0.20-libhdfs
+    - hadoop-0.20-native
+    - hadoop-0.20-pipes
+    - hadoop-0.20-conf-pseudo
+    - hadoop-0.20-fuse
+    - hadoop-0.20-debuginfo
+    - hadoop-0.20-doc
+    - hadoop-0.20-source
+    - hue
+    - hue-about
+    - hue-beeswax
+    - hue-common
+    - hue-filebrowser
+    - hue-help
+    - hue-jobbrowser
+    - hue-jobsub
     - hue-plugins
+    - hue-proxy
+    - hue-shell
+    - hue-useradmin
+    - hadoop-hive
+    - hadoop-hive-metastore
+    - hadoop-hive-server
+    - hadoop-pig
     - hadoop-zookeeper
+    - hadoop-zookeeper-server
     - hadoop-hbase
+    - hadoop-hbase-doc
+    - hadoop-hbase-master
+    - hadoop-hbase-regionserver
+    - hadoop-hbase-thrift
+    - flume
+    - flume-master
+    - flume-node
     - oozie
     - oozie-client
-    - hue
+    - sqoop
+    - sqoop-metastore
+    - whirr
+    - mahout
+    # Cloudera Manager packages
     - cloudera-manager-plugins
-    - hue-hadoop-auth-plugin
-    - hue-oozie-auth-plugin
-    - hue-useradmin
     - cloudera-manager-daemons
     - cloudera-manager-server
     - cloudera-manager-server-db
-    - hadoop-0.20-namenode
-    - hadoop-0.20-jobtracker
-    - hadoop-0.20-secondarynamenode
-    - hadoop-0.20-datanode
-    - hadoop-0.20-tasktracker
-
+    - cloudera-manager-agent
+    - hue-hadoop-auth-plugin
+    - hue-oozie-auth-plugin
+    
 extra_files:
   - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
 
