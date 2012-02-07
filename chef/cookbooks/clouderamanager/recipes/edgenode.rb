@@ -23,10 +23,7 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:edgenode") if debug
 
-# Installs the Cloudera Manager client components.
-if node[:clouderamanager][:use_cloudera_manager] == "true"
-  include_recipe 'clouderamanager::cm-client'
-end
+include_recipe 'clouderamanager::cm-client'
 
 #######################################################################
 # End of recipe transactions

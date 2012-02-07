@@ -24,17 +24,8 @@
 default[:clouderamanager][:debug] = true
 
 # Cloudera Manager backing store.
-# use mysql or postgresal (cloudera default - postgresal).
+# use mysql or postgresal for CM backing store (cloudera default - postgresal).
 default[:clouderamanager][:use_mysql] = false 
-
-# This flag determines if the cloudera_manager will be used to deploy
-# and maintain the hadoop cluster. If set to false, Crowbar with deploy
-# and maintain the baseline hadoop cluster. The intented use is automatic
-# smoke testing of the crowbar deployment which we can not do via Cloudera
-# manager deployment. See the modify-json file under the smoketest folder.
-# The regex inside should flip this flag to false for continuous integration
-# testing. 
-default[:clouderamanager][:use_cloudera_manager] = "true"
 
 # Crowbar configuration enviroment.
 default[:clouderamanager][:config] = {}
@@ -46,11 +37,8 @@ default[:clouderamanager][:cluster][:master_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:secondary_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:edge_nodes] = [ ]
 default[:clouderamanager][:cluster][:slave_nodes] = [ ]
+default[:clouderamanager][:hdfs][:dfs_base_dir] = "/mnt/hdfs"
+default[:clouderamanager][:devices] = []
+default[:clouderamanager][:hdfs][:dfs_data_dir] = []
+default[:clouderamanager][:mapred][:mapred_local_dir] = []
 
-# File system ownership settings.
-default[:clouderamanager][:cluster][:valid_config] = true
-default[:clouderamanager][:cluster][:global_file_system_group] = "hadoop"
-default[:clouderamanager][:cluster][:process_file_system_owner] = "root"
-default[:clouderamanager][:cluster][:mapred_file_system_owner] = "mapred"
-default[:clouderamanager][:cluster][:hdfs_file_system_owner] = "hdfs"
-default[:clouderamanager][:cluster][:hdfs_file_system_group] = "hdfs"

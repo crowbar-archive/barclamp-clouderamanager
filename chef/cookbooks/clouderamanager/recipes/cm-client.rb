@@ -23,7 +23,7 @@ include_recipe "clouderamanager::cm-common"
 # Begin recipe transactions
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CLOUDERAMANAGER: BEGIN clouderamanager:cm-client") if debug
+Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-client") if debug
 
 # Install the Cloudera agent packages.
 pkg_list=%w{
@@ -40,21 +40,12 @@ end
 
 # Define the cloudera agent service.
 # /etc/init.d/cloudera-manager-agent {start|stop|restart|status}
-service "cloudera-manager-agent" do
+service "cloudera-scm-agent" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action :enable 
-end
-
-#######################################################################
-# Add configuration steps here.
-#######################################################################
-
-# Start the Cloudera Manager agent.
-service "cloudera-manager-agent" do
-  action :start 
+  action [:enable, :start] 
 end
 
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER: END clouderamanager:cm-client") if debug
+Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:cm-client") if debug

@@ -23,80 +23,8 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:secondarynamenode") if debug
 
-# Local variables
-hdfs_owner = node[:clouderamanager][:cluster][:hdfs_file_system_owner]
-hadoop_group = node[:clouderamanager][:cluster][:global_file_system_group]
-
-# Install the secondary name node service. We install the jobtracker
-# package on the secondary name node but do not start the service up.
-package "hadoop-0.20-secondarynamenode" do
-  action :install
-end
-
-package "hadoop-0.20-jobtracker" do
-  action :install
-end
-
-# Define our services so we can register notify events them.
-# Make sure the job tracker doesn't start up on reboot.
-service "hadoop-0.20-secondarynamenode" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  # Subscribe to common configuration change events (default.rb).
-  subscribes :restart, resources(:directory => node[:clouderamanager][:env][:hadoop_log_dir])
-  subscribes :restart, resources(:directory => node[:clouderamanager][:core][:hadoop_tmp_dir])
-  subscribes :restart, resources(:directory => node[:clouderamanager][:core][:fs_s3_buffer_dir])
-  subscribes :restart, resources(:template => "/etc/security/limits.conf")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-env.sh")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
-end
-
-# Install the jobtracker package but keep it disabled.
-service "hadoop-0.20-jobtracker" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action :disable
-end
-
-# Create dfs_name_secondary directory and set ownership/permissions. 
-dfs_name_secondary = "/var/lib/hadoop-0.20/dfs/namesecondary"
-directory dfs_name_secondary do
-  owner hdfs_owner
-  group hadoop_group
-  mode "0775"
-  recursive true
-  action :create
-  notifies :restart, resources(:service => "hadoop-0.20-secondarynamenode")
-end
-
-# Create fs_checkpoint_dir and set ownership/permissions (/tmp/hadoop-metadata). 
-fs_checkpoint_dir = node[:clouderamanager][:core][:fs_checkpoint_dir] 
-fs_checkpoint_dir.each do |path|
-  directory path do
-    owner hdfs_owner
-    group hadoop_group
-    recursive true
-    mode "0775"
-    action :create
-    notifies :restart, resources(:service => "hadoop-0.20-secondarynamenode")
-  end
-end
-
-# Start the secondary name node service.
-if node[:clouderamanager][:cluster][:valid_config]
-  Chef::Log.info("CLOUDERAMANAGER : CONFIGURATION VALID - STARTING SECONDARY NAME NODE SERVICES")
-  service "hadoop-0.20-secondarynamenode" do
-    action [ :enable, :start ] 
-  end
-else
-  Chef::Log.info("CLOUDERAMANAGER : CONFIGURATION INVALID - STOPPING SECONDARY NAME NODE SERVICES")
-  service "hadoop-0.20-secondarynamenode" do
-    action [ :disable, :stop ] 
-  end
-end
+# Installs the Cloudera Manager client components.
+include_recipe 'clouderamanager::cm-client'
 
 #######################################################################
 # End of recipe transactions
