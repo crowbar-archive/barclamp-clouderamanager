@@ -20,12 +20,10 @@
 include_recipe "clouderamanager::cm-common"
 
 #######################################################################
-# Begin recipe transactions
+# Begin recipe
 #######################################################################
 
 debug = node[:clouderamanager][:debug]
-
-# mysql or postgresal data backing store
 use_mysql = node[:clouderamanager][:use_mysql] 
 
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-server") if debug
@@ -43,8 +41,8 @@ pkg_list.each do |pkg|
   end
 end
 
-# Cloudera Manager needs to have this directory accessible. Without it,
-# slave node installations will fail. This is an empty directory and the
+# Cloudera Manager needs to have this directory present. Without it,
+# the slave node installation will fail. This is an empty directory and the
 # RPM package installer does not seem to create it.
 directory "/usr/share/cmf/packages" do
   owner "root"
@@ -54,7 +52,7 @@ directory "/usr/share/cmf/packages" do
 end
 
 # Define the Cloudera Manager database service.
-# cloudera-scm-server-db {initdb|start|stop|restart|status}
+# cloudera-scm-server-db {start|stop|restart|status|initdb}
 service "cloudera-scm-server-db" do
   supports :start => true, :stop => true, :restart => true, :status => true 
   action :enable 
@@ -133,6 +131,6 @@ service "cloudera-scm-server" do
 end
 
 #######################################################################
-# End of recipe transactions
+# End of recipe
 #######################################################################
 Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:cm-server") if debug

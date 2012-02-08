@@ -21,7 +21,7 @@ name "clouderamanager-secondarynamenode"
 description "Hadoop Secondary Name Node Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::secondarynamenode]"
+  "recipe[clouderamanager::cm-client]"
 )
 default_attributes()
 override_attributes()

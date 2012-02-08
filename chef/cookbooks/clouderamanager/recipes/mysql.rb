@@ -18,7 +18,7 @@
 #
 
 #######################################################################
-# Begin recipe transactions
+# Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:mysql") if debug
@@ -36,6 +36,6 @@ service "mysqld" do
 end
 
 #######################################################################
-# End of recipe transactions
+# End of recipe
 #######################################################################
 Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:mysql") if debug

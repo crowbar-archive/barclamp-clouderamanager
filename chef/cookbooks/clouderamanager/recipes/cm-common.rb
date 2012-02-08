@@ -18,7 +18,7 @@
 #
 
 #######################################################################
-# Begin recipe transactions
+# Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-common") if debug
@@ -36,6 +36,6 @@ pkg_list.each do |pkg|
 end
 
 #######################################################################
-# End of recipe transactions
+# End of recipe
 #######################################################################
 Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:cm-common") if debug

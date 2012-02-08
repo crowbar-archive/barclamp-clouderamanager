@@ -16,11 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author: andi abes
-#
 
 #######################################################################
-# Begin recipe transactions
+# Begin recipe
 #######################################################################
 
 debug = node[:clouderamanager][:debug]
@@ -148,6 +146,6 @@ node[:clouderamanager][:mapred][:mapred_local_dir].sort!
 node.save
 
 #######################################################################
-# End of recipe transactions
+# End of recipe
 #######################################################################
 Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:configure-disks") if debug

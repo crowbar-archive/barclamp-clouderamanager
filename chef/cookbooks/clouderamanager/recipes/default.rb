@@ -18,7 +18,7 @@
 #
 
 #######################################################################
-# Begin recipe transactions
+# Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:default") if debug
@@ -26,17 +26,17 @@ Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:default") if debug
 # Configuration filter for our crowbar environment
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-keys = {}
 # Find the master name nodes (there should only be one). 
+keys = {}
 master_name_nodes = Array.new
 master_name_node_objects = Array.new
-search(:node, "roles:clouderamanager-masternamenode") do |nmas|
-  # search(:node, "roles:clouderamanager-masternamenode#{env_filter}") do |nmas|
+# search(:node, "roles:clouderamanager-masternamenode") do |nmas|
+search(:node, "roles:clouderamanager-masternamenode#{env_filter}") do |nmas|
   if !nmas[:fqdn].nil? && !nmas[:fqdn].empty?
     Chef::Log.info("CLOUDERAMANAGER : MASTER [#{nmas[:fqdn]}") if debug
     master_name_nodes << nmas[:fqdn]
     master_name_node_objects << nmas
-    keys[nmas.name] = nmas["crowbar"]["ssh"]["root_pub_key"] rescue nil
+    keys[nmas.name] = nmas[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
 node[:clouderamanager][:cluster][:master_name_nodes] = master_name_nodes
@@ -51,13 +51,13 @@ end
 # Find the secondary name nodes (there should only be one). 
 secondary_name_nodes = Array.new
 secondary_name_node_objects = Array.new
-search(:node, "roles:clouderamanager-secondarynamenode") do |nsec|
-  # search(:node, "roles:clouderamanager-secondarynamenode#{env_filter}") do |nsec|
+# search(:node, "roles:clouderamanager-secondarynamenode") do |nsec|
+search(:node, "roles:clouderamanager-secondarynamenode#{env_filter}") do |nsec|
   if !nsec[:fqdn].nil? && !nsec[:fqdn].empty?
     Chef::Log.info("CLOUDERAMANAGER : SECONDARY [#{nsec[:fqdn]}") if debug
     secondary_name_nodes << nsec[:fqdn]
     secondary_name_node_objects << nsec
-    keys[nsec.name] = nsec["crowbar"]["ssh"]["root_pub_key"] rescue nil
+    keys[nsec.name] = nsec[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
 node[:clouderamanager][:cluster][:secondary_name_nodes] = secondary_name_nodes
@@ -71,12 +71,12 @@ end
 
 # Find the edge nodes. 
 edge_nodes = Array.new
-search(:node, "roles:clouderamanager-edgenode") do |nedge|
-  # search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |nedge|
+# search(:node, "roles:clouderamanager-edgenode") do |nedge|
+search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |nedge|
   if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
     Chef::Log.info("CLOUDERAMANAGER : EDGE [#{nedge[:fqdn]}") if debug
     edge_nodes << nedge[:fqdn] 
-    keys[nedge.name] = nedge["crowbar"]["ssh"]["root_pub_key"] rescue nil
+    keys[nedge.name] = nedge[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
 node[:clouderamanager][:cluster][:edge_nodes] = edge_nodes
@@ -84,12 +84,12 @@ node[:clouderamanager][:cluster][:edge_nodes] = edge_nodes
 # Find the slave nodes. 
 Chef::Log.info("CLOUDERAMANAGER : env filter [#{env_filter}]") if debug
 slave_nodes = Array.new
-search(:node, "roles:clouderamanager-slavenode") do |nslave|
-  # search(:node, "roles:clouderamanager-slavenode#{env_filter}") do |nslave|
+# search(:node, "roles:clouderamanager-slavenode") do |nslave|
+search(:node, "roles:clouderamanager-slavenode#{env_filter}") do |nslave|
   if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
     Chef::Log.info("CLOUDERAMANAGER : SLAVE [#{nslave[:fqdn]}") if debug
     slave_nodes << nslave[:fqdn] 
-    keys[nslave.name] = nslave["crowbar"]["ssh"]["root_pub_key"] rescue nil
+    keys[nslave.name] = nslave[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
 node[:clouderamanager][:cluster][:slave_nodes] = slave_nodes
@@ -109,9 +109,9 @@ end
 # "Add hadoop nodes to authorized key file" 
 keys.each do |k,v|
   unless v.nil?
-    node["crowbar"]["ssh"] = {} if node["crowbar"]["ssh"].nil?
-    node["crowbar"]["ssh"]["access_keys"] = {} if node["crowbar"]["ssh"]["access_keys"].nil?
-    node["crowbar"]["ssh"]["access_keys"][k] = v
+    node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?
+    node[:crowbar][:ssh][:access_keys] = {} if node[:crowbar][:ssh][:access_keys].nil?
+    node[:crowbar][:ssh][:access_keys][k] = v
   end
 end
 
@@ -129,6 +129,6 @@ template "/etc/security/limits.conf" do
 end
 
 #######################################################################
-# End of recipe transactions
+# End of recipe
 #######################################################################
 Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:default") if debug
