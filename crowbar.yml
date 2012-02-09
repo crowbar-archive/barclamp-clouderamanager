@@ -47,7 +47,6 @@ locale_additions:
           attributes: Attributes
         edit_deployment: 
           deployment: Deployment        
-        edit_attributes:
         index:
           barclamp: Project
           state: Status
