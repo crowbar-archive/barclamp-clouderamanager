@@ -26,6 +26,11 @@ Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:default") if debug
 # Configuration filter for our crowbar environment
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
+# Install the Oracle/SUN JAVA package (Hadoop requires the JDK).
+package "jdk" do
+  action :install
+end
+
 # Find the master name nodes (there should only be one). 
 keys = {}
 master_name_nodes = Array.new
