@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-masternamenode.rb
+# Role: clouderamanager-webapp.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,11 +17,11 @@
 # limitations under the License.
 #
 
-name "clouderamanager-masternamenode"
-description "Hadoop Master Name Node Role"
+name "clouderamanager-webapp"
+description "Cloudera Manager Web Application Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-client]"
+  "recipe[clouderamanager::cm-server]"
 )
 default_attributes()
 override_attributes()
