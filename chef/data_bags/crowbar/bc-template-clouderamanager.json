@@ -9,6 +9,12 @@
   "deployment": {
     "clouderamanager": {
       "crowbar-revision": 0,
+      "element_states": {
+        "clouderamanager-masternamenode": [ "readying", "ready", "applying" ],
+        "clouderamanager-secondarynamenode": [ "readying", "ready", "applying" ],
+        "clouderamanager-slavenode": [ "readying", "ready", "applying" ],
+        "clouderamanager-edgenode": [ "readying", "ready", "applying" ]
+      },
       "elements": {},
       "element_order": [
         [
