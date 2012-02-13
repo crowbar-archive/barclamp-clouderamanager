@@ -3,7 +3,9 @@
   "description": "Common libraries and utilities that provides the basic Hadoop runtime environment (HDFS/Map Reduce). A set of components and interfaces which implements a distributed filesystem and provides general I/O access for the hadoop framework (serialization, Java RPC and persistent data storage).",
   "attributes": {
     "clouderamanager": {
-      "debug": true
+      "debug": true,
+	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
+      "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface"
     }
   },
   "deployment": {
