@@ -12,7 +12,9 @@
           "type": "map",
           "required": true,
           "mapping": {
-            "debug":  { "type": "bool", "required": true}
+            "debug":  { "type": "bool", "required": true},
+            "admin_ip_eval": { "type": "str", "required": true },
+            "admin_interface_eval": { "type": "str", "required": true }
           } 
         }
       }
