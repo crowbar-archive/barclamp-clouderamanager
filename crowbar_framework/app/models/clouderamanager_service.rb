@@ -34,18 +34,18 @@ class ClouderamanagerService < ServiceObject
     @logger.debug("clouderamanager create_proposal: entering")
     base = super
     
-    # Compute the clouderamanager cluster node distribution.
+    # Compute the Hadoop cluster node distribution.
     # You need at least 3 nodes (secondary name node, master name node
-    # and slave node) to implement a baseline clouderamanager framework. The edge
+    # and slave node) to implement a baseline Hadoop framework. The edge
     # node is added if the node count is 4 or higher. 
     secondary = [ ]
     master = [ ]
     edge = [ ]
     slaves = [ ]
     
-    # Get the node list, find the admin node, put the clouderamanager secondary name node
-    # on the crowbar admin node (as specified by the RA) and delete the admin
-    # node from the array.
+    # Get the node list, find the admin node, put the Hadoop
+    # secondary name node on the crowbar admin node (as specified by
+    # the RA) and delete the admin node from the array.
     nodes = NodeObject.all
     nodes.each do |n|
       if n.nil?
@@ -77,9 +77,16 @@ class ClouderamanagerService < ServiceObject
       }
     end
     
-    # Add the proposal deployment elements
+    # Add the proposal deployment elements. The Cloudera Management
+    # server/UI goes on the Hadoop master name node by default and
+    # this can be changed by the user at proposal deployment time.
     base["deployment"]["clouderamanager"]["elements"] = { } 
-    base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master if master && !master.empty? 
+    
+    if master && !master.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master 
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = master 
+    end    
+    
     base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = secondary if secondary && !secondary.empty? 
     base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge if edge && !edge.empty?  
     base["deployment"]["clouderamanager"]["elements"]["clouderamanager-slavenode"] = slaves if slaves && !slaves.empty?   
@@ -90,7 +97,9 @@ class ClouderamanagerService < ServiceObject
   end
   
   #######################################################################
-  # apply_role_pre_chef_call - called before a chef role is applied.
+  # apply_role_pre_chef_call - Called before a chef role is applied.
+  # This code block is setting up for public IP addresses on the Hadoop
+  # edge node.
   #######################################################################
   def apply_role_pre_chef_call(old_role, role, all_nodes)
     @logger.debug("clouderamanager apply_role_pre_chef_call: entering #{all_nodes.inspect}")
@@ -110,6 +119,52 @@ class ClouderamanagerService < ServiceObject
     end
     
     @logger.debug("clouderamanager apply_role_pre_chef_call: leaving")
+  end
+  
+  #######################################################################
+  # transition - Called for crowbar state transitions.
+  # Add the Cloudera Management web application link to the Crowbar UI.
+  #######################################################################
+  def transition(inst, name, state)
+    @logger.debug("Cloudera Manager transition: Adding Cloudera Management web application URL: #{name} for #{state}")
+    
+    if state == "discovered"
+      @logger.debug("Cloudera Manager transition: discovered state for #{name} for #{state}")
+      
+      # Set up the Cloudera Management web application URL.
+      role = RoleObject.find_role_by_name "clouderamanager-config-#{inst}"
+      
+      # Get the Cloudera Management web application IP address.
+      server_ip = nil
+      [ "clouderamanager-webapp" ].each do |element|
+        tnodes = role.override_attributes["clouderamanager"]["elements"][element]
+        next if tnodes.nil? or tnodes.empty?
+        tnodes.each do |n|
+          next if n.nil?
+          node = NodeObject.find_node_by_name(n)
+          if node.get_network_by_type("public")["address"].nil? or node.get_network_by_type("public")["address"].empty?
+            server_ip = node.get_network_by_type("admin")["address"]
+          else
+            server_ip = node.get_network_by_type("public")["address"]
+          end
+        end
+      end
+      
+      if server_ip
+        node = NodeObject.find_node_by_name(name)
+        node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
+        node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
+        node.crowbar["crowbar"]["links"]["Cloudera Manager"] = "http://#{server_ip}:7180/cmf/login"
+        node.save
+      end
+      
+      @logger.debug("Cloudera Manager transition: leaving from discovered state for #{name} for #{state}")
+      a = [200, NodeObject.find_node_by_name(name).to_hash ]
+      return a
+    end
+    
+    @logger.debug("Cloudera Manager transition: leaving for #{name} for #{state}")
+    [200, NodeObject.find_node_by_name(name).to_hash ]
   end
   
 end

@@ -18,6 +18,7 @@
       "elements": {},
       "element_order": [
         [
+          "clouderamanager-webapp",
           "clouderamanager-masternamenode",
           "clouderamanager-secondarynamenode",
           "clouderamanager-slavenode",
