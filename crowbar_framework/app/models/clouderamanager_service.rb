@@ -35,9 +35,9 @@ class ClouderamanagerService < ServiceObject
     base = super
     
     # Compute the Hadoop cluster node distribution.
-    # You need at least 3 nodes (secondary name node, master name node
-    # and slave node) to implement a baseline Hadoop framework. The edge
-    # node is added if the node count is 4 or higher. 
+    # You need at least 3 nodes (secondary namenode, master namenode
+    # and slavenode) to implement a baseline Hadoop framework. The edgenode
+    # is added if the node count is 4 or higher. 
     secondary = [ ]
     master = [ ]
     edge = [ ]
@@ -85,6 +85,7 @@ class ClouderamanagerService < ServiceObject
     if master && !master.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master 
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = master 
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-mgmtservices"] = master 
     end    
     
     base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = secondary if secondary && !secondary.empty? 

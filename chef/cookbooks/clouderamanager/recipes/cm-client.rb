@@ -17,13 +17,13 @@
 # limitations under the License.
 #
 
-include_recipe "clouderamanager::cm-common"
+include_recipe 'clouderamanager::cm-common'
 
 #######################################################################
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-client") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:cm-client") if debug
 
 # Install the Cloudera client packages.
 pkg_list=%w{
@@ -48,4 +48,4 @@ end
 #######################################################################
 # End of recipe
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:cm-client") if debug
+Chef::Log.info("CM - END clouderamanager:cm-client") if debug

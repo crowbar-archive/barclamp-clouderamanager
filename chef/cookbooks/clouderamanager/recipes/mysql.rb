@@ -21,21 +21,48 @@
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:mysql") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:mysql") if debug
 
 # Install MYSQL.
 package "mysql-server" do
   action :install
 end
 
-# Start the MYSQL server.
+# Define the MYSQL server service.
 # /etc/init.d/mysqld {start|stop|status|condrestart|restart}
 service "mysqld" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ] 
+  action :enable 
+end
+
+# Install the MYSQL JDBC connector. This is used for the CM activity_monitor,
+# service_monitor and resource_manager.  
+if !File.exists?("/usr/share/cmf/lib/mysql-connector-java-5.1.18-bin.jar")
+  Chef::Log.info("CM - Installing mysql JDBC connector") if debug
+  
+  directory "/usr/share/cmf/lib" do
+    owner "root"
+    group "root"
+    mode "0755"
+    recursive true
+    action :create
+  end
+  
+  cookbook_file "/usr/share/cmf/lib/mysql-connector-java-5.1.18-bin.jar" do
+    source "mysql-connector-java-5.1.18-bin.jar"  
+    mode "0755"
+    notifies :restart, resources(:service => "mysqld")
+  end
+else
+  Chef::Log.info("CM - mysql JDBC connector already installed") if debug
+end
+
+# Start the MYSQL server.
+service "mysqld" do
+  action :start 
 end
 
 #######################################################################
 # End of recipe
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:mysql") if debug
+Chef::Log.info("CM - END clouderamanager:mysql") if debug

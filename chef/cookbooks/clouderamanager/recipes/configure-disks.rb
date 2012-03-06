@@ -22,7 +22,7 @@
 #######################################################################
 
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:configure-disks") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:configure-disks") if debug
 
 # Find all the disks.
 to_use_disks = []
@@ -33,7 +33,7 @@ all_disks.each { |k,v|
   to_use_disks << k if v["usage"] == "Storage"  
 }
 
-Chef::Log.info("CLOUDERAMANAGER : found disk: #{to_use_disks.join(':')}") if debug  
+Chef::Log.info("CM - found disk: #{to_use_disks.join(':')}") if debug  
 
 dfs_base_dir = node[:clouderamanager][:hdfs][:dfs_base_dir]
 
@@ -59,7 +59,7 @@ to_use_disks.sort.each { |k|
   # Protect against OS's that confuse ohai. if the device isn't there,
   # don't try to use it.
   if ! File.exists?(target_dev)
-    Chef::Log.warn("CLOUDERAMANAGER : device: #{target_dev} doesn't seem to exist. ignoring")
+    Chef::Log.warn("CM - device: #{target_dev} doesn't seem to exist. ignoring")
     next
   end
   disk = Hash.new
@@ -78,7 +78,7 @@ to_use_disks.sort.each { |k|
   # standpoint for just about everything -- RAID stripes, SSD erase blocks, 
   # 4k sector drives, you name it, and we can have >2TB volumes.
   unless ::Kernel.system("grep -q \'#{target_suffix}$\' /proc/partitions")
-    Chef::Log.info("CLOUDERAMANAGER : Creating hadoop partition on #{target_dev}")
+    Chef::Log.info("CM - Creating hadoop partition on #{target_dev}")
     ::Kernel.system("parted -s #{target_dev} -- unit s mklabel gpt mkpart primary ext2 2048s -1M")
     ::Kernel.system("partprobe #{target_dev}")
     sleep 3
@@ -91,7 +91,7 @@ to_use_disks.sort.each { |k|
     # This filesystem already exists.  Save its UUID for later.
     disk[:uuid]=get_uuid target_dev_part
   else
-    Chef::Log.info("CLOUDERAMANAGER : formatting #{target_dev_part}") if debug
+    Chef::Log.info("CM - formatting #{target_dev_part}") if debug
     ::Kernel.exec "mkfs.ext3 #{target_dev_part}" unless ::Process.fork
     disk[:fresh] = true
     wait_for_format = true
@@ -102,7 +102,7 @@ to_use_disks.sort.each { |k|
 
 # Wait for formatting to finish
 if wait_for_format
-  Chef::Log.info("CLOUDERAMANAGER : Waiting on all drives to finish formatting") if debug
+  Chef::Log.info("CM - Waiting on all drives to finish formatting") if debug
   ::Process.waitall
 end
 
@@ -112,7 +112,7 @@ found_disks.each { |disk|
     # We just created this filesystem.  
     # Grab its UUID and create a mount point.
     disk[:uuid]=get_uuid disk[:name]
-    Chef::Log.info("CLOUDERAMANAGER : Adding #{disk[:name]} (#{disk[:uuid]}) to the Hadoop configuration.")
+    Chef::Log.info("CM - Adding #{disk[:name]} (#{disk[:uuid]}) to the Hadoop configuration.")
     disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
     ::Kernel.system("mkdir -p #{disk[:mount_point]}")
   elsif disk[:uuid]
@@ -120,8 +120,8 @@ found_disks.each { |disk|
     # If we did not create a mountpoint for it, print a warning and skip it.
     disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
     unless ::File.exists?(disk[:mount_point]) and ::File.directory?(disk[:mount_point])
-      Chef::Log.warn("CLOUDERAMANAGER : #{disk[:name]} (#{disk[:uuid]}) was not created by configure-disks, ignoring.")
-      Chef::Log.warn("CLOUDERAMANAGER : If you want to use this disk, please erase any data on it and zero the partition information.")
+      Chef::Log.warn("CM - #{disk[:name]} (#{disk[:uuid]}) was not created by configure-disks, ignoring.")
+      Chef::Log.warn("CM - If you want to use this disk, please erase any data on it and zero the partition information.")
       next
     end
   end
@@ -148,4 +148,4 @@ node.save
 #######################################################################
 # End of recipe
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:configure-disks") if debug
+Chef::Log.info("CM - END clouderamanager:configure-disks") if debug

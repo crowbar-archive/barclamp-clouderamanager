@@ -17,16 +17,13 @@
 # limitations under the License.
 #
 
-include_recipe "clouderamanager::cm-common"
+include_recipe 'clouderamanager::cm-common'
 
 #######################################################################
 # Begin recipe
 #######################################################################
-
 debug = node[:clouderamanager][:debug]
-use_mysql = node[:clouderamanager][:use_mysql] 
-
-Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-server") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:cm-server") if debug
 
 # Install the Cloudera Manager server packages.
 pkg_list=%w{
@@ -51,13 +48,6 @@ directory "/usr/share/cmf/packages" do
   action :create
 end
 
-# Define the Cloudera Manager database service.
-# cloudera-scm-server-db {start|stop|restart|status|initdb}
-service "cloudera-scm-server-db" do
-  supports :start => true, :stop => true, :restart => true, :status => true 
-  action :enable 
-end
-
 # Define the Cloudera Manager server service.
 # cloudera-scm-server {start|stop|restart|status}
 service "cloudera-scm-server" do
@@ -65,59 +55,27 @@ service "cloudera-scm-server" do
   action :enable 
 end
 
-# Install the Cloudera Manager database component. 
-if use_mysql
-  include_recipe 'clouderamanager::mysql'
-  
-  # Install the JDBC J connector.
-  cookbook_file "/usr/share/cmf/lib/mysql-connector-java-5.1.18-bin.jar" do
-    source "mysql-connector-java-5.1.18-bin.jar"  
-    mode "0755"
-    notifies :restart, resources(:service => "cloudera-scm-server")
-  end
-  
-else
-  include_recipe 'clouderamanager::postgresql'
+# Define the Cloudera Manager database service.
+# cloudera-scm-server-db {start|stop|restart|status|initdb}
+service "cloudera-scm-server-db" do
+  supports :start => true, :stop => true, :restart => true, :status => true 
+  action :enable 
 end
 
-# Setup the database tables
-if use_mysql
-  if !File.exists?("/usr/share/cmf/schema/scm_sql_setup_complete")
-    Chef::Log.info("CLOUDERAMANAGER : Running Cloudera Manager SQL setup") if debug
-    # Setup the mysql configuration.
-    bash "setup-database" do
-      user "root"
-      code <<-EOH
-  mysqladmin -u root password 'crowbar'
-  mysqladmin -u root -h $(hostname) password 'crowbar'
-  mysql --user=root --password=crowbar -e "create database hue;"
-  mysql --user=root --password=crowbar -e "grant all on hue.* to 'hue'@'localhost' identified by 'hue';"
-  mysql --user=root --password=crowbar -e "create database oozie;"
-  mysql --user=root --password=crowbar -e "grant all on oozie.* to 'oozie'@'localhost' identified by 'oozie';"
-  mysql --user=root --password=crowbar -e "create database cmon;"
-  mysql --user=root --password=crowbar -e "grant all on cmon.* to 'cmon'@'localhost' identified by 'cmon';"
-  /usr/share/cmf/schema/scm_prepare_mysql.sh -p crowbar scm scm scm
-  touch /usr/share/cmf/schema/scm_sql_setup_complete
-  exit 0  
-  EOH
-      notifies :restart, resources(:service => "cloudera-scm-server")
-    end
-  else
-    Chef::Log.info("CLOUDERAMANAGER : Cloudera Manager SQL setup already complete") if debug
-  end
-else
-  # Setup the postgresql configuration.
-  # This will only run if the db is uninitialized.
-  # Otherwise : returns 1 
-  # /var/lib/cloudera-scm-server-db/data is non-empty; perhaps the database was already initialized?
-  bash "cloudera-scm-server-db" do
-    code <<-EOH
+include_recipe 'clouderamanager::postgresql'
+
+# Setup the postgresql configuration. This is used to store CM
+# configuration information.
+# This will only run if the db is uninitialized, otherwise it returns 1. 
+# /var/lib/cloudera-scm-server-db/data is non-empty; perhaps the database
+# was already initialized?
+bash "cloudera-scm-server-db" do
+  code <<-EOH
 /etc/init.d/cloudera-scm-server-db initdb
 EOH
-    # Should only notify on initial creation only.
-    # notifies :restart, resources(:service => "cloudera-scm-server")
-    returns [0, 1] 
-  end
+  # Should only notify on initial creation only.
+  # notifies :restart, resources(:service => "cloudera-scm-server")
+  returns [0, 1] 
 end
 
 # Start the Cloudera Manager database service.
@@ -133,4 +91,4 @@ end
 #######################################################################
 # End of recipe
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:cm-server") if debug
+Chef::Log.info("CM - END clouderamanager:cm-server") if debug

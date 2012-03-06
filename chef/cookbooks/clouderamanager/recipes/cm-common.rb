@@ -21,7 +21,7 @@
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:cm-common") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:cm-common") if debug
 
 # Install the common Cloudera Manager packages (all nodes).
 pkg_list=%w{
@@ -38,4 +38,4 @@ end
 #######################################################################
 # End of recipe
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:cm-common") if debug
+Chef::Log.info("CM - END clouderamanager:cm-common") if debug

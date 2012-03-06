@@ -23,10 +23,6 @@
 
 default[:clouderamanager][:debug] = true
 
-# Cloudera Manager backing store.
-# use mysql or postgresal for CM back store (cloudera default - postgresal).
-default[:clouderamanager][:use_mysql] = false 
-
 # Crowbar configuration enviroment.
 default[:clouderamanager][:config] = {}
 default[:clouderamanager][:config][:environment] = "clouderamanager-config-default"
@@ -42,4 +38,3 @@ default[:clouderamanager][:hdfs][:dfs_base_dir] = "/mnt/hdfs"
 default[:clouderamanager][:hdfs][:dfs_data_dir] = []
 default[:clouderamanager][:devices] = []
 default[:clouderamanager][:mapred][:mapred_local_dir] = []
-

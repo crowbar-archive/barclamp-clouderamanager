@@ -21,7 +21,7 @@
 # Begin recipe transactions
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CLOUDERAMANAGER : BEGIN clouderamanager:postgresql") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:postgresql") if debug
 
 postgresql_list=%w{
     postgresql
@@ -37,28 +37,29 @@ end
 # postgresql {start|stop|status|restart|condrestart|try-restart|reload|force-reload|initdb}
 service "postgresql" do
   supports :start => true, :stop => true, :status => true, :restart => true
+  action :enable 
 end
 
 # Initialize the postgresql database.
 if !File.exists?("/var/lib/pgsql/data")
-  Chef::Log.info("CLOUDERAMANAGER : Initializing the postgresql database") if debug
+  Chef::Log.info("CM - Initializing the postgresql database") if debug
   bash "postgresql-initdb" do
     user "root"
     code <<-EOH
-      service postgresql initdb
+service postgresql initdb
   EOH
     notifies :restart, resources(:service => "postgresql")
   end
 else
-  Chef::Log.info("CLOUDERAMANAGER : postgresql database already initialized") if debug
+  Chef::Log.info("CM - postgresql database already initialized") if debug
 end
 
 # Start the postgresql service.
 service "postgresql" do
-  action [ :enable, :start ] 
+  action :start 
 end
 
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("CLOUDERAMANAGER : END clouderamanager:postgresql") if debug
+Chef::Log.info("CM - END clouderamanager:postgresql") if debug

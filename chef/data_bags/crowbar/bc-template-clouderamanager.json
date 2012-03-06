@@ -13,7 +13,8 @@
       "crowbar-revision": 0,
       "element_states": {
         "clouderamanager-webapp": [ "readying", "ready", "applying" ],
-        "clouderamanager-masternamenode": [ "readying", "ready", "applying" ],
+        "clouderamanager-mgmtservices": [ "readying", "ready", "applying" ],
+		"clouderamanager-masternamenode": [ "readying", "ready", "applying" ],
         "clouderamanager-secondarynamenode": [ "readying", "ready", "applying" ],
         "clouderamanager-slavenode": [ "readying", "ready", "applying" ],
         "clouderamanager-edgenode": [ "readying", "ready", "applying" ]
@@ -22,6 +23,7 @@
       "element_order": [
         [
           "clouderamanager-webapp",
+          "clouderamanager-mgmtservices",
           "clouderamanager-masternamenode",
           "clouderamanager-secondarynamenode",
           "clouderamanager-slavenode",

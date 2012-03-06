@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-slavenode.rb
+# Role: clouderamanager-mgmtservices.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -15,14 +15,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+#######################################################################
+# Role definition for Cloudera Management Services (Event Server,
+# Activity Monitor, Alert Publisher, Service Monitor and Resource Manager).
+# Requires installation of MYSQL and MYSQL JDBC connector.   
+#######################################################################
 
-name "clouderamanager-slavenode"
-description "Hadoop Slave Node Role"
+name "clouderamanager-mgmtservices"
+description "Cloudera Management Services"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::configure-disks]",
-  "recipe[clouderamanager::cm-client]"
+  "recipe[clouderamanager::cm-mgmtservices]"
 )
 default_attributes()
 override_attributes()
