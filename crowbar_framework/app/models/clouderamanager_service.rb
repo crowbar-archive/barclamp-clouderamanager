@@ -38,7 +38,7 @@ class ClouderamanagerService < ServiceObject
     # You need at least 3 nodes (secondary namenode, master namenode
     # and slavenode) to implement a baseline Hadoop framework. The edgenode
     # is added if the node count is 4 or higher. 
-    secondary = [ ]
+    admin = [ ]
     master = [ ]
     edge = [ ]
     slaves = [ ]
@@ -53,7 +53,7 @@ class ClouderamanagerService < ServiceObject
         next
       end
       if n.admin?
-        secondary << n[:fqdn] if n[:fqdn]
+        admin << n[:fqdn] if n[:fqdn]
         nodes.delete(n)
       end
     end
@@ -82,15 +82,23 @@ class ClouderamanagerService < ServiceObject
     # this can be changed by the user at proposal deployment time.
     base["deployment"]["clouderamanager"]["elements"] = { } 
     
+    if admin && !admin.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = admin 
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-mgmtservices"] = admin 
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = admin 
+    end
+    
     if master && !master.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master 
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = master 
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-mgmtservices"] = master 
     end    
     
-    base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = secondary if secondary && !secondary.empty? 
-    base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge if edge && !edge.empty?  
-    base["deployment"]["clouderamanager"]["elements"]["clouderamanager-slavenode"] = slaves if slaves && !slaves.empty?   
+    if edge && !edge.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge
+    end
+    
+    if slaves && !slaves.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-slavenode"] = slaves   
+    end
     
     # @logger.debug("clouderamanager create_proposal: #{base.to_json}")
     @logger.debug("clouderamanager create_proposal: exiting")
@@ -129,7 +137,7 @@ class ClouderamanagerService < ServiceObject
   def transition(inst, name, state)
     @logger.debug("Cloudera Manager transition: Adding Cloudera Management web application URL: #{name} for #{state}")
     
-    if state == "discovered"
+    if state == "discovered" 
       @logger.debug("Cloudera Manager transition: discovered state for #{name} for #{state}")
       
       # Set up the Cloudera Management web application URL.
@@ -152,13 +160,16 @@ class ClouderamanagerService < ServiceObject
         end
       end
       
+      node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
+      node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
+      
       if server_ip
         node = NodeObject.find_node_by_name(name)
-        node.crowbar["crowbar"] = {} if node.crowbar["crowbar"].nil?
-        node.crowbar["crowbar"]["links"] = {} if node.crowbar["crowbar"]["links"].nil?
         node.crowbar["crowbar"]["links"]["Cloudera Manager"] = "http://#{server_ip}:7180/cmf/login"
-        node.save
+      else
+        node.crowbar["crowbar"]["links"]["Cloudera Manager"] = nil
       end
+      node.save
       
       @logger.debug("Cloudera Manager transition: leaving from discovered state for #{name} for #{state}")
       a = [200, NodeObject.find_node_by_name(name).to_hash ]

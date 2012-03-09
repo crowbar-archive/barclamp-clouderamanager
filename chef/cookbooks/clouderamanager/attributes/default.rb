@@ -33,6 +33,7 @@ default[:clouderamanager][:cluster][:master_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:secondary_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:edge_nodes] = [ ]
 default[:clouderamanager][:cluster][:slave_nodes] = [ ]
+default[:clouderamanager][:cluster][:mgmt_service_nodes] = [ ]
 
 default[:clouderamanager][:hdfs][:dfs_base_dir] = "/mnt/hdfs"
 default[:clouderamanager][:hdfs][:dfs_data_dir] = []

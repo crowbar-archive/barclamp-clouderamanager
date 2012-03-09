@@ -112,7 +112,7 @@ if slave_nodes.length == 0
 end
 
 if debug
-  Chef::Log.info("CM - MASTER_NAME_NODES    {" + node[:clouderamanager][:cluster][:master_name_nodes] .join(",") + "}")
+  Chef::Log.info("CM - MASTER_NAME_NODES    {" + node[:clouderamanager][:cluster][:master_name_nodes].join(",") + "}")
   Chef::Log.info("CM - SECONDARY_NAME_NODES {" + node[:clouderamanager][:cluster][:secondary_name_nodes].join(",") + "}")
   Chef::Log.info("CM - EDGE_NODES           {" + node[:clouderamanager][:cluster][:edge_nodes].join(",") + "}")
   Chef::Log.info("CM - SLAVE_NODES          {" + node[:clouderamanager][:cluster][:slave_nodes].join(",") + "}")
