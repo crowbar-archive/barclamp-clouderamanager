@@ -22,7 +22,12 @@ barclamp:
   requires:
     - @crowbar
   member:
-    - clouderamanager
+    - hadoop
+  supercedes:
+    - hadoop
+    - zookeeper
+    - hive
+    - pig
 
 crowbar:
   layout: 1
