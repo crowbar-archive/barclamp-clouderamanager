@@ -70,6 +70,10 @@ rpms:
     repos:
       - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/6/x86_64/cloudera-manager/3/
       - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/6/x86_64/cdh/3/
+  centos-6.2:
+    repos:
+      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/6/x86_64/cloudera-manager/3/
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/6/x86_64/cdh/3/
   pkgs:
     # CDH3U2 packages
     - hadoop-0.20
