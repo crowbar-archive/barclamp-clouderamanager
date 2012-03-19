@@ -17,12 +17,12 @@
 
 barclamp:
   name: clouderamanager
-  display: Hadoop - Cloudera Manager
+  display: clouderamanager
   version: 0
   requires:
     - @crowbar
   member:
-    - hadoop
+    - clouderamanager
   supercedes:
     - hadoop
     - zookeeper
