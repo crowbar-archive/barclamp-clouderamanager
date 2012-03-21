@@ -14,7 +14,31 @@
           "mapping": {
             "debug":  { "type": "bool", "required": true},
             "admin_ip_eval": { "type": "str", "required": true },
-            "admin_interface_eval": { "type": "str", "required": true }
+            "admin_interface_eval": { "type": "str", "required": true },
+            "os": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "mapred_openfiles": { "type": "str", "required": true},
+                "hdfs_openfiles": { "type": "str", "required": true},
+                "hbase_openfiles": { "type": "str", "required": true}
+              }  
+            },
+            "database": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "sm_db_name": { "type": "str", "required": true},
+                "sm_db_user": { "type": "str", "required": true},
+                "sm_db_pass": { "type": "str", "required": true},
+                "am_db_name": { "type": "str", "required": true},
+                "am_db_user": { "type": "str", "required": true},
+                "am_db_pass": { "type": "str", "required": true},
+                "rm_db_name": { "type": "str", "required": true},
+                "rm_db_user": { "type": "str", "required": true},
+                "rm_db_pass": { "type": "str", "required": true}
+              }  
+            }
           } 
         }
       }

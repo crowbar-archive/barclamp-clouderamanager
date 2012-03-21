@@ -16,8 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #######################################################################
-# Role definition for Cloudera Management Services (Event Server,
-# Activity Monitor, Alert Publisher, Service Monitor and Resource Manager).
+# Role definition for Cloudera Management Services parameters
+# (service_monitor, activity_monitor and resource_manager).
 # Requires installation of MYSQL and MYSQL JDBC connector.   
 #######################################################################
 
@@ -45,8 +45,6 @@ end
 # Create the management service databases.
 if !File.exists?("/usr/share/cmf/config/scm-monitoring-databases")
   Chef::Log.info("CM - Creating activity monitor databases") if debug
-  
-  # Setup the mysql configuration.
   bash "scm-monitoring-databases" do
     user "root"
     code <<-EOH
@@ -66,8 +64,6 @@ end
 # Grant permissions for local host.
 if !File.exists?("/usr/share/cmf/config/scm-config-localhost")
   Chef::Log.info("CM - Configuring management services local hosts") if debug
-  
-  # Setup the mysql configuration.
   bash "scm-config-localhost" do
     user "root"
     code <<-EOH
@@ -86,11 +82,19 @@ end
 mgmt_service_fqdns = node[:clouderamanager][:cluster][:mgmt_service_nodes] 
 Chef::Log.info("CM - Management service nodes {" + mgmt_service_fqdns.join(",") + "}") if debug 
 
+fqdn = ""
+if mgmt_service_fqdns and mgmt_service_fqdns.length > 0
+  fqdn = mgmt_service_fqdns[0]
+end
+node[:clouderamanager][:database][:sm_db_host] = fqdn
+node[:clouderamanager][:database][:am_db_host]  = fqdn
+node[:clouderamanager][:database][:rm_db_host] = fqdn
+node.save
+
 if !File.exists?("/usr/share/cmf/config/scm-config-hosts")
   Chef::Log.info("CM - Configuring management services hosts") if debug
-  if mgmt_service_fqdns and mgmt_service_fqdns.length > 0
-    Chef::Log.info("CM - Management service nodes {" + mgmt_service_fqdns.join(",") + "}")
-    fqdn = mgmt_service_fqdns[0]
+  if !fqdn.empty? 
+    Chef::Log.info("CM - Management service node [#{fqdn}]")
     bash "scm-config-hosts" do
       user "root"
       code <<-EOH

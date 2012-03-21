@@ -39,37 +39,27 @@ pkg_list.each do |pkg|
 end
 
 # Find the management services nodes. 
-mgmt_service_nodes = []
+webapp_service_fqdns = []
+search(:node, "roles:clouderamanager-webapp#{env_filter}") do |obj|
+  if obj[:fqdn] and !obj[:fqdn].empty?
+    webapp_service_fqdns << obj[:fqdn]
+  end
+end
+
+Chef::Log.info("CM - Cloudera manager webapp nodes {" + webapp_service_fqdns.join(",") + "}") if debug 
+node[:clouderamanager][:cluster][:webapp_service_nodes] = webapp_service_fqdns
+
+# Find the management services nodes. 
 mgmt_service_fqdns = []
 search(:node, "roles:clouderamanager-mgmtservices#{env_filter}") do |obj|
-  if obj
-    mgmt_service_nodes << obj
-    if obj[:fqdn] and !obj[:fqdn].empty?
-      mgmt_service_fqdns << obj[:fqdn]
-    end
+  if obj[:fqdn] and !obj[:fqdn].empty?
+    mgmt_service_fqdns << obj[:fqdn]
   end
 end
 
-Chef::Log.info("CM - Management service nodes {" + mgmt_service_fqdns.join(",") + "}") if debug 
+Chef::Log.info("CM - Cloudera management service nodes {" + mgmt_service_fqdns.join(",") + "}") if debug 
 node[:clouderamanager][:cluster][:mgmt_service_nodes] = mgmt_service_fqdns
 
-if mgmt_service_nodes and mgmt_service_nodes.length > 0
-  obj = mgmt_service_nodes[0]
-  server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(obj,"public").address
-  if server_ip.nil? or server_ip.empty?
-    server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(obj,"admin").address
-  end  
-  Chef::Log.info("CM - Management server IP [#{server_ip}]") if debug
-  node[:crowbar] = {} if node[:crowbar].nil? 
-  node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-  if server_ip
-    node[:crowbar][:links]["Cloudera Manager"] = "http://#{server_ip}:7180/cmf/login" 
-  else
-    node[:crowbar][:links].delete("Cloudera Manager")
-  end
-else
-  node[:crowbar][:links].delete("Cloudera Manager")
-end
 node.save
 
 #######################################################################

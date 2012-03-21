@@ -5,7 +5,23 @@
     "clouderamanager": {
       "debug": true,
 	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
-      "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface"
+      "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
+      "os": {
+          "mapred_openfiles": "32768",
+          "hdfs_openfiles": "32768",
+          "hbase_openfiles": "32768"
+      },
+	  "database": {
+          "sm_db_name": "service_monitor",
+          "sm_db_user": "scm",
+          "sm_db_pass": "crowbar",
+          "am_db_name": "activity_monitor",
+          "am_db_user": "scm",
+          "am_db_pass": "crowbar",
+          "rm_db_name": "resource_manager",
+          "rm_db_user": "scm",
+          "rm_db_pass": "crowbar"
+      }
     }
   },
   "deployment": {

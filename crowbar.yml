@@ -46,10 +46,26 @@ locale_additions:
       clouderamanager: Cloudera Manager
     barclamp:
       clouderamanager:
-        edit_attributes:
-          attributes: Attributes
         edit_deployment: 
           deployment: Deployment        
+        edit_attributes:
+          attributes: Proposal Attributes
+          os_limits: Open File Handles
+          mapred_openfiles: Map/Reduce
+          hdfs_openfiles: HDFS
+          hbase_openfiles: HBASE 
+          service_monitor_attributes: Service Monitor
+          sm_db_name: Database Name
+          sm_db_user: Database User
+          sm_db_pass: Database Password  
+          activity_monitor_attributes: Activity Monitor
+          am_db_name: Database Name
+          am_db_user: Database User
+          am_db_pass: Database Password  
+          resource_manager_attributes: Resource Manager
+          rm_db_name: Database Name
+          rm_db_user: Database User
+          rm_db_pass: Database Password
         index:
           barclamp: Project
           state: Status

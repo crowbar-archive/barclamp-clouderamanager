@@ -25,6 +25,9 @@ include_recipe 'clouderamanager::cm-common'
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:cm-server") if debug
 
+# Configuration filter for our crowbar environment.
+env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
+
 # Install the Cloudera Manager server packages.
 pkg_list=%w{
     cloudera-manager-daemons
@@ -86,6 +89,33 @@ end
 # Start the Cloudera Manager server service.
 service "cloudera-scm-server" do
   action :start 
+end
+
+# Find the Cloudera web application node and add the UI link. 
+webapp_service_nodes = []
+search(:node, "roles:clouderamanager-webapp#{env_filter}") do |obj|
+  webapp_service_nodes << obj if obj and obj[:fqdn] and !obj[:fqdn].empty?
+end
+
+# Add the cloudera manager link to the crowbar UI.
+Chef::Log.info("CM - Found cloudera manager web application {" + webapp_service_nodes[0][:fqdn] + "}") if debug 
+if webapp_service_nodes and webapp_service_nodes.length > 0
+  obj = webapp_service_nodes[0]
+  server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(obj,"public").address
+  if server_ip.nil? or server_ip.empty?
+    server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(obj,"admin").address
+  end  
+  node[:crowbar] = {} if node[:crowbar].nil? 
+  node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
+  if server_ip
+    url = "http://#{server_ip}:7180/cmf/login" 
+    Chef::Log.info("CM - Cloudera management services URL [#{url}]") if debug 
+    node[:crowbar][:links]["Cloudera Manager"] = url 
+  else
+    node[:crowbar][:links].delete("Cloudera Manager")
+  end
+else
+  node[:crowbar][:links].delete("Cloudera Manager")
 end
 
 #######################################################################

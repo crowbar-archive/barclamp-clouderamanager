@@ -47,8 +47,16 @@
 # ftp             hard    nproc           0
 # @student        -       maxlogins       4
 
-mapred          -       nofile          32768
-hdfs            -       nofile          32768
-hbase           -       nofile          32768
+<% if @node[:clouderamanager][:os][:mapred_openfiles] && !@node[:clouderamanager][:os][:mapred_openfiles].empty? %>
+mapred          -       nofile          <%= node[:clouderamanager][:os][:mapred_openfiles] %>
+<% end %>
+
+<% if @node[:clouderamanager][:os][:hdfs_openfiles] && !@node[:clouderamanager][:os][:hdfs_openfiles].empty? %>
+hdfs            -       nofile          <%= node[:clouderamanager][:os][:hdfs_openfiles] %>
+<% end %>
+
+<% if @node[:clouderamanager][:os][:hbase_openfiles] && !@node[:clouderamanager][:os][:hbase_openfiles].empty? %>
+hbase           -       nofile          <%= node[:clouderamanager][:os][:hbase_openfiles] %>
+<% end %>
 
 # End of file

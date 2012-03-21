@@ -44,8 +44,8 @@ end
 
 # Find the master name nodes (there should only be one). 
 keys = {}
-master_name_nodes = Array.new
-master_name_node_objects = Array.new
+master_name_nodes = []
+master_name_node_objects = []
 search(:node, "roles:clouderamanager-masternamenode#{env_filter}") do |nmas|
   if !nmas[:fqdn].nil? && !nmas[:fqdn].empty?
     Chef::Log.info("CM - MASTER [#{nmas[:fqdn]}") if debug
@@ -64,8 +64,8 @@ elsif master_name_nodes.length > 1
 end
 
 # Find the secondary name nodes (there should only be one). 
-secondary_name_nodes = Array.new
-secondary_name_node_objects = Array.new
+secondary_name_nodes = []
+secondary_name_node_objects = []
 search(:node, "roles:clouderamanager-secondarynamenode#{env_filter}") do |nsec|
   if !nsec[:fqdn].nil? && !nsec[:fqdn].empty?
     Chef::Log.info("CM - SECONDARY [#{nsec[:fqdn]}") if debug
@@ -84,7 +84,7 @@ elsif secondary_name_nodes.length > 1
 end
 
 # Find the edge nodes. 
-edge_nodes = Array.new
+edge_nodes = []
 search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |nedge|
   if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
     Chef::Log.info("CM - EDGE [#{nedge[:fqdn]}") if debug
@@ -96,7 +96,7 @@ node[:clouderamanager][:cluster][:edge_nodes] = edge_nodes
 
 # Find the slave nodes. 
 Chef::Log.info("CM - env filter [#{env_filter}]") if debug
-slave_nodes = Array.new
+slave_nodes = []
 search(:node, "roles:clouderamanager-slavenode#{env_filter}") do |nslave|
   if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
     Chef::Log.info("CM - SLAVE [#{nslave[:fqdn]}") if debug
