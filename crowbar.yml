@@ -17,7 +17,7 @@
 
 barclamp:
   name: clouderamanager
-  display: clouderamanager
+  display: Cloudera Manager for Apache Hadoop
   version: 0
   requires:
     - @crowbar
@@ -34,16 +34,13 @@ crowbar:
   chef_order: 200
 
 nav:
-  barclamps:
-    clouderamanager: index_barclamp_path(:controller=>'clouderamanager')
   help:
-    clouderamanager_ug: '"/hadoop_users_guide.pdf", { :link => { :target => "_blank" } }'
+    clouderamanager_ug: '"/cloudera_manager_guide.pdf", { :link => { :target => "_blank" } }'
     
 locale_additions:
   en:
     nav:
       clouderamanager_ug: Cloudera Manager
-      clouderamanager: Cloudera Manager
     barclamp:
       clouderamanager:
         edit_deployment: 
