@@ -1,0 +1,24 @@
+%p{:style => 'float:right'}
+  = link_to t('.export'), nodes_barclamp_path(:controller=>'dell', :format=>'text'), :class => 'button'
+%h1= t('.title')
+%table.data.box
+  %thead
+    %tr
+      %th= t('.name')
+      %th= t('.ip_addr')
+      %th= t('.cb_role')
+      %th= t('.cm_role')
+      %th= t('.cpu')
+      %th= t('.ram')
+      %th= t('.drives')
+  %tbody
+    - @nodes.sort_by{|n| n.alias }.each do |node|
+      %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+        %td= link_to node.name, node_path(node.handle)
+        %td= node.ip
+        %td= node.roles.find_all {|r| r.include? "cloudera" }.collect {|x| x+", "}
+        %td= "bar"
+        %td= node.cpu
+        %td= format_memory(node.memory)
+        %td= node.number_of_drives
+
