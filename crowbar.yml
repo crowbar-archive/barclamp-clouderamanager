@@ -80,6 +80,12 @@ locale_additions:
           cpu: CPU
           ram: RAM
           drives: Drives
+          edge_node: Cloudera Edge Node
+          master_name_node: Cloudera Master Name Node
+          management_node: Cloudera Management Node
+          secondary_name_node: Cloudera Secondary Name Node
+          web_app_node: Cloudera Web App Node
+          slave_nodes: Cloudera Slave Nodes
 
 
 rpms:
