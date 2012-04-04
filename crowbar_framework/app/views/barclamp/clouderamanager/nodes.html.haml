@@ -1,23 +1,111 @@
 %p{:style => 'float:right'}
   = link_to t('.export'), nodes_barclamp_path(:controller=>'dell', :format=>'text'), :class => 'button'
 %h1= t('.title')
+
+%h4= t('.edge_node')
 %table.data.box
   %thead
     %tr
-      %th= t('.name')
       %th= t('.ip_addr')
-      %th= t('.cb_role')
-      %th= t('.cm_role')
+      %th= t('.name')
       %th= t('.cpu')
       %th= t('.ram')
       %th= t('.drives')
   %tbody
-    - @nodes.sort_by{|n| n.alias }.each do |node|
+    - @cmedgenodes.sort_by{|n| n.alias }.each do |node|
       %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
-        %td= link_to node.name, node_path(node.handle)
         %td= node.ip
-        %td= node.roles.find_all {|r| r.include? "cloudera" }.collect {|x| x+", "}
-        %td= "bar"
+        %td= link_to node.name, node_path(node.handle)
+        %td= node.cpu
+        %td= format_memory(node.memory)
+        %td= node.number_of_drives
+
+%h4=t('.master_name_node')
+%table.data.box
+  %thead
+    %tr
+      %th= t('.ip_addr')
+      %th= t('.name')
+      %th= t('.cpu')
+      %th= t('.ram')
+      %th= t('.drives')
+  %tbody
+    - @cmmasternamenodes.sort_by{|n| n.alias }.each do |node|
+      %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+        %td= node.ip
+        %td= link_to node.name, node_path(node.handle)
+        %td= node.cpu
+        %td= format_memory(node.memory)
+        %td= node.number_of_drives
+
+%h4= t('.management_node')
+%table.data.box
+  %thead
+    %tr
+      %th= t('.ip_addr')
+      %th= t('.name')
+      %th= t('.cpu')
+      %th= t('.ram')
+      %th= t('.drives')
+  %tbody
+    - @cmmgmtnamenodes.sort_by{|n| n.alias }.each do |node|
+      %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+        %td= node.ip
+        %td= link_to node.name, node_path(node.handle)
+        %td= node.cpu
+        %td= format_memory(node.memory)
+        %td= node.number_of_drives
+
+%h4= t('.secondary_name_node')
+%table.data.box
+  %thead
+    %tr
+      %th= t('.ip_addr')
+      %th= t('.name')
+      %th= t('.cpu')
+      %th= t('.ram')
+      %th= t('.drives')
+  %tbody
+    - @cmsecondarynamenodenamenodes.sort_by{|n| n.alias }.each do |node|
+      %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+        %td= node.ip
+        %td= link_to node.name, node_path(node.handle)
+        %td= node.cpu
+        %td= format_memory(node.memory)
+        %td= node.number_of_drives
+
+%h4= t('.web_app_node')
+%table.data.box
+  %thead
+    %tr
+      %th= t('.ip_addr')
+      %th= t('.name')
+      %th= t('.cpu')
+      %th= t('.ram')
+      %th= t('.drives')
+  %tbody
+    - @cmwebappnodes.sort_by{|n| n.alias }.each do |node|
+      %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+        %td= node.ip
+        %td= link_to node.name, node_path(node.handle)
+        %td= node.cpu
+        %td= format_memory(node.memory)
+        %td= node.number_of_drives
+
+%h4=t('.slave_nodes')
+%table.data.box
+  %thead
+    %tr
+      %th= t('.ip_addr')
+      %th= t('.name')
+      %th= t('.cpu')
+      %th= t('.ram')
+      %th= t('.drives')
+  %tbody
+    - @cmslavenodes.sort_by{|n| n.alias }.each do |node|
+      %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+        %td= node.ip
+        %td= link_to node.name, node_path(node.handle)
         %td= node.cpu
         %td= format_memory(node.memory)
         %td= node.number_of_drives
