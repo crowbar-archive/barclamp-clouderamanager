@@ -144,7 +144,7 @@ rpms:
     - cloudera-manager-agent
     - hue-hadoop-auth-plugin
     - hue-oozie-auth-plugin
-    # sql packages
+    # SQL packages
     - mysql-server
     - postgresql
     - postgresql-server

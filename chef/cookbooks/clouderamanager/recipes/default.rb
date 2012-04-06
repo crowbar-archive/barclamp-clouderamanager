@@ -118,7 +118,7 @@ if debug
   Chef::Log.info("CM - SLAVE_NODES          {" + node[:clouderamanager][:cluster][:slave_nodes].join(",") + "}")
 end
 
-# Add hadoop nodes to ssh authorized key file 
+# Add hadoop nodes to ssh authorized key file. 
 keys.each do |k,v|
   unless v.nil?
     node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?

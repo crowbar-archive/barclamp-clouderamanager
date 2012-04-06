@@ -41,14 +41,14 @@ service "postgresql" do
 end
 
 # Initialize the postgresql database.
-if !File.exists?("/var/lib/pgsql/data")
+if !File.exists?("/var/lib/pgsql/data/PG_VERSION")
   Chef::Log.info("CM - Initializing the postgresql database") if debug
   bash "postgresql-initdb" do
     user "root"
     code <<-EOH
 service postgresql initdb
+exit 0  
   EOH
-    notifies :restart, resources(:service => "postgresql")
   end
 else
   Chef::Log.info("CM - postgresql database already initialized") if debug

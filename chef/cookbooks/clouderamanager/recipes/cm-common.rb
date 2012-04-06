@@ -29,6 +29,7 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 # Install the common Cloudera Manager packages (all nodes).
 pkg_list=%w{
     cloudera-manager-plugins
+    hue-plugins
     hue-hadoop-auth-plugin
   }
 

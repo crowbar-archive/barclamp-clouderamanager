@@ -25,6 +25,9 @@ include_recipe 'clouderamanager::cm-common'
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:cm-client") if debug
 
+# Configuration filter for our crowbar environment.
+env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
+
 # Install the Cloudera client packages.
 pkg_list=%w{
  cloudera-manager-agent
@@ -38,11 +41,16 @@ pkg_list.each do |pkg|
   end
 end
 
-# Start the cloudera agent service.
+# Define the cloudera agent service.
 # /etc/init.d/cloudera-manager-agent {start|stop|restart|status}
 service "cloudera-scm-agent" do
   supports :start => true, :stop => true, :restart => true, :status => true 
-  action [:enable, :start] 
+  action :enable 
+end
+
+# Start the cloudera agent service.
+service "cloudera-scm-agent" do
+  action :start 
 end
 
 #######################################################################
