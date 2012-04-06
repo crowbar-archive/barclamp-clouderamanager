@@ -21,5 +21,17 @@ class ClouderamanagerController < BarclampController
   def initialize
     @service_object = ClouderamanagerService.new logger
   end
+
+  def nodes
+    nodeswithroles= NodeObject.all.find_all{ |n| n.roles != nil}
+    @cmedgenodes                    = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-edgenode" )}
+    @cmmasternamenodes              = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-masternamenode" )}
+    @cmmgmtnamenodes                = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-mgmtservices" )}
+    @cmsecondarynamenodenamenodes   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-secondarynamenode" )}
+    @cmslavenodes                   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-slavenode" )}
+    @cmwebappnodes                  = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-webapp" )}
+    render :template => 'barclamp/clouderamanager/nodes'
+  end
+
 end
 

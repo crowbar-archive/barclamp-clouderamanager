@@ -69,6 +69,24 @@ locale_additions:
           proposal: Proposal
           description: Provides end-to-end management for Apache Hadoop with the ability to deploy and centrally operate a complete Hadoop stack. Gives you a cluster wide, real time view of nodes and services running and provides a single central place to enact configuration changes across your cluster. Cloudera Manager incorporates a full range of reporting and diagnostic tools to help you optimize cluster performance and utilization.
           instructions: Apply proposals in order from top to bottom. Allow each proposal to enter ready state before applying the next one.
+        nodes:
+          export: Export to CSV
+          title: Cloudera Node Inventory
+          name: Name
+          cb_role: Crowbar Role
+          cm_role: Cloudera Manager Role
+          ip_addr: IP Address
+          alias: Alias
+          cpu: CPU
+          ram: RAM
+          drives: Drives
+          edge_node: Cloudera Edge Node
+          master_name_node: Cloudera Master Name Node
+          management_node: Cloudera Management Node
+          secondary_name_node: Cloudera Secondary Name Node
+          web_app_node: Cloudera Web App Node
+          slave_nodes: Cloudera Slave Nodes
+
 
 rpms:
   redhat-5.7:
@@ -155,3 +173,7 @@ build_cmd: build-jdk.sh
 
 smoketest:
   timeout: 900
+
+git:
+  date: Sat Mar 24 13:09:33 2012 -0700
+  commit: 577fb16cdd0469657b9e9a33d40114ebec907899
