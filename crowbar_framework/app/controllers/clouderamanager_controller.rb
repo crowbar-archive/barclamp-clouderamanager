@@ -28,9 +28,35 @@ class ClouderamanagerController < BarclampController
     @cmmasternamenodes              = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-masternamenode" )}
     @cmmgmtnamenodes                = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-mgmtservices" )}
     @cmsecondarynamenodenamenodes   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-secondarynamenode" )}
-    @cmslavenodes                   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-slavenode" )}
     @cmwebappnodes                  = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-webapp" )}
-    render :template => 'barclamp/clouderamanager/nodes'
+    @cmslavenodes                   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-slavenode" )}
+
+    respond_to do |format|
+      format.html { render :template => 'barclamp/clouderamanager/nodes' }
+      format.text {
+        export = ["role, ip, name, cpu, ram, drives"]
+        @cmedgenodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.edge_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
+        @cmmasternamenodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.master_name_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
+        @cmmgmtnamenodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.management_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
+        @cmsecondarynamenodenamenodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.secondary_name_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
+        @cmwebappnodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.web_app_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
+        @cmslavenodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.slave_nodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
+        headers["Content-Disposition"] = "attachment; filename=\"#{I18n.t('nodes.dell.nodes.filename', :default=>'cloudera_inventory.txt')}\""
+        render :text => export.join("\n"), :content_type => 'application/text'
+      }
+    end
   end
 
 end
