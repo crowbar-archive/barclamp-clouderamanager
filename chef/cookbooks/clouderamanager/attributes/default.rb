@@ -37,8 +37,12 @@ default[:clouderamanager][:cluster][:slave_nodes] = [ ]
 default[:clouderamanager][:cluster][:webapp_service_nodes] = []
 default[:clouderamanager][:cluster][:mgmt_service_nodes] = [ ]
 
-# Cloudera Management Services parameters (service_monitor,
-# activity_monitor and resource_manager).
+# Cloudera Management Services parameters (service_monitor, activity_monitor
+# and resource_manager).
+
+default[:clouderamanager][:database][:mysql_admin_user] = "root"
+default[:clouderamanager][:database][:mysql_admin_pass] = "crowbar"
+
 default[:clouderamanager][:database][:sm_db_host] = ""
 default[:clouderamanager][:database][:sm_db_name] = "service_monitor"
 default[:clouderamanager][:database][:sm_db_user] = "scm"
@@ -64,6 +68,4 @@ default[:clouderamanager][:hdfs][:dfs_base_dir] = "/mnt/hdfs"
 default[:clouderamanager][:hdfs][:dfs_data_dir] = []
 default[:clouderamanager][:devices] = []
 default[:clouderamanager][:mapred][:mapred_local_dir] = []
-
-
 

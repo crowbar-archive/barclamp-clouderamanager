@@ -113,12 +113,12 @@ found_disks.each { |disk|
     # Grab its UUID and create a mount point.
     disk[:uuid]=get_uuid disk[:name]
     Chef::Log.info("CM - Adding #{disk[:name]} (#{disk[:uuid]}) to the Hadoop configuration.")
-    disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
+    disk[:mount_point]="#{dfs_base_dir}/#{disk[:uuid]}"
     ::Kernel.system("mkdir -p #{disk[:mount_point]}")
   elsif disk[:uuid]
     # This filesystem already existed.
     # If we did not create a mountpoint for it, print a warning and skip it.
-    disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
+    disk[:mount_point]="#{dfs_base_dir}/#{disk[:uuid]}"
     unless ::File.exists?(disk[:mount_point]) and ::File.directory?(disk[:mount_point])
       Chef::Log.warn("CM - #{disk[:name]} (#{disk[:uuid]}) was not created by configure-disks, ignoring.")
       Chef::Log.warn("CM - If you want to use this disk, please erase any data on it and zero the partition information.")

@@ -16,9 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #######################################################################
-# Role definition for Cloudera Management Services parameters
+# Recipe definition for Cloudera Management Services
 # (service_monitor, activity_monitor and resource_manager).
-# Requires installation of MYSQL and MYSQL JDBC connector.   
 #######################################################################
 
 include_recipe 'clouderamanager::cm-common'
@@ -35,6 +34,22 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 # Install mysql for cloudera managements services.
 include_recipe 'clouderamanager::mysql'
 
+# CM db config parameters from crowbar config.
+mysql_admin_user = node[:clouderamanager][:database][:mysql_admin_user]
+mysql_admin_pass = node[:clouderamanager][:database][:mysql_admin_pass]
+
+sm_db_name = node[:clouderamanager][:database][:sm_db_name] 
+sm_db_user = node[:clouderamanager][:database][:sm_db_user] 
+sm_db_pass = node[:clouderamanager][:database][:sm_db_pass] 
+
+am_db_name = node[:clouderamanager][:database][:am_db_name] 
+am_db_user = node[:clouderamanager][:database][:am_db_user]
+am_db_pass = node[:clouderamanager][:database][:am_db_pass]
+
+rm_db_name = node[:clouderamanager][:database][:rm_db_name]
+rm_db_user = node[:clouderamanager][:database][:rm_db_user]
+rm_db_pass = node[:clouderamanager][:database][:rm_db_pass]
+
 directory "/usr/share/cmf/config" do
   owner "root"
   group "root"
@@ -43,17 +58,17 @@ directory "/usr/share/cmf/config" do
 end
 
 # Create the management service databases.
-if !File.exists?("/usr/share/cmf/config/scm-monitoring-databases")
+if !File.exists?("/usr/share/cmf/config/scm-config-database")
   Chef::Log.info("CM - Creating activity monitor databases") if debug
-  bash "scm-monitoring-databases" do
+  bash "scm-config-database" do
     user "root"
     code <<-EOH
-mysqladmin -u root password 'crowbar'
-mysqladmin -u root -h $(hostname) password 'crowbar'
-mysql --user=root --password=crowbar -e "create database activity_monitor;"
-mysql --user=root --password=crowbar -e "create database service_monitor;"
-mysql --user=root --password=crowbar -e "create database resource_manager;"
-touch /usr/share/cmf/config/scm-monitoring-databases
+mysqladmin -u #{mysql_admin_user} password '#{mysql_admin_pass}'
+mysqladmin -u #{mysql_admin_user} -h $(hostname) password '#{mysql_admin_pass}'
+mysql --user=#{mysql_admin_user} --password=#{mysql_admin_pass} -e "create database #{sm_db_name};"
+mysql --user=#{mysql_admin_user} --password=#{mysql_admin_pass} -e "create database #{am_db_name};"
+mysql --user=#{mysql_admin_user} --password=#{mysql_admin_pass} -e "create database #{rm_db_name};"
+touch /usr/share/cmf/config/scm-config-database
 exit 0  
   EOH
   end
@@ -61,24 +76,7 @@ else
   Chef::Log.info("CM - Activity monitor databases already created") if debug
 end
 
-# Grant permissions for local host.
-if !File.exists?("/usr/share/cmf/config/scm-config-localhost")
-  Chef::Log.info("CM - Configuring management services local hosts") if debug
-  bash "scm-config-localhost" do
-    user "root"
-    code <<-EOH
-mysql --user=root --password=crowbar -e "grant all on activity_monitor.* TO 'scm'@'localhost' identified by 'crowbar';"
-mysql --user=root --password=crowbar -e "grant all on service_monitor.* TO 'scm'@'localhost' identified by 'crowbar';"
-mysql --user=root --password=crowbar -e "grant all on resource_manager.* TO 'scm'@'localhost' identified by 'crowbar';"
-touch /usr/share/cmf/config/scm-config-localhost
-exit 0  
-  EOH
-  end
-else
-  Chef::Log.info("CM - Management services local hosts already configured") if debug
-end
-
-# Grant permissions for specific role host.
+# Grant permissions for specific role hosts.
 mgmt_service_fqdns = node[:clouderamanager][:cluster][:mgmt_service_nodes] 
 Chef::Log.info("CM - Management service nodes {" + mgmt_service_fqdns.join(",") + "}") if debug 
 
@@ -98,9 +96,9 @@ if !File.exists?("/usr/share/cmf/config/scm-config-hosts")
     bash "scm-config-hosts" do
       user "root"
       code <<-EOH
-mysql --user=root --password=crowbar -e "grant all on activity_monitor.* TO 'scm'@'#{fqdn}' identified by 'crowbar';"
-mysql --user=root --password=crowbar -e "grant all on service_monitor.* TO 'scm'@'#{fqdn}' identified by 'crowbar';"
-mysql --user=root --password=crowbar -e "grant all on resource_manager.* TO 'scm'@'#{fqdn}' identified by 'crowbar';"
+mysql --user=#{mysql_admin_user} --password=#{mysql_admin_pass} -e "grant all on #{sm_db_name}.* TO '#{sm_db_user}'@'#{fqdn}' identified by '#{mysql_admin_pass}';"
+mysql --user=#{mysql_admin_user} --password=#{mysql_admin_pass} -e "grant all on #{am_db_name}.* TO '#{am_db_user}'@'#{fqdn}' identified by '#{mysql_admin_pass}';"
+mysql --user=#{mysql_admin_user} --password=#{mysql_admin_pass} -e "grant all on #{rm_db_name}.* TO '#{rm_db_user}'@'#{fqdn}' identified by '#{mysql_admin_pass}';"
 touch /usr/share/cmf/config/scm-config-hosts
 exit 0  
   EOH
