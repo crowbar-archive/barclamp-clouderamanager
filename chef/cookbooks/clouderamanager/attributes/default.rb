@@ -64,7 +64,7 @@ default[:clouderamanager][:os][:hdfs_openfiles] = "32768"
 default[:clouderamanager][:os][:hbase_openfiles] = "32768"
 
 # HDFS related parameters.
-default[:clouderamanager][:hdfs][:dfs_base_dir] = "/mnt/hdfs"
+default[:clouderamanager][:hdfs][:dfs_base_dir] = "/data"
 default[:clouderamanager][:hdfs][:dfs_data_dir] = []
 default[:clouderamanager][:devices] = []
 default[:clouderamanager][:mapred][:mapred_local_dir] = []

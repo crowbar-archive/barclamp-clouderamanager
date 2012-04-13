@@ -21,7 +21,7 @@ name "clouderamanager-masternamenode"
 description "Hadoop Master Name Node Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-client]"
+  "recipe[clouderamanager::cm-masternamenode]"
 )
 default_attributes()
 override_attributes()

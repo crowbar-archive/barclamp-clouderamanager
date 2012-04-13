@@ -22,7 +22,7 @@ description "Hadoop Slave Node Role"
 run_list(
   "recipe[clouderamanager::default]",
   "recipe[clouderamanager::configure-disks]",
-  "recipe[clouderamanager::cm-client]"
+  "recipe[clouderamanager::cm-slavenode]"
 )
 default_attributes()
 override_attributes()
