@@ -40,7 +40,7 @@ nav:
 locale_additions:
   en:
     nav:
-      clouderamanager_ug: Cloudera Manager
+      clouderamanager_ug: Apache Hadoop
     barclamp:
       clouderamanager:
         edit_deployment: 
