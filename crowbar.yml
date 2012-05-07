@@ -35,12 +35,14 @@ crowbar:
 
 nav:
   help:
-    clouderamanager_ug: '"/cloudera_manager_guide.pdf", { :link => { :target => "_blank" } }'
+    clouderamanager_ug: '"/dell_cloudera_apache_hadoop_users_guide.pdf", { :link => { :target => "_blank" } }'
+    clouderamanager_dg: '"/dell_cloudera_apache_hadoop_deployment_guide.pdf", { :link => { :target => "_blank" } }'
     
 locale_additions:
   en:
     nav:
-      clouderamanager_ug: Apache Hadoop
+      clouderamanager_ug: Apache Hadoop Users
+      clouderamanager_dg: Apache Hadoop Deployment
     barclamp:
       clouderamanager:
         edit_deployment: 
