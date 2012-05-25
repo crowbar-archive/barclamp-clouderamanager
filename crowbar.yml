@@ -93,14 +93,14 @@ locale_additions:
 rpms:
   redhat-6.2:
     repos:
-      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/x86_64/cm/4
+      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
   centos-6.2:
     repos:
-      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/x86_64/cm/4
+      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
   pkgs:
-    # CDH3U2 packages
+    # CDH4 packages
     - hadoop-0.20
     - hadoop-0.20-namenode
     - hadoop-0.20-secondarynamenode
