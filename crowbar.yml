@@ -91,22 +91,14 @@ locale_additions:
 
 
 rpms:
-  redhat-5.7:
-    repos:
-      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/5/x86_64/cloudera-manager/3/
-      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
-  centos-5.7:
-    repos:
-      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/5/x86_64/cloudera-manager/3/
-      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
   redhat-6.2:
     repos:
-      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/6/x86_64/cloudera-manager/3/
-      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/6/x86_64/cdh/3/
+      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/x86_64/cm/4
+      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
   centos-6.2:
     repos:
-      - bare cloudera-manager 10 http://archive.cloudera.com/cloudera-manager/redhat/6/x86_64/cloudera-manager/3/
-      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/6/x86_64/cdh/3/
+      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/x86_64/cm/4
+      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
   pkgs:
     # CDH3U2 packages
     - hadoop-0.20
@@ -169,7 +161,7 @@ rpms:
     - postgresql
     - postgresql-server
 extra_files:
-  - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
+  - http://download.oracle.com/otn-pub/java/jdk/6u32-b05/jdk-6u32-linux-x64-rpm.bin java
 
 build_cmd: build-jdk.sh
 
