@@ -94,28 +94,52 @@ rpms:
   redhat-6.2:
     repos:
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
-      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
+      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
   centos-6.2:
     repos:
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
-      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
+      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
   pkgs:
     # CDH4 packages
-    - hadoop-0.20
-    - hadoop-0.20-namenode
-    - hadoop-0.20-secondarynamenode
-    - hadoop-0.20-datanode
-    - hadoop-0.20-jobtracker
-    - hadoop-0.20-tasktracker
-    - hadoop-0.20-sbin
-    - hadoop-0.20-libhdfs
-    - hadoop-0.20-native
-    - hadoop-0.20-pipes
+    - bigtop
+    - bigtop-jsvc
+    - bigtop-jsvc-debuginfo
+    - bigtop-tomcat
+    - flume-ng
+    - flume-ng-agent
+    - flume-ng-doc
+    - hadoop
     - hadoop-0.20-conf-pseudo
-    - hadoop-0.20-fuse
-    - hadoop-0.20-debuginfo
-    - hadoop-0.20-doc
-    - hadoop-0.20-source
+    - hadoop-0.20-mapreduce-debuginfo
+    - hadoop-0.20-mapreduce-jobtracker
+    - hadoop-0.20-mapreduce-tasktracker
+    - hadoop-client
+    - hadoop-conf-pseudo
+    - hadoop-debuginfo
+    - hadoop-doc
+    - hadoop-hdfs
+    - hadoop-hdfs-datanode
+    - hadoop-hdfs-fuse
+    - hadoop-hdfs-namenode
+    - hadoop-hdfs-secondarynamenode
+    - hadoop-hdfs-zkfc
+    - hadoop-httpfs
+    - hadoop-libhdfs
+    - hadoop-mapreduce
+    - hadoop-mapreduce-historyserver
+    - hadoop-yarn
+    - hadoop-yarn-nodemanager
+    - hadoop-yarn-proxyserver
+    - hadoop-yarn-resourcemanagerh
+    - base
+    - hbase-doc
+    - hbase-master
+    - hbase-regionserver
+    - hbase-rest
+    - hbase-thrift
+    - hive
+    - hive-metastore
+    - hive-server
     - hue
     - hue-about
     - hue-beeswax
@@ -126,44 +150,29 @@ rpms:
     - hue-jobsub
     - hue-plugins
     - hue-proxy
+    - hue-server
     - hue-shell
     - hue-useradmin
-    - hadoop-hive
-    - hadoop-hive-metastore
-    - hadoop-hive-server
-    - hadoop-pig
-    - hadoop-zookeeper
-    - hadoop-zookeeper-server
-    - hadoop-hbase
-    - hadoop-hbase-doc
-    - hadoop-hbase-master
-    - hadoop-hbase-regionserver
-    - hadoop-hbase-thrift
-    - flume
-    - flume-master
-    - flume-node
+    - mahout
     - oozie
     - oozie-client
+    - pig
     - sqoop
     - sqoop-metastore
     - whirr
-    - mahout
-    # Cloudera Manager packages
-    - cloudera-manager-plugins
+    - zookeeper
+    - zookeeper-server-0.20-mapreduce
+    # Cloudera Manager 4 packages
+    - cloudera-manager-agent
     - cloudera-manager-daemons
     - cloudera-manager-server
     - cloudera-manager-server-db
-    - cloudera-manager-agent
-    - hue-hadoop-auth-plugin
-    - hue-oozie-auth-plugin
+    - enterprise-debuginfo
+    - jdk  # Interestingly enough, it is a straight RPM on in the CDH repo.
     # SQL packages
     - mysql-server
     - postgresql
     - postgresql-server
-extra_files:
-  - http://download.oracle.com/otn-pub/java/jdk/6u32-b05/jdk-6u32-linux-x64-rpm.bin java
-
-build_cmd: build-jdk.sh
 
 smoketest:
   timeout: 900
