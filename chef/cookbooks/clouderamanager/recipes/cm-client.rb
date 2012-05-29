@@ -32,7 +32,6 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 pkg_list=%w{
  cloudera-manager-agent
  cloudera-manager-daemons
- cloudera-manager-plugins
   }
 
 pkg_list.each do |pkg|

@@ -10,17 +10,6 @@
           "mapred_openfiles": "32768",
           "hdfs_openfiles": "32768",
           "hbase_openfiles": "32768"
-      },
-	  "database": {
-          "sm_db_name": "service_monitor",
-          "sm_db_user": "scm",
-          "sm_db_pass": "crowbar",
-          "am_db_name": "activity_monitor",
-          "am_db_user": "scm",
-          "am_db_pass": "crowbar",
-          "rm_db_name": "resource_manager",
-          "rm_db_user": "scm",
-          "rm_db_pass": "crowbar"
       }
     }
   },
@@ -29,7 +18,6 @@
       "crowbar-revision": 0,
       "element_states": {
         "clouderamanager-webapp": [ "readying", "ready", "applying" ],
-        "clouderamanager-mgmtservices": [ "readying", "ready", "applying" ],
 		"clouderamanager-masternamenode": [ "readying", "ready", "applying" ],
         "clouderamanager-secondarynamenode": [ "readying", "ready", "applying" ],
         "clouderamanager-slavenode": [ "readying", "ready", "applying" ],
@@ -39,7 +27,6 @@
       "element_order": [
         [
           "clouderamanager-webapp",
-          "clouderamanager-mgmtservices",
           "clouderamanager-masternamenode",
           "clouderamanager-secondarynamenode",
           "clouderamanager-slavenode",
