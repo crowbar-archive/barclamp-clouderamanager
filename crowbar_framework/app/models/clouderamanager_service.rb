@@ -93,7 +93,6 @@ class ClouderamanagerService < ServiceObject
     
     if edge and !edge.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-mgmtservices"] = edge 
     end
     
     if slaves and !slaves.empty?    

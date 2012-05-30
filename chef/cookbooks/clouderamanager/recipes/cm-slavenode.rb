@@ -28,18 +28,7 @@ Chef::Log.info("CM - BEGIN clouderamanager:slavenode") if debug
 # Configuration filter for our crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Add the data node UI link to the crowbar UI.
-Chef::Log.info("CM - hadoop slave node {" + node[:fqdn] + "}") if debug 
-server_ip = node.address.addr
-node[:crowbar] = {} if node[:crowbar].nil? 
-node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-if server_ip
-  url = "http://#{server_ip}:50075" 
-  Chef::Log.info("CM - Hadoop Data Node Web UI [#{url}]") if debug 
-  node[:crowbar][:links]["Hadoop Data Node Web UI"] = url 
-else
-  node[:crowbar][:links].delete("Hadoop Data Node Web UI")
-end
+# Place holder for any additional slave node configuration steps.
 
 #######################################################################
 # End of recipe

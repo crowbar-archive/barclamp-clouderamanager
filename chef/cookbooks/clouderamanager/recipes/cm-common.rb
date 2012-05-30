@@ -28,9 +28,7 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the common Cloudera Manager packages (all nodes).
 pkg_list=%w{
-    cloudera-manager-plugins
     hue-plugins
-    hue-hadoop-auth-plugin
   }
 
 pkg_list.each do |pkg|
@@ -49,17 +47,6 @@ end
 
 Chef::Log.info("CM - Cloudera manager webapp nodes {" + webapp_service_fqdns.join(",") + "}") if debug 
 node[:clouderamanager][:cluster][:webapp_service_nodes] = webapp_service_fqdns
-
-# Find the management services nodes. 
-mgmt_service_fqdns = []
-search(:node, "roles:clouderamanager-mgmtservices#{env_filter}") do |obj|
-  if obj[:fqdn] and !obj[:fqdn].empty?
-    mgmt_service_fqdns << obj[:fqdn]
-  end
-end
-
-Chef::Log.info("CM - Cloudera management service nodes {" + mgmt_service_fqdns.join(",") + "}") if debug 
-node[:clouderamanager][:cluster][:mgmt_service_nodes] = mgmt_service_fqdns
 
 node.save
 

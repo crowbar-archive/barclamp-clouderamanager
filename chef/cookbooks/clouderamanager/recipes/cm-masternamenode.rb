@@ -28,18 +28,7 @@ Chef::Log.info("CM - BEGIN clouderamanager:cm-masternamenode") if debug
 # Configuration filter for our crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Add the master name node UI link to the crowbar UI.
-Chef::Log.info("CM - hadoop master name node {" + node[:fqdn] + "}") if debug 
-server_ip = node.address.addr
-node[:crowbar] = {} if node[:crowbar].nil? 
-node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-if server_ip
-  url = "http://#{server_ip}:50070" 
-  Chef::Log.info("CM - Hadoop Name Node UI [#{url}]") if debug 
-  node[:crowbar][:links]["Hadoop Name Node UI"] = url 
-else
-  node[:crowbar][:links].delete("Hadoop Name Node UI")
-end
+# Place holder for any additional master name node configuration steps.
 
 #######################################################################
 # End of recipe

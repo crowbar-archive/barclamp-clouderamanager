@@ -26,7 +26,6 @@ class ClouderamanagerController < BarclampController
     nodeswithroles= NodeObject.all.find_all{ |n| n.roles != nil}
     @cmedgenodes                    = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-edgenode" )}
     @cmmasternamenodes              = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-masternamenode" )}
-    @cmmgmtnamenodes                = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-mgmtservices" )}
     @cmsecondarynamenodenamenodes   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-secondarynamenode" )}
     @cmwebappnodes                  = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-webapp" )}
     @cmslavenodes                   = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-slavenode" )}
@@ -40,9 +39,6 @@ class ClouderamanagerController < BarclampController
         end
         @cmmasternamenodes.sort_by{|n| n.name }.each do |node|
           export << I18n.t('.barclamp.clouderamanager.nodes.master_name_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
-        end
-        @cmmgmtnamenodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.management_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @cmsecondarynamenodenamenodes.sort_by{|n| n.name }.each do |node|
           export << I18n.t('.barclamp.clouderamanager.nodes.secondary_name_node') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"

@@ -28,18 +28,7 @@ Chef::Log.info("CM - BEGIN clouderamanager:edgenode") if debug
 # Configuration filter for our crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Add the Hue UI link to the crowbar UI - Example : http://192.168.124.85:8088.
-Chef::Log.info("CM - hadoop edge node {" + node[:fqdn] + "}") if debug 
-server_ip = node.address.addr
-node[:crowbar] = {} if node[:crowbar].nil? 
-node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-if server_ip
-  url = "http://#{server_ip}:8088" 
-  Chef::Log.info("CM - Hue UI [#{url}]") if debug 
-  node[:crowbar][:links]["Hue UI"] = url 
-else
-  node[:crowbar][:links].delete("Hue UI")
-end
+# Place holder for any additional edgenode configuration steps.
 
 #######################################################################
 # End of recipe
