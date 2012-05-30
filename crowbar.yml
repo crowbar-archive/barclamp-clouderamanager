@@ -71,8 +71,7 @@ locale_additions:
           ram: RAM
           drives: Drives
           edge_node: Cloudera Edge Node
-          master_name_node: Cloudera Master Name Node
-          secondary_name_node: Cloudera Secondary Name Node
+          name_node: Cloudera Name Nodes
           web_app_node: Cloudera Web App Node
           slave_nodes: Cloudera Slave Nodes
 
