@@ -99,7 +99,7 @@ end
 
 # Add the cloudera manager link to the crowbar UI.
 Chef::Log.info("CM - cloudera manager web application {" + node[:fqdn] + "}") if debug 
-server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(node,"admin").address
+server_ip = node.address.addr
 node[:crowbar] = {} if node[:crowbar].nil? 
 node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
 if server_ip

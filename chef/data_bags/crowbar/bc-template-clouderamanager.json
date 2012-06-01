@@ -4,8 +4,8 @@
   "attributes": {
     "clouderamanager": {
       "debug": true,
-	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
-      "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
+	  "admin_ip_eval": "node.address.addr",
+      "admin_interface_eval": "node.interface.name",
       "os": {
           "mapred_openfiles": "32768",
           "hdfs_openfiles": "32768",
