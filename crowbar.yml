@@ -49,6 +49,8 @@ locale_additions:
           deployment: Deployment        
         edit_attributes:
           attributes: Proposal Attributes
+          hadoop_high_availability: Hadoop High Availability
+          shared_edits_directory: Shared Edits Directory
           os_limits: Open File Handles
           mapred_openfiles: Map/Reduce
           hdfs_openfiles: HDFS
@@ -57,11 +59,11 @@ locale_additions:
           barclamp: Project
           state: Status
           proposal: Proposal
-          description: Provides end-to-end management for Apache Hadoop with the ability to deploy and centrally operate a complete Hadoop stack. Gives you a cluster wide, real time view of nodes and services running and provides a single central place to enact configuration changes across your cluster. Cloudera Manager incorporates a full range of reporting and diagnostic tools to help you optimize cluster performance and utilization.
+          description: Provides end-to-end management for Apache Hadoop CDH4 with the ability to deploy and centrally operate a complete Hadoop stack. Gives you a cluster wide, real time view of nodes and services running and provides a single central place to enact configuration changes across your cluster. Cloudera Manager incorporates a full range of reporting and diagnostic tools to help you optimize cluster performance and utilization.
           instructions: Apply proposals in order from top to bottom. Allow each proposal to enter ready state before applying the next one.
         nodes:
           export: Export to CSV
-          title: Cloudera Node Inventory
+          title: Node Inventory
           name: Name
           cb_role: Crowbar Role
           cm_role: Cloudera Manager Role
@@ -70,12 +72,12 @@ locale_additions:
           cpu: CPU
           ram: RAM
           drives: Drives
-          edge_node: Cloudera Edge Node
-          master_name_node: Cloudera Master Name Node
-          secondary_name_node: Cloudera Secondary Name Node
-          web_app_node: Cloudera Web App Node
-          slave_nodes: Cloudera Slave Nodes
-
+          master_name_node: Name Node
+          secondary_name_node: Secondary Name Node
+          edge_node: Edge Node
+          slave_nodes: Slave Nodes
+          web_app_node: Web App Node
+          ha_filer_node: High Availability Filer Node
 
 rpms:
   redhat-6.2:
@@ -156,7 +158,7 @@ rpms:
     - cloudera-manager-server
     - cloudera-manager-server-db
     - enterprise-debuginfo
-    - jdk  # Interestingly enough, it is a straight RPM on in the CDH repo.
+    - jdk
     # SQL packages
     - postgresql
     - postgresql-server

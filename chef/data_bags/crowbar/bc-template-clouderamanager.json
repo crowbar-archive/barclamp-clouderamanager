@@ -6,6 +6,9 @@
       "debug": true,
 	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
       "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
+      "ha": {
+          "shared_edits_directory": "/dfs/ha"
+      },
       "os": {
           "mapred_openfiles": "32768",
           "hdfs_openfiles": "32768",
@@ -17,20 +20,22 @@
     "clouderamanager": {
       "crowbar-revision": 0,
       "element_states": {
-        "clouderamanager-webapp": [ "readying", "ready", "applying" ],
 		"clouderamanager-masternamenode": [ "readying", "ready", "applying" ],
         "clouderamanager-secondarynamenode": [ "readying", "ready", "applying" ],
+        "clouderamanager-edgenode": [ "readying", "ready", "applying" ],
         "clouderamanager-slavenode": [ "readying", "ready", "applying" ],
-        "clouderamanager-edgenode": [ "readying", "ready", "applying" ]
+        "clouderamanager-webapp": [ "readying", "ready", "applying" ],
+        "clouderamanager-ha-filer": [ "readying", "ready", "applying" ]
       },
       "elements": {},
       "element_order": [
         [
-          "clouderamanager-webapp",
           "clouderamanager-masternamenode",
           "clouderamanager-secondarynamenode",
           "clouderamanager-slavenode",
-          "clouderamanager-edgenode"
+          "clouderamanager-edgenode",
+          "clouderamanager-webapp",
+          "clouderamanager-ha-filer"
         ]
       ],
       "config": {

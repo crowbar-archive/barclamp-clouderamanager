@@ -18,7 +18,7 @@
 #
 
 #######################################################################
-# Begin recipe transactions
+# Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:postgresql") if debug
@@ -60,6 +60,6 @@ service "postgresql" do
 end
 
 #######################################################################
-# End of recipe transactions
+# End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:postgresql") if debug

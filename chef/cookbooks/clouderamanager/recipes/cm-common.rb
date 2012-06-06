@@ -23,7 +23,7 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:cm-common") if debug
 
-# Configuration filter for our crowbar environment.
+# Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the common Cloudera Manager packages (all nodes).
@@ -51,6 +51,6 @@ node[:clouderamanager][:cluster][:webapp_service_nodes] = webapp_service_fqdns
 node.save
 
 #######################################################################
-# End of recipe
+# End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:cm-common") if debug

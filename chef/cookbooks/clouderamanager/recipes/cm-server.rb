@@ -25,7 +25,7 @@ include_recipe 'clouderamanager::cm-common'
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:cm-server") if debug
 
-# Configuration filter for our crowbar environment.
+# Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the Cloudera Manager server packages.
@@ -98,7 +98,7 @@ service "cloudera-scm-server" do
 end
 
 # Add the cloudera manager link to the crowbar UI.
-Chef::Log.info("CM - cloudera manager web application {" + node[:fqdn] + "}") if debug 
+Chef::Log.info("CM - Cloudera manager web application {" + node[:fqdn] + "}") if debug 
 server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(node,"admin").address
 node[:crowbar] = {} if node[:crowbar].nil? 
 node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
@@ -111,6 +111,6 @@ else
 end
 
 #######################################################################
-# End of recipe
+# End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:cm-server") if debug

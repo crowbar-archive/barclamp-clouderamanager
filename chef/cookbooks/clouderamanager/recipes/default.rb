@@ -23,7 +23,7 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:default") if debug
 
-# Configuration filter for our crowbar environment
+# Configuration filter for the crowbar environment
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the Oracle/SUN JAVA package (Hadoop requires the JDK).
@@ -42,7 +42,7 @@ template "/etc/security/limits.conf" do
   source "limits.conf.erb"
 end
 
-# Find the master name nodes (there should only be one). 
+# Find the master name nodes. 
 keys = {}
 master_name_nodes = []
 master_name_node_objects = []
@@ -56,14 +56,13 @@ search(:node, "roles:clouderamanager-masternamenode#{env_filter}") do |nmas|
 end
 node[:clouderamanager][:cluster][:master_name_nodes] = master_name_nodes
 
-# Check for errors
 if master_name_nodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find Hadoop master name node")
 elsif master_name_nodes.length > 1
   Chef::Log.info("CM - WARNING - More than one master name node found")
 end
 
-# Find the secondary name nodes (there should only be one). 
+# Find the secondary name node. 
 secondary_name_nodes = []
 secondary_name_node_objects = []
 search(:node, "roles:clouderamanager-secondarynamenode#{env_filter}") do |nsec|
@@ -76,7 +75,6 @@ search(:node, "roles:clouderamanager-secondarynamenode#{env_filter}") do |nsec|
 end
 node[:clouderamanager][:cluster][:secondary_name_nodes] = secondary_name_nodes
 
-# Check for errors
 if secondary_name_nodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find Hadoop secondary name node")
 elsif secondary_name_nodes.length > 1
@@ -106,7 +104,6 @@ search(:node, "roles:clouderamanager-slavenode#{env_filter}") do |nslave|
 end
 node[:clouderamanager][:cluster][:slave_nodes] = slave_nodes
 
-# Check for errors
 if slave_nodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find any Hadoop data nodes")
 end
@@ -118,7 +115,7 @@ if debug
   Chef::Log.info("CM - SLAVE_NODES          {" + node[:clouderamanager][:cluster][:slave_nodes].join(",") + "}")
 end
 
-# Add hadoop nodes to ssh authorized key file. 
+# Add hadoop nodes to ssh authorized key list. 
 keys.each do |k,v|
   unless v.nil?
     node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?
@@ -130,6 +127,6 @@ end
 node.save 
 
 #######################################################################
-# End of recipe
+# End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:default") if debug

@@ -15,6 +15,13 @@
             "debug":  { "type": "bool", "required": true},
             "admin_ip_eval": { "type": "str", "required": true },
             "admin_interface_eval": { "type": "str", "required": true },
+            "ha": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "shared_edits_directory": { "type": "str", "required": true}
+              }  
+            },
             "os": {
               "type": "map",
               "required": true,

@@ -6,11 +6,12 @@
 :javascript
   $(document).ready(function(){
     var constraints = { 
-      "clouderamanager-webapp": { "unique": false, "count": -1, "admin": true },
-      "clouderamanager-secondarynamenode": { "unique": false, "count": -1, "admin": true },
       "clouderamanager-masternamenode": { "unique": false, "count": -1 },
+      "clouderamanager-secondarynamenode": { "unique": false, "count": -1, "admin": true },
       "clouderamanager-edgenode": { "unique": false, "count": -1 },
-      "clouderamanager-slavenode": { "unique": false, "count": -1 }
+      "clouderamanager-slavenode": { "unique": false, "count": -1 },
+      "clouderamanager-webapp": { "unique": false, "count": -1, "admin": true },
+      "clouderamanager-ha-filer": { "unique": false, "count": -1, "admin": true }
     };
     node_selector($('#drag_drop'), constraints)
   });

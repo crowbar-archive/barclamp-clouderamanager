@@ -1,6 +1,6 @@
 #
 # Cookbook Name: clouderamanager
-# Recipe: cm-client.rb
+# Recipe: cm-agent.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -23,9 +23,9 @@ include_recipe 'clouderamanager::cm-common'
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CM - BEGIN clouderamanager:cm-client") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:cm-agent") if debug
 
-# Configuration filter for our crowbar environment.
+# Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the Cloudera client packages.
@@ -53,6 +53,6 @@ service "cloudera-scm-agent" do
 end
 
 #######################################################################
-# End of recipe
+# End recipe
 #######################################################################
-Chef::Log.info("CM - END clouderamanager:cm-client") if debug
+Chef::Log.info("CM - END clouderamanager:cm-agent") if debug

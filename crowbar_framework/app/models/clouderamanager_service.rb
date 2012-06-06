@@ -82,17 +82,18 @@ class ClouderamanagerService < ServiceObject
     # this can be changed by the user at proposal deployment time.
     base["deployment"]["clouderamanager"]["elements"] = {} 
     
+    if master and !master.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master 
+    end    
+    
     if admin and !admin.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = admin 
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = admin 
     end
     
-    if master and !master.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master 
-    end    
-    
     if edge and !edge.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-ha-filer"] = edge
     end
     
     if slaves and !slaves.empty?    
@@ -113,7 +114,7 @@ class ClouderamanagerService < ServiceObject
     @logger.debug("clouderamanager apply_role_pre_chef_call: entering #{all_nodes.inspect}")
     return if all_nodes.empty? 
     
-    # Make sure that the front-end pieces have public ip addreses.
+    # Assign a public IP address to the edge node for external access.
     net_svc = NetworkService.new @logger
     [ "clouderamanager-edgenode" ].each do |element|
       tnodes = role.override_attributes["clouderamanager"]["elements"][element]

@@ -21,4 +21,11 @@
       %label{ :for => :hbase_openfiles }= t('.hbase_openfiles')
       %input#hbase_openfiles{:type => "text", :name => "hbase_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["hbase_openfiles"], :onchange => "update_value('os', 'hbase_openfiles', 'string')"}
 
+    %p
+    %br
+    %strong= t('.hadoop_high_availability')
+
+    %p
+      %label{ :for => :shared_edits_directory }= t('.shared_edits_directory')
+      %input#shared_edits_directory{:type => "text", :name => "shared_edits_directory", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_directory"], :onchange => "update_value('ha', 'shared_edits_directory', 'string')"}
   

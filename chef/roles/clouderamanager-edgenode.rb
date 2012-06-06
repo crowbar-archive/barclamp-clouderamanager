@@ -21,7 +21,7 @@ name "clouderamanager-edgenode"
 description "Hadoop Edge Node Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-edgenode]"
+  "recipe[clouderamanager::cm-agent]"
 )
 default_attributes()
 override_attributes()

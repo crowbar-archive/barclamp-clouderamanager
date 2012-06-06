@@ -107,7 +107,8 @@ end
 # Setup the mount points.
 # Storage disk mount point are named as follows - /data/N for N = 1, 2, 3...
 # Hadoop dfs.data.dir entries are named as follows - /data/N/dfs/dn for N = 1, 2, 3...
-# Note : Cloudera Manager adds the /dfs/dn to the end after initial mount point detection.
+# Note : Cloudera Manager adds the /dfs/dn to the end after initial mount point
+# detection. This matches the default setting in the CLoudera Manager UI.
 cnt = 1
 dfs_base_dir = node[:clouderamanager][:hdfs][:dfs_base_dir]
 found_disks.each { |disk|
@@ -146,7 +147,7 @@ found_disks.each { |disk|
     device_type :uuid
     options "noatime,nodiratime"
     dump 0  
-    pass 0 # no FSCK testing.
+    pass 0 
     fstype "ext3"
     action [:mount, :enable]
   end
@@ -156,6 +157,6 @@ found_disks.each { |disk|
 node.save
 
 #######################################################################
-# End of recipe
+# End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:configure-disks") if debug
