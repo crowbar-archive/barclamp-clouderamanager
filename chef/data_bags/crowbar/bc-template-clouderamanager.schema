@@ -19,7 +19,9 @@
               "type": "map",
               "required": true,
               "mapping": {
-                "shared_edits_directory": { "type": "str", "required": true}
+                "shared_edits_directory": { "type": "str", "required": true},
+                "shared_edits_export_options": { "type": "str", "required": true},
+                "shared_edits_mount_options": { "type": "str", "required": true}
               }  
             },
             "os": {

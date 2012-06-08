@@ -23,22 +23,19 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:cm-ha-filer-export") if debug
 
-# Configuration filter for the crowbar environment.
+# Configuration filter for the crowbar environment and local variables.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
-
-# Create the directory for the HA filer mount point. 
+exports_file = "/etc/exports"
+admin_subnet = node[:network][:networks][:admin][:subnet]
+admin_netmask = node[:network][:networks][:admin][:netmask]
 shared_edits_directory = node[:clouderamanager][:ha][:shared_edits_directory]
-directory shared_edits_directory do
-  owner "root"
-  group "root"
-  mode "0755"
-  recursive true
-  action :create
-end
+shared_edits_export_options = node[:clouderamanager][:ha][:shared_edits_export_options]
 
 # Make sure the nfs & exportfs packages are installed.
+# We install the hadoop-hdfs package so we can set the owner and group
+# for the remote directory.
 pkg_list=%w{
- nfs-utils
+   nfs-utils
   }
 
 pkg_list.each do |pkg|
@@ -47,7 +44,24 @@ pkg_list.each do |pkg|
   end
 end
 
-# Ensure that NFS is running for the HA filer mount point export.
+# Create the directory for the HA filer mount point. 
+if ! File.exists?(shared_edits_directory)
+  directory shared_edits_directory do
+    owner "hdfs"
+    group "hadoop"
+    mode "0700"
+    recursive true
+  end
+end
+
+# Ensure that rpcbind is running for the HA filer mount point export.
+#  /etc/init.d/rpcbind {start|stop|status|restart|reload|force-reload|condrestart|try-restart}
+service "rpcbind" do
+  supports :start => true, :stop => true, :status => true, :restart => true  
+  action [ :enable, :start ]
+end
+
+# Ensure that NFS is running for the HA filer file mount point export.
 # nfs {start|stop|status|restart|reload|force-reload|condrestart|try-restart|condstop}
 service "nfs" do
   supports :start => true, :stop => true, :status => true, :restart => true  
@@ -61,10 +75,8 @@ execute "hadoop-ha-nfs-export" do
 end
 
 # Add the file system exports line if not ready there.
-exports_file = "/etc/exports"
 file exports_file do
-  new_lines = "#{shared_edits_directory} *(rw,sync)"
-  
+  new_lines = "#{shared_edits_directory} #{admin_subnet}/#{admin_netmask}(#{shared_edits_export_options})"
   Chef::Log.info("CM - exportfs check [#{new_lines}]") if debug
   
   # Get current content, check for duplication

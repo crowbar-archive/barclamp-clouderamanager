@@ -34,12 +34,14 @@ default[:clouderamanager][:cluster][:master_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:secondary_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:edge_nodes] = [ ]
 default[:clouderamanager][:cluster][:slave_nodes] = [ ]
-default[:clouderamanager][:cluster][:webapp_service_nodes] = []
 
 # Hadoop high availability (HA) parameters (CDH4/CM4).
 # shared_edits_directory - Directory on a shared storage device, such as an
 # NFS mount from a NAS, to store the NameNode edits.
+# shared_edits_mount_options specifies the mount options for the nfs mount point.
 default[:clouderamanager][:ha][:shared_edits_directory] = "/dfs/ha"
+default[:clouderamanager][:ha][:shared_edits_export_options] = "rw,async,no_root_squash,no_subtree_check"
+default[:clouderamanager][:ha][:shared_edits_mount_options] = "rsize=65536,wsize=65536,intr,soft,bg"
 
 # Hadoop open file limits - /etc/security/limits.conf.
 default[:clouderamanager][:os][:mapred_openfiles] = "32768"

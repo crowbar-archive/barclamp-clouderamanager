@@ -28,4 +28,12 @@
     %p
       %label{ :for => :shared_edits_directory }= t('.shared_edits_directory')
       %input#shared_edits_directory{:type => "text", :name => "shared_edits_directory", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_directory"], :onchange => "update_value('ha', 'shared_edits_directory', 'string')"}
+
+    %p
+      %label{ :for => :shared_edits_export_options }= t('.shared_edits_export_options')
+      %input#shared_edits_export_options{:type => "text", :name => "shared_edits_export_options", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_export_options"], :onchange => "update_value('ha', 'shared_edits_export_options', 'string')"}
+
+    %p
+      %label{ :for => :shared_edits_mount_options }= t('.shared_edits_mount_options')
+      %input#shared_edits_mount_options{:type => "text", :name => "shared_edits_mount_options", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_mount_options"], :onchange => "update_value('ha', 'shared_edits_mount_options', 'string')"}
   

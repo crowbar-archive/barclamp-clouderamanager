@@ -20,6 +20,7 @@
 name "clouderamanager-ha-filer"
 description "Cloudera Manager High Availability Filer Role"
 run_list(
+  "recipe[clouderamanager::default]",
   "recipe[clouderamanager::cm-ha-filer-export]"
 )
 default_attributes()

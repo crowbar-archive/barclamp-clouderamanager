@@ -37,19 +37,6 @@ pkg_list.each do |pkg|
   end
 end
 
-# Find the management services nodes. 
-webapp_service_fqdns = []
-search(:node, "roles:clouderamanager-webapp#{env_filter}") do |obj|
-  if obj[:fqdn] and !obj[:fqdn].empty?
-    webapp_service_fqdns << obj[:fqdn]
-  end
-end
-
-Chef::Log.info("CM - Cloudera manager webapp nodes {" + webapp_service_fqdns.join(",") + "}") if debug 
-node[:clouderamanager][:cluster][:webapp_service_nodes] = webapp_service_fqdns
-
-node.save
-
 #######################################################################
 # End recipe
 #######################################################################

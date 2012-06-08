@@ -31,6 +31,27 @@ package "jdk" do
   action :install
 end
 
+# hdfs:x:600:
+group "hdfs" do
+  gid 650
+end
+
+# hdfs:x:600:600:Hadoop HDFS:/var/lib/hadoop-hdfs:/bin/bash
+user "hdfs" do
+  comment "Hadoop HDFS"
+  uid 650
+  gid "hdfs"
+  home "/var/lib/hadoop-hdfs"
+  shell "/bin/bash"
+  system true
+end
+
+# hadoop:x:601:hdfs
+group "hadoop" do
+  gid 651
+  members ['hdfs']
+end
+
 # Configure /etc/security/limits.conf.  
 # mapred      -    nofile     32768
 # hdfs        -    nofile     32768

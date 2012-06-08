@@ -51,6 +51,8 @@ locale_additions:
           attributes: Proposal Attributes
           hadoop_high_availability: Hadoop High Availability
           shared_edits_directory: Shared Edits Directory
+          shared_edits_export_options: Shared Edits Export Options 
+          shared_edits_mount_options: Shared Edits Mount Options 
           os_limits: Open File Handles
           mapred_openfiles: Map/Reduce
           hdfs_openfiles: HDFS

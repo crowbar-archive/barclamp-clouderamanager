@@ -23,27 +23,31 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:cm-ha-filer-mount") if debug
 
-# Configuration filter for the crowbar environment.
+# Configuration filter for the crowbar environment and local variables.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
-
-# Create the directory for the HA filer mount point if not already present. 
+shared_edits_mount_options = node[:clouderamanager][:ha][:shared_edits_mount_options]
 shared_edits_directory = node[:clouderamanager][:ha][:shared_edits_directory]
-directory shared_edits_directory do
-  owner "root"
-  group "root"
-  mode "0755"
-  recursive true
-  action :create
-end
 
-# Ensure that the nfs-utils packages is installed.
+# Make sure the nfs & exportfs packages are installed.
+# We install the hadoop-hdfs package so we can set the owner and group
+# for the remote directory.
 pkg_list=%w{
- nfs-utils
+   nfs-utils
   }
 
 pkg_list.each do |pkg|
   package pkg do
     action :install
+  end
+end
+
+# Create the directory for the HA filer mount point if not already present. 
+if ! File.exists?(shared_edits_directory)
+  directory shared_edits_directory do
+    owner "hdfs"
+    group "hadoop"
+    mode "0700"
+    recursive true
   end
 end
 
@@ -61,7 +65,7 @@ if ha_filer_ip
   mount shared_edits_directory do
     device source_device
     fstype "nfs"
-    options "defaults"
+    options shared_edits_mount_options
     dump 0  
     pass 0 
     action [:mount, :enable]

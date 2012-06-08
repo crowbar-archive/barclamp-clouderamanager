@@ -41,14 +41,6 @@ pkg_list.each do |pkg|
   end
 end
 
-# Temporary workaround - CM4 requires you to enter a GPG-key.
-# Our local repo's do not use GPG key signing, but still need to 
-# give the CM4 UI a valid key path. 
-cookbook_file "/tftpboot/redhat-6.2/crowbar-extra/RPM-GPG-KEY-cloudera" do
-  source "RPM-GPG-KEY-cloudera"  
-  mode "0666"
-end
-
 # Cloudera Manager needs to have this directory present. Without it,
 # the slave node installation will fail. This is an empty directory and the
 # RPM package installer does not seem to create it.

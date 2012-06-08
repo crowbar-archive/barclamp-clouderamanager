@@ -7,7 +7,9 @@
 	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
       "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
       "ha": {
-          "shared_edits_directory": "/dfs/ha"
+          "shared_edits_directory": "/dfs/ha",
+          "shared_edits_export_options": "rw,async,no_root_squash,no_subtree_check",
+          "shared_edits_mount_options": "rsize=65536,wsize=65536,intr,soft,bg"
       },
       "os": {
           "mapred_openfiles": "32768",
