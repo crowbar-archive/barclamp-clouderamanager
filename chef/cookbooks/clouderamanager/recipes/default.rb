@@ -33,23 +33,38 @@ end
 
 # hdfs:x:600:
 group "hdfs" do
-  gid 650
+  gid 600
 end
 
 # hdfs:x:600:600:Hadoop HDFS:/var/lib/hadoop-hdfs:/bin/bash
 user "hdfs" do
   comment "Hadoop HDFS"
-  uid 650
+  uid 600
   gid "hdfs"
   home "/var/lib/hadoop-hdfs"
   shell "/bin/bash"
   system true
 end
 
-# hadoop:x:601:hdfs
+# mapred:x:601
+group "mapred" do
+  gid 601
+end
+
+# mapred:x:601:601:Hadoop MapReduce:/var/lib/hadoop-mapreduce:/bin/bash
+user "mapred" do
+  comment "Hadoop MapReduce"
+  uid 601
+  gid "mapred"
+  home "/var/lib/hadoop-mapreduce"
+  shell "/bin/bash"
+  system true
+end
+
+# hadoop:x:602:hdfs
 group "hadoop" do
-  gid 651
-  members ['hdfs']
+  gid 602
+  members ['hdfs', 'mapred']
 end
 
 # Configure /etc/security/limits.conf.  

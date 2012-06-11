@@ -42,13 +42,11 @@ pkg_list.each do |pkg|
 end
 
 # Create the directory for the HA filer mount point if not already present. 
-if ! File.exists?(shared_edits_directory)
-  directory shared_edits_directory do
-    owner "hdfs"
-    group "hadoop"
-    mode "0700"
-    recursive true
-  end
+directory shared_edits_directory do
+  owner "hdfs"
+  group "hadoop"
+  mode "0700"
+  recursive true
 end
 
 # Locate the Hadoop High Availability (HA) filer role and get the IP address.
