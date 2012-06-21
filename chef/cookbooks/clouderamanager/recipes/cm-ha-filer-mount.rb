@@ -52,7 +52,7 @@ end
 # Locate the Hadoop High Availability (HA) filer role and get the IP address.
 ha_filer_ip = nil
 search(:node, "roles:clouderamanager-ha-filer#{env_filter}") do |hafiler|
-  ha_filer_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(hafiler,"admin").address
+  ha_filer_ip = hafiler.address.addr
   break;
 end
 
