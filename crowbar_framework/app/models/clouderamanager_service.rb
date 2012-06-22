@@ -35,17 +35,14 @@ class ClouderamanagerService < ServiceObject
     base = super
     
     # Compute the Hadoop cluster node distribution.
-    # You need at least 3 nodes (secondary namenode, master namenode
-    # and slavenode) to implement a baseline Hadoop framework. The edgenode
-    # is added if the node count is 4 or higher. 
     admin = []
-    master = []
+    namenode = []
+    secondary = []
     edge = []
+    hafiler = []
     slaves = []
     
-    # Get the node list, find the admin node, put the Hadoop
-    # secondary name node on the crowbar admin node (as specified by
-    # the RA) and delete the admin node from the array.
+    # Find the admin node and delete it from the data set.
     nodes = NodeObject.all
     nodes.each do |n|
       if n.nil?
@@ -58,44 +55,60 @@ class ClouderamanagerService < ServiceObject
       end
     end
     
-    # Add the master, slave and edge nodes.
+    # Configure the name, edge, hafiler and slave nodes.
     if nodes.size == 1
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
+      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
     elsif nodes.size == 2
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
+      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
     elsif nodes.size == 3
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
-      edge << nodes[2][:fqdn] if nodes[2][:fqdn]
-    elsif nodes.size > 3
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
-      edge << nodes[2][:fqdn] if nodes[2][:fqdn]
-      nodes[3 .. nodes.size].each { |n|
+      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      hafiler << nodes[2][:fqdn] if nodes[2][:fqdn]
+    elsif nodes.size == 4
+      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      hafiler << nodes[2][:fqdn] if nodes[2][:fqdn]
+      edge << nodes[3][:fqdn] if nodes[3][:fqdn]
+    elsif nodes.size > 4
+      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      hafiler << nodes[2][:fqdn] if nodes[2][:fqdn]
+      edge << nodes[3][:fqdn] if nodes[3][:fqdn]
+      nodes[4 .. nodes.size].each { |n|
         slaves << n[:fqdn] if n[:fqdn]
       }
     end
     
-    # Add the proposal deployment elements. The Cloudera Management
-    # server/UI goes on the Hadoop master name node by default and
-    # this can be changed by the user at proposal deployment time.
+    # Add the proposal deployment elements. 
     base["deployment"]["clouderamanager"]["elements"] = {} 
     
-    if master and !master.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = master 
-    end    
-    
+    # The Cloudera manager web application defaults to the crowbar admin node.
     if admin and !admin.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = admin 
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = admin 
     end
     
+    # Master name node.
+    if namenode and !namenode.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = namenode 
+    end    
+    
+    # Secondary name node.
+    if secondary and !secondary.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = secondary 
+    end
+    
+    # Hadoop High Availability (HA) filer node.
+    if hafiler and !hafiler.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-ha-filer"] = hafiler
+    end
+
+    # Edge node with a public exposed network. 
     if edge and !edge.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-ha-filer"] = edge
     end
     
+    # Slave nodes.
     if slaves and !slaves.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-slavenode"] = slaves   
     end
