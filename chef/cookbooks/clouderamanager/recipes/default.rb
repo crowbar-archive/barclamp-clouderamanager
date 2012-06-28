@@ -78,6 +78,16 @@ template "/etc/security/limits.conf" do
   source "limits.conf.erb"
 end
 
+# Ensure localtime is set consistantly across the cluster (UTC).
+file "/etc/localtime" do
+  action :delete
+  only_if "test -F /etc/localtime"
+end
+
+link "/etc/localtime" do
+  to "/usr/share/zoneinfo/Etc/UTC"
+end
+
 # Find the master name nodes. 
 keys = {}
 master_name_nodes = []
