@@ -41,12 +41,19 @@ pkg_list.each do |pkg|
   end
 end
 
-# Create the directory for the HA filer mount point if not already present. 
-directory shared_edits_directory do
-  owner "hdfs"
-  group "hadoop"
-  mode "0700"
-  recursive true
+# Create the directory for the HA filer mount point if not already present.
+# Note: The chef directory code block will fail if the directory is already mounted.
+# The File.exists?() check protects us against this condition.  
+if ! File.exists?(shared_edits_directory)
+  Chef::Log.info("CM - Creating HA mount directory [#{shared_edits_directory}]") if debug
+  directory shared_edits_directory do
+    owner "hdfs"
+    group "hadoop"
+    mode "0700"
+    recursive true
+  end
+else
+  Chef::Log.info("CM - HA mount directory already exists [#{shared_edits_directory}]") if debug
 end
 
 # Locate the Hadoop High Availability (HA) filer role and get the IP address.

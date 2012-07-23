@@ -44,12 +44,19 @@ pkg_list.each do |pkg|
   end
 end
 
-# Create the directory for the HA filer mount point. 
-directory shared_edits_directory do
-  owner "hdfs"
-  group "hadoop"
-  mode "0700"
-  recursive true
+# Create the directory for the HA filer export point if not already present. 
+# Note: The chef directory code block will fail if the directory is already exported.
+# The File.exists?() check protects us against this condition.  
+if ! File.exists?(shared_edits_directory)
+  Chef::Log.info("CM - Creating HA export directory [#{shared_edits_directory}]") if debug
+  directory shared_edits_directory do
+    owner "hdfs"
+    group "hadoop"
+    mode "0700"
+    recursive true
+  end
+else
+  Chef::Log.info("CM - HA export directory already exists [#{shared_edits_directory}]") if debug
 end
 
 # Ensure that rpcbind is running for the HA filer mount point export.
