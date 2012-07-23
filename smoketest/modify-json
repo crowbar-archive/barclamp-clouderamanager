@@ -1,4 +1,0 @@
-#!/bin/bash
-# Overrides for continuous integration testing.
-exit 0
-    
