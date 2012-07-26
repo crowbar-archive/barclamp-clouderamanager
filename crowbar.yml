@@ -28,7 +28,7 @@ barclamp:
     - zookeeper
 
 crowbar:
-  layout: 1
+  layout: 2
   order: 200
   run_order: 200
   chef_order: 200
