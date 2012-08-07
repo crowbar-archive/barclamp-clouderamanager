@@ -18,13 +18,9 @@
 #
 
 class ClouderamanagerController < BarclampController
-  before_filter :set_service_object
- 
-  def set_service_object
+  initialize
     @service_object = ClouderamanagerService.new logger
   end
-
-  private :set_service_object
   
   def nodes
     nodeswithroles= NodeObject.all.find_all{ |n| n.roles != nil}
