@@ -18,10 +18,7 @@
 #
 
 class ClouderamanagerController < BarclampController
-  def initialize
-    @service_object = ClouderamanagerService.new logger
-  end
-  
+
   def nodes
     nodeswithroles= NodeObject.all.find_all{ |n| n.roles != nil}
     @cmmasternamenodes              = nodeswithroles.find_all{ |n| n.roles.include?("clouderamanager-masternamenode" )}
