@@ -12,7 +12,8 @@
           "shared_edits_mount_options": "rsize=65536,wsize=65536,intr,soft,bg"
       },
       "os": {
-          "mapred_openfiles": "32768",
+          "fs_type": "ext3",
+		  "mapred_openfiles": "32768",
           "hdfs_openfiles": "32768",
           "hbase_openfiles": "32768"
       }
