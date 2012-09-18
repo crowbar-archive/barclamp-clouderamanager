@@ -26,6 +26,7 @@ Chef::Log.info("CM - BEGIN clouderamanager:configure-disks") if debug
 node[:clouderamanager][:devices] = []
 node[:clouderamanager][:hdfs][:dfs_data_dir] = []
 node[:clouderamanager][:mapred][:mapred_local_dir] = []
+fs_type = node[:clouderamanager][:os][:fs_type]
 
 # Get the disk UUID.
 def get_uuid(disk)
@@ -45,7 +46,7 @@ if !all_disks.nil?
   }
 end
 
-Chef::Log.info("CM - found disk: #{to_use_disks.join(':')}") if debug  
+Chef::Log.info("CM - found disk: #{to_use_disks.join(':')} fs_type: [#{fs_type}]") if debug  
 
 # Walk over each of the disks, configuring it if required.
 wait_for_format = false
@@ -91,7 +92,7 @@ to_use_disks.sort.each { |k|
     disk[:uuid]=get_uuid target_dev_part
   else
     Chef::Log.info("CM - formatting #{target_dev_part}") if debug
-    ::Kernel.exec "mkfs.ext3 #{target_dev_part}" unless ::Process.fork
+    ::Kernel.exec "mkfs.#{fs_type} #{target_dev_part}" unless ::Process.fork
     disk[:fresh] = true
     wait_for_format = true
   end
@@ -148,7 +149,7 @@ found_disks.each { |disk|
     options "noatime,nodiratime"
     dump 0  
     pass 0 
-    fstype "ext3"
+    fstype fs_type
     action [:mount, :enable]
   end
 }
