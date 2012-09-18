@@ -43,6 +43,9 @@ default[:clouderamanager][:ha][:shared_edits_directory] = "/dfs/ha"
 default[:clouderamanager][:ha][:shared_edits_export_options] = "rw,async,no_root_squash,no_subtree_check"
 default[:clouderamanager][:ha][:shared_edits_mount_options] = "rsize=65536,wsize=65536,intr,soft,bg"
 
+# File system type (ext3/ext4/xfs) - must be a valid mkfs type.
+default[:clouderamanager][:os][:fs_type] = "ext3"
+
 # Hadoop open file limits - /etc/security/limits.conf.
 default[:clouderamanager][:os][:mapred_openfiles] = "32768"
 default[:clouderamanager][:os][:hdfs_openfiles] = "32768"
