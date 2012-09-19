@@ -11,7 +11,7 @@
 
     %p
       %label{ :for => :fs_type }= t('.fs_type')
-      = select_tag :fs_type, options_for_select([['ext3','ext3'], ['ext4', 'ext4'], ['xfs', 'xfs']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["fs_type"]), :onchange => "update_value('os/fs_type', 'fs_type', 'string')"
+      = select_tag :fs_type, options_for_select([['ext3','ext3'],['ext4', 'ext4'],['xfs', 'xfs']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["fs_type"]), :onchange => "update_value('os/fs_type', 'fs_type', 'string')"
 
     %p
       %label{ :for => :mapred_openfiles }= t('.mapred_openfiles')
