@@ -49,15 +49,19 @@ locale_additions:
           deployment: Deployment        
         edit_attributes:
           attributes: Proposal Attributes
-          hadoop_high_availability: Hadoop High Availability
-          shared_edits_directory: Shared Edits Directory
-          shared_edits_export_options: Shared Edits Export Options 
-          shared_edits_mount_options: Shared Edits Mount Options 
-          os_limits: Operating System Parameters
+          barclamp_settings: Barclamp
+          debug: Log Debug Messages
+          os_settings: Operating System
           fs_type: File System Type
           mapred_openfiles: Map/Reduce File Handles
           hdfs_openfiles: HDFS File Handles
           hbase_openfiles: HBASE File Handles
+          cm_settings: Cloudera Manager
+          deployment_type: Node Discovery
+          ha_settings: Hadoop High Availability
+          shared_edits_directory: Shared Edits Directory
+          shared_edits_export_options: Shared Edits Export Options 
+          shared_edits_mount_options: Shared Edits Mount Options 
         index:
           barclamp: Project
           state: Status
