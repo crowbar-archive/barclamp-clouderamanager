@@ -22,7 +22,7 @@
 #######################################################################
 
 # Debug flag.
-default[:clouderamanager][:debug] = true
+default[:clouderamanager][:debug] = false
 
 # Crowbar configuration environment.
 default[:clouderamanager][:config] = {}
@@ -35,6 +35,12 @@ default[:clouderamanager][:cluster][:secondary_name_nodes] = [ ]
 default[:clouderamanager][:cluster][:edge_nodes] = [ ]
 default[:clouderamanager][:cluster][:slave_nodes] = [ ]
 
+# deployment_type (manual, auto, auto_reinstall)
+# manual = The end user must deploy the cluster via the Cloudera Manager interface.
+# auto = Crowbar will configure the cluster automatically.
+# auto-reinstall = Same as auto but run the crowbar installation sequence again.
+default[:clouderamanager][:cluster][:node_discovery] = "manual"
+
 # Hadoop high availability (HA) parameters (CDH4/CM4).
 # shared_edits_directory - Directory on a shared storage device, such as an
 # NFS mount from a NAS, to store the NameNode edits.
@@ -44,7 +50,7 @@ default[:clouderamanager][:ha][:shared_edits_export_options] = "rw,async,no_root
 default[:clouderamanager][:ha][:shared_edits_mount_options] = "rsize=65536,wsize=65536,intr,soft,bg"
 
 # File system type (ext3/ext4/xfs) - must be a valid mkfs type.
-default[:clouderamanager][:os][:fs_type] = "ext3"
+default[:clouderamanager][:os][:fs_type] = "ext4"
 
 # Hadoop open file limits - /etc/security/limits.conf.
 default[:clouderamanager][:os][:mapred_openfiles] = "32768"
@@ -56,3 +62,5 @@ default[:clouderamanager][:hdfs][:dfs_base_dir] = "/data"
 default[:clouderamanager][:hdfs][:dfs_data_dir] = []
 default[:clouderamanager][:devices] = []
 default[:clouderamanager][:mapred][:mapred_local_dir] = []
+
+

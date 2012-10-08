@@ -7,7 +7,15 @@
 
     %p
     %br
-    %strong= t('.os_limits')
+    %strong= t('.barclamp_settings')
+
+    %p
+      %label{ :for => :debug }= t('.debug')
+      = select_tag :debug, options_for_select([['false', false],['true', true]], @proposal.raw_data['attributes'][@proposal.barclamp]["debug"]), :onchange => "update_value('debug', 'debug', 'boolean')"
+
+    %p
+    %br
+    %strong= t('.os_settings')
 
     %p
       %label{ :for => :fs_type }= t('.fs_type')
@@ -27,7 +35,15 @@
 
     %p
     %br
-    %strong= t('.hadoop_high_availability')
+    %strong= t('.cm_settings')
+
+    %p
+      %label{ :for => :deployment_type }= t('.deployment_type')
+      = select_tag :deployment_type, options_for_select([['manual','manual'],['auto', 'auto'],['auto-reinstall', 'auto-reinstall']], @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["deployment_type"]), :onchange => "update_value('cluster/deployment_type', 'deployment_type', 'string')"
+
+    %p
+    %br
+    %strong= t('.ha_settings')
 
     %p
       %label{ :for => :shared_edits_directory }= t('.shared_edits_directory')
