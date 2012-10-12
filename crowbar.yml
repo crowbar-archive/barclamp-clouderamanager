@@ -106,7 +106,7 @@ rpms:
     - hadoop-0.20-mapreduce-debuginfo
     - hadoop-0.20-mapreduce-jobtracker
     - hadoop-0.20-mapreduce-tasktracker
-    - hadoop-2.0.0
+    - hadoop
     - hadoop-client
     - hadoop-conf-pseudo
     - hadoop-debuginfo
