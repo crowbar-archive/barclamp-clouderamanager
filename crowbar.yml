@@ -99,10 +99,14 @@ rpms:
     # CDH 4.1.0 packages
     - bigtop-jsvc
     - bigtop-jsvc-debuginfo
+    - bigtop-tomcat
+    - bigtop-utils
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
     - hadoop-0.20-mapreduce-debuginfo
-    - hadoop-2.0.0
+    - hadoop-0.20-mapreduce-jobtracker
+    - hadoop-0.20-mapreduce-tasktracker
+    - hadoop
     - hadoop-client
     - hadoop-conf-pseudo
     - hadoop-debuginfo
@@ -122,6 +126,8 @@ rpms:
     - hadoop-yarn-nodemanager
     - hadoop-yarn-proxyserver
     - hadoop-yarn-resourcemanager
+    - hbase
+    - hive
     - hue
     - hue-about
     - hue-beeswax
@@ -136,6 +142,7 @@ rpms:
     - hue-server
     - hue-shell
     - hue-useradmin
+    - zookeeper
     # Cloudera Manager 4.0.4 packages
     - cloudera-manager-agent
     - cloudera-manager-daemons
