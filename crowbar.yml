@@ -162,7 +162,7 @@ rpms:
     - hive-server 
     - hive-server2 
     - mahout 
-    # mahout-doc 
+    - mahout-doc 
     - oozie 
     - oozie-client 
     - pig 
