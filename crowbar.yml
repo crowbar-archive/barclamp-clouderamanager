@@ -96,7 +96,7 @@ rpms:
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
   pkgs:
-    # CDH 4.1.0 packages
+    # CDH 4.1.0 packages (x86_64)
     - bigtop-jsvc
     - bigtop-jsvc-debuginfo
     - bigtop-tomcat
@@ -143,7 +143,36 @@ rpms:
     - hue-shell
     - hue-useradmin
     - zookeeper
-    # Cloudera Manager 4.0.4 packages
+    # CDH 4.1.0 packages (noarch)
+    - bigtop-tomcat
+    - bigtop-utils
+    - flume-ng
+    - flume-ng-agent
+    - flume-ng-doc
+    - hadoop-0.20-mapreduce-jobtracker
+    - hadoop-0.20-mapreduce-tasktracker
+    - hbase 
+    - hbase-doc 
+    - hbase-master 
+    - hbase-regionserver 
+    - hbase-rest 
+    - hbase-thrift 
+    - hive 
+    - hive-metastore 
+    - hive-server 
+    - hive-server2 
+    - mahout 
+    - mahout-doc 
+    - oozie 
+    - oozie-client 
+    - pig 
+    - pig-udf-datafu 
+    - sqoop 
+    - sqoop-metastore 
+    - whirr 
+    - zookeeper 
+    - zookeeper-server 
+    # Cloudera Manager 4.0.4 packages (x86_64)
     - cloudera-manager-agent
     - cloudera-manager-daemons
     - cloudera-manager-server
