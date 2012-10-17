@@ -96,11 +96,14 @@ rpms:
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
   pkgs:
-    # CDH 4.1.0 packages (x86_64)
+    # CDH packages
     - bigtop-jsvc
     - bigtop-jsvc-debuginfo
     - bigtop-tomcat
     - bigtop-utils
+    - flume-ng
+    - flume-ng-agent
+    - flume-ng-doc
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
     - hadoop-0.20-mapreduce-debuginfo
@@ -127,7 +130,15 @@ rpms:
     - hadoop-yarn-proxyserver
     - hadoop-yarn-resourcemanager
     - hbase
+    - hbase-doc
+    - hbase-master
+    - hbase-regionserver
+    - hbase-rest
+    - hbase-thrift
     - hive
+    - hive-metastore
+    - hive-server
+    - hive-server2
     - hue
     - hue-about
     - hue-beeswax
@@ -142,37 +153,18 @@ rpms:
     - hue-server
     - hue-shell
     - hue-useradmin
+    - mahout
+    - mahout-doc
+    - oozie
+    - oozie-client
+    - pig
+    - pig-udf-datafu
+    - sqoop
+    - sqoop-metastore
+    - whirr
     - zookeeper
-    # CDH 4.1.0 packages (noarch)
-    - bigtop-tomcat
-    - bigtop-utils
-    - flume-ng
-    - flume-ng-agent
-    - flume-ng-doc
-    - hadoop-0.20-mapreduce-jobtracker
-    - hadoop-0.20-mapreduce-tasktracker
-    - hbase 
-    - hbase-doc 
-    - hbase-master 
-    - hbase-regionserver 
-    - hbase-rest 
-    - hbase-thrift 
-    - hive 
-    - hive-metastore 
-    - hive-server 
-    - hive-server2 
-    - mahout 
-    - mahout-doc 
-    - oozie 
-    - oozie-client 
-    - pig 
-    - pig-udf-datafu 
-    - sqoop 
-    - sqoop-metastore 
-    - whirr 
-    - zookeeper 
-    - zookeeper-server 
-    # Cloudera Manager 4.0.4 packages (x86_64)
+    - zookeeper-server
+    # Cloudera Manager packages
     - cloudera-manager-agent
     - cloudera-manager-daemons
     - cloudera-manager-server
