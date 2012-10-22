@@ -22,9 +22,9 @@ class ClouderamanagerService < ServiceObject
   #######################################################################
   # create_proposal - called on proposal creation.
   #######################################################################
-  def create_proposal
+  def create_proposal(name)
     @logger.debug("clouderamanager create_proposal: entering")
-    base = super
+    base = super(name)
     
     # Compute the Hadoop cluster node distribution.
     admin = []
