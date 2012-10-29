@@ -104,12 +104,12 @@ rpms:
     - flume-ng
     - flume-ng-agent
     - flume-ng-doc
+    - hadoop
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
     - hadoop-0.20-mapreduce-debuginfo
     - hadoop-0.20-mapreduce-jobtracker
     - hadoop-0.20-mapreduce-tasktracker
-    - hadoop
     - hadoop-client
     - hadoop-conf-pseudo
     - hadoop-debuginfo
@@ -167,6 +167,7 @@ rpms:
     # Cloudera Manager packages
     - cloudera-manager-agent
     - cloudera-manager-daemons
+    - cloudera-manager-parcel
     - cloudera-manager-server
     - cloudera-manager-server-db
     - enterprise-debuginfo
