@@ -165,7 +165,7 @@ rpms:
     - zookeeper
     - zookeeper-server
     # Cloudera Manager packages
-    - cloudera-manager-parcel
+    - cloudera-manager-parcel-4.1.0
     - cloudera-manager-agent
     - cloudera-manager-daemons
     - cloudera-manager-server
