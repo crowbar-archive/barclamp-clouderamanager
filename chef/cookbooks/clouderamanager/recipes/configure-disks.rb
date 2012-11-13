@@ -23,10 +23,11 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:configure-disks") if debug
 
+fs_type = node[:clouderamanager][:os][:fs_type]
+
 node[:clouderamanager][:devices] = []
 node[:clouderamanager][:hdfs][:dfs_data_dir] = []
 node[:clouderamanager][:mapred][:mapred_local_dir] = []
-fs_type = node[:clouderamanager][:os][:fs_type]
 
 # Get the disk UUID.
 def get_uuid(disk)

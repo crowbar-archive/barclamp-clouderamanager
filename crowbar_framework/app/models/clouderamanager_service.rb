@@ -33,14 +33,10 @@ class ClouderamanagerService < ServiceObject
   def create_proposal
     @logger.debug("clouderamanager create_proposal: entering")
     base = super
-    
-    # Compute the Hadoop cluster node distribution.
-    admin = []
-    namenode = []
-    secondary = []
-    edge = []
-    hafiler = []
-    slaves = []
+    adminnodes = []
+    namenodes = []
+    datanodes = []
+    edgenodes = []
     
     # Find the admin node and delete it from the data set.
     nodes = NodeObject.all
@@ -50,67 +46,56 @@ class ClouderamanagerService < ServiceObject
         next
       end
       if n.admin?
-        admin << n[:fqdn] if n[:fqdn]
+        adminnodes << n[:fqdn] if n[:fqdn]
         nodes.delete(n)
       end
     end
     
-    # Configure the name, edge, hafiler and slave nodes.
+    # Configure the name nodes, edge nodes and data nodes.
+    # We don't select any HA nodes by default because the end user needs to
+    # make a decision if that want to deploy HA and the method to use
+    # (NFS filer/Quorum based storage). These options can be selected in the 
+    # the default proposal UI screen after the initial cluster topology 
+    # has been suggested.  
     if nodes.size == 1
-      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
+      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
     elsif nodes.size == 2
-      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
+      namenodes << nodes[1][:fqdn] if nodes[1][:fqdn]
     elsif nodes.size == 3
-      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
-      hafiler << nodes[2][:fqdn] if nodes[2][:fqdn]
-    elsif nodes.size == 4
-      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
-      hafiler << nodes[2][:fqdn] if nodes[2][:fqdn]
-      edge << nodes[3][:fqdn] if nodes[3][:fqdn]
-    elsif nodes.size > 4
-      namenode << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
-      hafiler << nodes[2][:fqdn] if nodes[2][:fqdn]
-      edge << nodes[3][:fqdn] if nodes[3][:fqdn]
-      nodes[4 .. nodes.size].each { |n|
-        slaves << n[:fqdn] if n[:fqdn]
+      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
+      namenodes << nodes[1][:fqdn] if nodes[1][:fqdn]
+      edgenodes << nodes[2][:fqdn] if nodes[2][:fqdn]
+    elsif nodes.size > 3
+      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
+      namenodes << nodes[1][:fqdn] if nodes[1][:fqdn]
+      edgenodes << nodes[2][:fqdn] if nodes[2][:fqdn]
+      nodes[3 .. nodes.size].each { |n|
+        datanodes << n[:fqdn] if n[:fqdn]
       }
     end
     
     # Add the proposal deployment elements. 
     base["deployment"]["clouderamanager"]["elements"] = {} 
     
-    # The Cloudera manager web application defaults to the crowbar admin node.
-    if admin and !admin.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-webapp"] = admin 
-    end
-    
-    # Master name node.
-    if namenode and !namenode.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-masternamenode"] = namenode 
+    # Namenodes (active/standby).
+    if namenodes and !namenodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-namenode"] = namenodes 
     end    
     
-    # Secondary name node.
-    if secondary and !secondary.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-secondarynamenode"] = secondary 
+    # Edge nodes (exposed public network). 
+    if edgenodes and !edgenodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edgenodes
     end
     
-    # Hadoop High Availability (HA) filer node.
-    if hafiler and !hafiler.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-ha-filer"] = hafiler
-    end
-
-    # Edge node with a public exposed network. 
-    if edge and !edge.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edge
+    # Data nodes.
+    if datanodes and !datanodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-datanode"] = datanodes   
     end
     
-    # Slave nodes.
-    if slaves and !slaves.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-slavenode"] = slaves   
+    # The Cloudera Manager server defaults to the crowbar admin node.
+    if adminnodes and !adminnodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-server"] = adminnodes 
     end
     
     # @logger.debug("clouderamanager create_proposal: #{base.to_json}")

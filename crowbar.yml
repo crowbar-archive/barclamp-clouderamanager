@@ -56,8 +56,6 @@ locale_additions:
           mapred_openfiles: Map/Reduce File Handles
           hdfs_openfiles: HDFS File Handles
           hbase_openfiles: HBASE File Handles
-          cm_settings: Cloudera Manager
-          deployment_type: Node Discovery
           ha_settings: Hadoop High Availability
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
@@ -79,12 +77,12 @@ locale_additions:
           cpu: CPU
           ram: RAM
           drives: Drives
-          master_name_node: Name Node
-          secondary_name_node: Secondary Name Node
-          edge_node: Edge Node
-          slave_nodes: Slave Nodes
-          web_app_node: Web App Node
-          ha_filer_node: High Availability Filer Node
+          servernodes: Cloudera Manager Server Node
+          namenodes: Name Nodes
+          datanodes: Data Nodes
+          edgenodes: Edge Nodes
+          hafilernodes: High Availability Filer Nodes
+          hajournalingnodes: High Availability Journaling Nodes
 
 rpms:
   redhat-6.2:

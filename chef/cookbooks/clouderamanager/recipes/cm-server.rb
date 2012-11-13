@@ -29,13 +29,13 @@ Chef::Log.info("CM - BEGIN clouderamanager:cm-server") if debug
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the Cloudera Manager server packages.
-pkg_list=%w{
+server_packages=%w{
     cloudera-manager-daemons
     cloudera-manager-server-db
     cloudera-manager-server
   }
 
-pkg_list.each do |pkg|
+server_packages.each do |pkg|
   package pkg do
     action :install
   end
@@ -43,7 +43,7 @@ end
 
 # Cloudera Manager needs to have this directory present. Without it,
 # the slave node installation will fail. This is an empty directory and the
-# RPM package installer does not seem to create it.
+# RPM package installer does not create it.
 directory "/usr/share/cmf/packages" do
   owner "root"
   group "root"
@@ -67,9 +67,8 @@ end
 
 include_recipe 'clouderamanager::postgresql'
 
-# Setup the postgresql configuration. This is used to store CM
-# configuration information. This will only execute if the db is uninitialized,
-# otherwise it returns 1. 
+# Setup the postgresql configuration. This is used to store CM configuration information.
+# This will only execute if the db is uninitialized, otherwise it returns 1. 
 # /var/lib/cloudera-scm-server-db/data is non-empty; perhaps the database
 # was already initialized?
 bash "cloudera-scm-server-db" do

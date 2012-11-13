@@ -25,20 +25,18 @@ Chef::Log.info("CM - BEGIN clouderamanager:cm-ha-filer-export") if debug
 
 # Configuration filter for the crowbar environment and local variables.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
-exports_file = "/etc/exports"
+
 admin_subnet = node[:network][:networks][:admin][:subnet]
 admin_netmask = node[:network][:networks][:admin][:netmask]
 shared_edits_directory = node[:clouderamanager][:ha][:shared_edits_directory]
 shared_edits_export_options = node[:clouderamanager][:ha][:shared_edits_export_options]
 
-# Make sure the nfs & exportfs packages are installed.
-# We install the hadoop-hdfs package so we can set the owner and group
-# for the remote directory.
-pkg_list=%w{
+# Install the nfs utils package.
+nfs_packages=%w{
    nfs-utils
   }
 
-pkg_list.each do |pkg|
+nfs_packages.each do |pkg|
   package pkg do
     action :install
   end
@@ -60,7 +58,7 @@ else
 end
 
 # Ensure that rpcbind is running for the HA filer mount point export.
-#  /etc/init.d/rpcbind {start|stop|status|restart|reload|force-reload|condrestart|try-restart}
+# /etc/init.d/rpcbind {start|stop|status|restart|reload|force-reload|condrestart|try-restart}
 service "rpcbind" do
   supports :start => true, :stop => true, :status => true, :restart => true  
   action [ :enable, :start ]
@@ -80,6 +78,7 @@ execute "hadoop-ha-nfs-export" do
 end
 
 # Add the file system exports line if not ready there.
+exports_file = "/etc/exports"
 file exports_file do
   new_lines = "#{shared_edits_directory} #{admin_subnet}/#{admin_netmask}(#{shared_edits_export_options})"
   Chef::Log.info("CM - exportfs check [#{new_lines}]") if debug
@@ -104,5 +103,3 @@ end
 # End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:cm-ha-filer-export") if debug
-
-

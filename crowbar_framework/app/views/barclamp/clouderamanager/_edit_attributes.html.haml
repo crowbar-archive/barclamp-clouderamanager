@@ -35,14 +35,6 @@
 
     %p
     %br
-    %strong= t('.cm_settings')
-
-    %p
-      %label{ :for => :deployment_type }= t('.deployment_type')
-      = select_tag :deployment_type, options_for_select([['manual','manual'],['auto', 'auto'],['auto-reinstall', 'auto-reinstall']], @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["deployment_type"]), :onchange => "update_value('cluster/deployment_type', 'deployment_type', 'string')"
-
-    %p
-    %br
     %strong= t('.ha_settings')
 
     %p
@@ -56,4 +48,3 @@
     %p
       %label{ :for => :shared_edits_mount_options }= t('.shared_edits_mount_options')
       %input#shared_edits_mount_options{:type => "text", :name => "shared_edits_mount_options", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_mount_options"], :onchange => "update_value('ha', 'shared_edits_mount_options', 'string')"}
-  
