@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-edgenode.rb
+# Role: clouderamanager-namenode.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,11 +17,12 @@
 # limitations under the License.
 #
 
-name "clouderamanager-edgenode"
-description "Hadoop Edge Node Role"
+name "clouderamanager-namenode"
+description "Hadoop Name Node Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-agent]"
+  "recipe[clouderamanager::cm-agent]",
+  "recipe[clouderamanager::cm-namenode]"
 )
 default_attributes()
 override_attributes()

@@ -26,9 +26,15 @@ Chef::Log.info("CM - BEGIN clouderamanager:default") if debug
 # Configuration filter for the crowbar environment
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Install the Oracle/SUN JAVA package (Hadoop requires the JDK).
-package "jdk" do
-  action :install
+# Install the Oracle/SUN JAVA package.
+base_packages=%w{
+  jdk
+}
+
+base_packages.each do |pkg|
+  package pkg do
+    action :install
+  end
 end
 
 # hdfs:x:600:
@@ -88,77 +94,52 @@ link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
 end
 
-# Find the master name nodes. 
+# Find the name nodes. 
 keys = {}
-master_name_nodes = []
-master_name_node_objects = []
-search(:node, "roles:clouderamanager-masternamenode#{env_filter}") do |nmas|
-  if !nmas[:fqdn].nil? && !nmas[:fqdn].empty?
-    Chef::Log.info("CM - MASTER [#{nmas[:fqdn]}") if debug
-    master_name_nodes << nmas[:fqdn]
-    master_name_node_objects << nmas
-    keys[nmas.name] = nmas[:crowbar][:ssh][:root_pub_key] rescue nil
+namenodes = []
+search(:node, "roles:clouderamanager-namenode#{env_filter}") do |n|
+  if !n[:fqdn].nil? && !n[:fqdn].empty?
+    Chef::Log.info("CM - MASTER [#{n[:fqdn]}]") if debug
+    namenodes << n[:fqdn]
+    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:master_name_nodes] = master_name_nodes
+node[:clouderamanager][:cluster][:namenodes] = namenodes
 
-if master_name_nodes.length == 0
+if namenodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find Hadoop master name node")
-elsif master_name_nodes.length > 1
-  Chef::Log.info("CM - WARNING - More than one master name node found")
-end
-
-# Find the secondary name node. 
-secondary_name_nodes = []
-secondary_name_node_objects = []
-search(:node, "roles:clouderamanager-secondarynamenode#{env_filter}") do |nsec|
-  if !nsec[:fqdn].nil? && !nsec[:fqdn].empty?
-    Chef::Log.info("CM - SECONDARY [#{nsec[:fqdn]}") if debug
-    secondary_name_nodes << nsec[:fqdn]
-    secondary_name_node_objects << nsec
-    keys[nsec.name] = nsec[:crowbar][:ssh][:root_pub_key] rescue nil
-  end
-end
-node[:clouderamanager][:cluster][:secondary_name_nodes] = secondary_name_nodes
-
-if secondary_name_nodes.length == 0
-  Chef::Log.info("CM - WARNING - Cannot find Hadoop secondary name node")
-elsif secondary_name_nodes.length > 1
-  Chef::Log.info("CM - WARNING - More than one secondary name node found}")
 end
 
 # Find the edge nodes. 
-edge_nodes = []
-search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |nedge|
-  if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
-    Chef::Log.info("CM - EDGE [#{nedge[:fqdn]}") if debug
-    edge_nodes << nedge[:fqdn] 
-    keys[nedge.name] = nedge[:crowbar][:ssh][:root_pub_key] rescue nil
+edgenodes = []
+search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |n|
+  if !n[:fqdn].nil? && !n[:fqdn].empty?
+    Chef::Log.info("CM - EDGE [#{n[:fqdn]}]") if debug
+    edgenodes << n[:fqdn] 
+    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:edge_nodes] = edge_nodes
+node[:clouderamanager][:cluster][:edgenodes] = edgenodes
 
 # Find the slave nodes. 
-Chef::Log.info("CM - env filter [#{env_filter}]") if debug
-slave_nodes = []
-search(:node, "roles:clouderamanager-slavenode#{env_filter}") do |nslave|
-  if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
-    Chef::Log.info("CM - SLAVE [#{nslave[:fqdn]}") if debug
-    slave_nodes << nslave[:fqdn] 
-    keys[nslave.name] = nslave[:crowbar][:ssh][:root_pub_key] rescue nil
+datanodes = []
+search(:node, "roles:clouderamanager-datanode#{env_filter}") do |n|
+  if !n[:fqdn].nil? && !n[:fqdn].empty?
+    Chef::Log.info("CM - DATA [#{n[:fqdn]}]") if debug
+    datanodes << n[:fqdn] 
+    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:slave_nodes] = slave_nodes
+node[:clouderamanager][:cluster][:datanodes] = datanodes
 
-if slave_nodes.length == 0
+if datanodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find any Hadoop data nodes")
 end
 
 if debug
-  Chef::Log.info("CM - MASTER_NAME_NODES    {" + node[:clouderamanager][:cluster][:master_name_nodes].join(",") + "}")
-  Chef::Log.info("CM - SECONDARY_NAME_NODES {" + node[:clouderamanager][:cluster][:secondary_name_nodes].join(",") + "}")
-  Chef::Log.info("CM - EDGE_NODES           {" + node[:clouderamanager][:cluster][:edge_nodes].join(",") + "}")
-  Chef::Log.info("CM - SLAVE_NODES          {" + node[:clouderamanager][:cluster][:slave_nodes].join(",") + "}")
+  Chef::Log.info("CM - namenodes [" + node[:clouderamanager][:cluster][:namenodes].join(",") + "]")
+  Chef::Log.info("CM - edgenodes [" + node[:clouderamanager][:cluster][:edgenodes].join(",") + "]")
+  Chef::Log.info("CM - datanodes [" + node[:clouderamanager][:cluster][:datanodes].join(",") + "]")
 end
 
 # Add hadoop nodes to ssh authorized key list. 
