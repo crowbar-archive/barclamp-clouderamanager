@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-webapp.rb
+# Role: clouderamanager-ha-filernode.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,11 +17,11 @@
 # limitations under the License.
 #
 
-name "clouderamanager-webapp"
-description "Cloudera Manager Web Application Role"
+name "clouderamanager-ha-filernode"
+description "Cloudera Manager High Availability Filer Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-server]"
+  "recipe[clouderamanager::cm-ha-filer-export]"
 )
 default_attributes()
 override_attributes()

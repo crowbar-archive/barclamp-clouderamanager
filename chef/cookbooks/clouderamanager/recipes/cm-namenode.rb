@@ -1,6 +1,6 @@
 #
 # Cookbook Name: clouderamanager
-# Recipe: cm-agent.rb
+# Recipe: cm-namenode.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,42 +17,25 @@
 # limitations under the License.
 #
 
-include_recipe 'clouderamanager::cm-common'
-
 #######################################################################
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CM - BEGIN clouderamanager:cm-agent") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:cm-namenode") if debug
 
 # Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Install the Cloudera Manager agent packages.
-agent_packages=%w{
-  cloudera-manager-agent
-  cloudera-manager-daemons
-}
-
-agent_packages.each do |pkg|
-  package pkg do
-    action :install
+# Look for the ha filer node role definition and mount the file system
+# if active.
+search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
+  if !n[:fqdn].nil? && !n[:fqdn].empty?
+    include_recipe 'clouderamanager::cm-ha-filer-mount'
+    break;
   end
-end
-
-# Define the cloudera agent service.
-# /etc/init.d/cloudera-manager-agent {start|stop|restart|status}
-service "cloudera-scm-agent" do
-  supports :start => true, :stop => true, :restart => true, :status => true 
-  action :enable 
-end
-
-# Start the cloudera agent service.
-service "cloudera-scm-agent" do
-  action :start 
 end
 
 #######################################################################
 # End recipe
 #######################################################################
-Chef::Log.info("CM - END clouderamanager:cm-agent") if debug
+Chef::Log.info("CM - END clouderamanager:cm-namenode") if debug

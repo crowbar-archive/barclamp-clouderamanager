@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-secondarynamenode.rb
+# Role: clouderamanager-ha-journalingnode.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,11 +17,10 @@
 # limitations under the License.
 #
 
-name "clouderamanager-secondarynamenode"
-description "Hadoop Secondary Name Node Role"
+name "clouderamanager-ha-journalingnode"
+description "Cloudera Manager High Availability Journaling Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-ha-filer-mount]",
   "recipe[clouderamanager::cm-agent]"
 )
 default_attributes()

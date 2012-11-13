@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-slavenode.rb
+# Role: clouderamanager-datanode.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-name "clouderamanager-slavenode"
-description "Hadoop Slave Node Role"
+name "clouderamanager-datanode"
+description "Hadoop Data Node Role"
 run_list(
   "recipe[clouderamanager::default]",
   "recipe[clouderamanager::configure-disks]",

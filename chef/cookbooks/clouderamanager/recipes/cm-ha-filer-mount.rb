@@ -28,22 +28,20 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 shared_edits_mount_options = node[:clouderamanager][:ha][:shared_edits_mount_options]
 shared_edits_directory = node[:clouderamanager][:ha][:shared_edits_directory]
 
-# Make sure the nfs & exportfs packages are installed.
-# We install the hadoop-hdfs package so we can set the owner and group
-# for the remote directory.
-pkg_list=%w{
+# Install the nfs utils package.
+nfs_packages=%w{
    nfs-utils
   }
 
-pkg_list.each do |pkg|
+nfs_packages.each do |pkg|
   package pkg do
     action :install
   end
 end
 
 # Create the directory for the HA filer mount point if not already present.
-# Note: The chef directory code block will fail if the directory is already mounted.
-# The File.exists?() check protects us against this condition.  
+# Note: This chef directory code block will fail if the directory is already mounted.
+# The File.exists?() check protects us against that condition.  
 if ! File.exists?(shared_edits_directory)
   Chef::Log.info("CM - Creating HA mount directory [#{shared_edits_directory}]") if debug
   directory shared_edits_directory do
@@ -58,8 +56,8 @@ end
 
 # Locate the Hadoop High Availability (HA) filer role and get the IP address.
 ha_filer_ip = nil
-search(:node, "roles:clouderamanager-ha-filer#{env_filter}") do |hafiler|
-  ha_filer_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(hafiler,"admin").address
+search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
+  ha_filer_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
   break;
 end
 
@@ -81,5 +79,3 @@ end
 # End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:cm-ha-filer-mount") if debug
-
-

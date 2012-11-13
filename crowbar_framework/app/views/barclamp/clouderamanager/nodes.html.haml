@@ -3,7 +3,7 @@
  = link_to t('.export'), nodes_barclamp_path(:controller=>'clouderamanager', :format=>'text'), :class => 'button'
 %h1= t('.title')
 
-%h4=t('.master_name_node')
+%h4= t('.servernodes')
 %table.data.box
  %thead
   %tr
@@ -13,15 +13,15 @@
    %th= t('.ram')
    %th= t('.drives')
  %tbody
- - @cmmasternamenodes.sort_by{|n| n.alias }.each do |node|
+ - @cmservernodes.sort_by{|n| n.alias }.each do |node|
   %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
    %td= node.ip
    %td= link_to node.name, node_path(node.handle)
    %td= node.cpu
    %td= format_memory(node.memory)
    %td= node.number_of_drives
-
-%h4= t('.secondary_name_node')
+   
+%h4=t('.namenodes')
 %table.data.box
  %thead
   %tr
@@ -31,7 +31,7 @@
    %th= t('.ram')
    %th= t('.drives')
  %tbody
- - @cmsecondarynamenodenamenodes.sort_by{|n| n.alias }.each do |node|
+ - @cmnamenodes.sort_by{|n| n.alias }.each do |node|
   %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
    %td= node.ip
    %td= link_to node.name, node_path(node.handle)
@@ -39,7 +39,25 @@
    %td= format_memory(node.memory)
    %td= node.number_of_drives
 
-%h4= t('.edge_node')
+%h4=t('.datanodes')
+%table.data.box
+ %thead
+  %tr
+   %th= t('.ip_addr')
+   %th= t('.name')
+   %th= t('.cpu')
+   %th= t('.ram')
+   %th= t('.drives')
+ %tbody
+ - @cmdatanodes.sort_by{|n| n.alias }.each do |node|
+  %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
+   %td= node.ip
+   %td= link_to node.name, node_path(node.handle)
+   %td= node.cpu
+   %td= format_memory(node.memory)
+   %td= node.number_of_drives
+
+%h4= t('.edgenodes')
 %table.data.box
  %thead
   %tr
@@ -57,7 +75,7 @@
     %td= format_memory(node.memory)
     %td= node.number_of_drives
 
-%h4=t('.slave_nodes')
+%h4= t('.hajournalingnodes')
 %table.data.box
  %thead
   %tr
@@ -67,7 +85,7 @@
    %th= t('.ram')
    %th= t('.drives')
  %tbody
- - @cmslavenodes.sort_by{|n| n.alias }.each do |node|
+ - @cmhajournalingnodes.sort_by{|n| n.alias }.each do |node|
   %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
    %td= node.ip
    %td= link_to node.name, node_path(node.handle)
@@ -75,25 +93,7 @@
    %td= format_memory(node.memory)
    %td= node.number_of_drives
 
-%h4= t('.web_app_node')
-%table.data.box
- %thead
-  %tr
-   %th= t('.ip_addr')
-   %th= t('.name')
-   %th= t('.cpu')
-   %th= t('.ram')
-   %th= t('.drives')
- %tbody
- - @cmwebappnodes.sort_by{|n| n.alias }.each do |node|
-  %tr.node{ :class => cycle(:odd, :even, :name => "nodes"), :id => node.alias }
-   %td= node.ip
-   %td= link_to node.name, node_path(node.handle)
-   %td= node.cpu
-   %td= format_memory(node.memory)
-   %td= node.number_of_drives
-
-%h4= t('.ha_filer_node')
+%h4= t('.hafilernodes')
 %table.data.box
  %thead
   %tr
@@ -110,4 +110,3 @@
    %td= node.cpu
    %td= format_memory(node.memory)
    %td= node.number_of_drives
-   
