@@ -23,12 +23,13 @@
 debug = node[:clouderamanager][:debug]
 Chef::Log.info("CM - BEGIN clouderamanager:postgresql") if debug
 
-postgresql_list=%w{
+# postgresql package installation.
+postgresql_packages=%w{
     postgresql
     postgresql-server
   }
 
-postgresql_list.each do |pkg|
+postgresql_packages.each do |pkg|
   package pkg do
     action :install
   end
@@ -40,7 +41,7 @@ service "postgresql" do
   action :enable 
 end
 
-# Initialize the postgresql database.
+# Initialize the postgresql database if not already done.
 if !File.exists?("/var/lib/pgsql/data/PG_VERSION")
   Chef::Log.info("CM - Initializing the postgresql database") if debug
   bash "postgresql-initdb" do

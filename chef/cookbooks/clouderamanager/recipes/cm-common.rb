@@ -26,12 +26,12 @@ Chef::Log.info("CM - BEGIN clouderamanager:cm-common") if debug
 # Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Install the common Cloudera Manager packages (all nodes).
-pkg_list=%w{
+# Install the common packages (all discovered cluster nodes).
+common_packages=%w{
     hue-plugins
   }
 
-pkg_list.each do |pkg|
+common_packages.each do |pkg|
   package pkg do
     action :install
   end
