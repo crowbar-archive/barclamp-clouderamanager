@@ -83,19 +83,15 @@ class ClouderamanagerService < ServiceObject
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-namenode"] = namenodes 
     end    
     
-    # Edge nodes (exposed public network). 
+    # Edge nodes (public network - CM server defaults to the 1st edgenode per the RA). 
     if edgenodes and !edgenodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edgenodes
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-server"] = [ edgenodes[0] ] 
     end
     
     # Data nodes.
     if datanodes and !datanodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-datanode"] = datanodes   
-    end
-    
-    # The Cloudera Manager server defaults to the crowbar admin node.
-    if adminnodes and !adminnodes.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-server"] = adminnodes 
     end
     
     # @logger.debug("clouderamanager create_proposal: #{base.to_json}")
