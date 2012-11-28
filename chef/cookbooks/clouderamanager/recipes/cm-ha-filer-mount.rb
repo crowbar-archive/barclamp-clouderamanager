@@ -63,7 +63,7 @@ end
 
 # Ensure that the hadoop filer mount point is in the fstab and that the file system is mounted.
 # 192.168.124.81:/dfs/ha  /dfs/ha nfs defaults 0 0
-if ha_filer_ip
+if ha_filer_ip && !ha_filer_ip.empty? 
   source_device = "#{ha_filer_ip}:#{shared_edits_directory}"
   mount shared_edits_directory do
     device source_device

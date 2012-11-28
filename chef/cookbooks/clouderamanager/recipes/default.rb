@@ -94,12 +94,13 @@ link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
 end
 
-# Find the name nodes. 
 keys = {}
+
+# Find the namenodes. 
 namenodes = []
 search(:node, "roles:clouderamanager-namenode#{env_filter}") do |n|
-  if !n[:fqdn].nil? && !n[:fqdn].empty?
-    Chef::Log.info("CM - MASTER [#{n[:fqdn]}]") if debug
+  if n[:fqdn] && !n[:fqdn].empty?
+    Chef::Log.info("CM - NAMENODE [#{n[:fqdn]}]") if debug
     namenodes << n[:fqdn]
     keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
@@ -110,11 +111,11 @@ if namenodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find Hadoop master name node")
 end
 
-# Find the edge nodes. 
+# Find the edgenodes. 
 edgenodes = []
 search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |n|
-  if !n[:fqdn].nil? && !n[:fqdn].empty?
-    Chef::Log.info("CM - EDGE [#{n[:fqdn]}]") if debug
+  if n[:fqdn] && !n[:fqdn].empty?
+    Chef::Log.info("CM - EDGENODE [#{n[:fqdn]}]") if debug
     edgenodes << n[:fqdn] 
     keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
@@ -124,8 +125,8 @@ node[:clouderamanager][:cluster][:edgenodes] = edgenodes
 # Find the slave nodes. 
 datanodes = []
 search(:node, "roles:clouderamanager-datanode#{env_filter}") do |n|
-  if !n[:fqdn].nil? && !n[:fqdn].empty?
-    Chef::Log.info("CM - DATA [#{n[:fqdn]}]") if debug
+  if n[:fqdn] && !n[:fqdn].empty?
+    Chef::Log.info("CM - DATANODE [#{n[:fqdn]}]") if debug
     datanodes << n[:fqdn] 
     keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
@@ -136,10 +137,34 @@ if datanodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find any Hadoop data nodes")
 end
 
+# Find the HA filer nodes. 
+hafilernodes = []
+search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
+  if n[:fqdn] && !n[:fqdn].empty?
+    Chef::Log.info("CM - FILERNODE [#{n[:fqdn]}]") if debug
+    hafilernodes << n[:fqdn] 
+    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+  end
+end
+node[:clouderamanager][:cluster][:hafilernodes] = hafilernodes
+
+# Find the HA journaling nodes. 
+hajournalingnodes = []
+search(:node, "roles:clouderamanager-ha-journalingnode#{env_filter}") do |n|
+  if n[:fqdn] && !n[:fqdn].empty?
+    Chef::Log.info("CM - JOURNALINGNODE [#{n[:fqdn]}]") if debug
+    hajournalingnodes << n[:fqdn] 
+    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+  end
+end
+node[:clouderamanager][:cluster][:hajournalingnodes] = hajournalingnodes
+
 if debug
   Chef::Log.info("CM - namenodes [" + node[:clouderamanager][:cluster][:namenodes].join(",") + "]")
   Chef::Log.info("CM - edgenodes [" + node[:clouderamanager][:cluster][:edgenodes].join(",") + "]")
   Chef::Log.info("CM - datanodes [" + node[:clouderamanager][:cluster][:datanodes].join(",") + "]")
+  Chef::Log.info("CM - hafilernodes [" + node[:clouderamanager][:cluster][:hafilernodes].join(",") + "]")
+  Chef::Log.info("CM - hajournalingnodes [" + node[:clouderamanager][:cluster][:hajournalingnodes].join(",") + "]")
 end
 
 # Add hadoop nodes to ssh authorized key list. 
