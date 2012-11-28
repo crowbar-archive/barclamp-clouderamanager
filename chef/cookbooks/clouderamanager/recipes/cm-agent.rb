@@ -30,8 +30,8 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 # Install the Cloudera Manager agent packages.
 agent_packages=%w{
-  cloudera-manager-agent
   cloudera-manager-daemons
+  cloudera-manager-agent
 }
 
 agent_packages.each do |pkg|

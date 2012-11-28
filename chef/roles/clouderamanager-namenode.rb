@@ -21,7 +21,7 @@ name "clouderamanager-namenode"
 description "Hadoop Name Node Role"
 run_list(
   "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-agent]",
+  "recipe[clouderamanager::cm-pkginstaller]",
   "recipe[clouderamanager::cm-namenode]"
 )
 default_attributes()
