@@ -43,13 +43,25 @@ end
 
 # Cloudera Manager needs to have this directory present. Without it,
 # the slave node installation will fail. This is an empty directory and the
-# RPM package installer does not create it.
+# RPM package installer does not seem to create it.
 directory "/usr/share/cmf/packages" do
   owner "root"
   group "root"
   mode "0755"
   action :create
 end
+
+# We stage packages locally on the crowbar admin node. This repo staging file
+# written by CM points points to http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4.1.0
+# and it is overriding our repo definition. 
+# reposrc = "/etc/yum.repos.d/cloudera-manager.repo"
+# repodst = "#{reposrc}.bak"
+# if File.exists?(reposrc)
+#   Chef::Log.info("CM - rename CM repo file #{reposrc} -> #{repodst}") if debug 
+#   ::File.rename(reposrc, repodst)
+# else
+#   Chef::Log.info("CM - skipping CM repo file rename #{reposrc}") if debug 
+# end
 
 # Define the Cloudera Manager server service.
 # cloudera-scm-server {start|stop|restart|status}
@@ -93,7 +105,7 @@ Chef::Log.info("CM - Cloudera manager web application {" + node[:fqdn] + "}") if
 server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(node,"admin").address
 node[:crowbar] = {} if node[:crowbar].nil? 
 node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-if server_ip
+if server_ip && !server_ip.empty? 
   url = "http://#{server_ip}:7180/cmf/login" 
   Chef::Log.info("CM - Cloudera management services URL [#{url}]") if debug 
   node[:crowbar][:links]["Cloudera Manager"] = url 

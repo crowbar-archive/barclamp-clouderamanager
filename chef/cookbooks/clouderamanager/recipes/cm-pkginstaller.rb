@@ -1,6 +1,6 @@
 #
 # Cookbook Name: clouderamanager
-# Recipe: cm-namenode.rb
+# Recipe: cm-pkginstaller.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -21,26 +21,30 @@
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CM - BEGIN clouderamanager:cm-namenode") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:cm-pkginstaller") if debug
 
 # Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Look for the ha filer node role definition.
-ha_filer_active = false
-search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
-  if n[:fqdn] && !n[:fqdn].empty?
-    ha_filer_active = true
+# Is the cm server node.
+is_cm_server_node = false
+search(:node, "roles:clouderamanager-server#{env_filter}") do |n|
+  if n[:fqdn] && !n[:fqdn].empty? && node[:fqdn] && !node[:fqdn].empty? && n[:fqdn] == node[:fqdn] 
+    is_cm_server_node = true
     break;
   end
 end
 
-# Make the HA file system mount if HA filer active. 
-if ha_filer_active
-  include_recipe 'clouderamanager::cm-ha-filer-mount'
+# Include the agent packages if this is not a cm-server node.
+# CM server packages are installed by the clouderamanager-server role.
+if !is_cm_server_node
+  Chef::Log.info("CM - cm-agent node instance") if debug 
+  include_recipe 'clouderamanager::cm-agent'
+else
+  Chef::Log.info("CM - cm-server node instance") if debug 
 end
 
 #######################################################################
 # End recipe
 #######################################################################
-Chef::Log.info("CM - END clouderamanager:cm-namenode") if debug
+Chef::Log.info("CM - END clouderamanager:cm-pkginstaller") if debug
