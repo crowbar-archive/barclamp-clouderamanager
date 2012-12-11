@@ -22,7 +22,7 @@ description "Hadoop Data Node Role"
 run_list(
   "recipe[clouderamanager::default]",
   "recipe[clouderamanager::configure-disks]",
-  "recipe[clouderamanager::cm-pkginstaller]"
+  "recipe[clouderamanager::cm-agent]"
 )
 default_attributes()
 override_attributes()
