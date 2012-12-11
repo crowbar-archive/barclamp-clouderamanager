@@ -84,7 +84,7 @@ template "/etc/security/limits.conf" do
   source "limits.conf.erb"
 end
 
-# Ensure localtime is set consistantly across the cluster (UTC).
+# Ensure localtime is set consistently across the cluster (UTC).
 file "/etc/localtime" do
   action :delete
   only_if "test -F /etc/localtime"
