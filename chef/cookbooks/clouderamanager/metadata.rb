@@ -6,7 +6,6 @@ long_description IO.read(File.join(File.dirname(__FILE__), 'README.rdoc'))
 version          "1.0"
 recipe           "clouderamanager::cm-agent", "Installs the Cloudera Manager agent component."
 recipe           "clouderamanager::cm-common", "Installs Cloudera Manager common components."
-recipe           "clouderamanager::cm-pkginstaller", "Cloudera Manager package installer."
 recipe           "clouderamanager::cm-ha-filer-export", "Handle the HA file system export if HA enabled."
 recipe           "clouderamanager::cm-ha-filer-mount", "Handle the HA file system mount if HA enabled."
 recipe           "clouderamanager::cm-namenode", "Name Node wrapper to conditionalize HA installation."

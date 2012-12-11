@@ -47,6 +47,22 @@ service "cloudera-scm-agent" do
   action :enable 
 end
 
+# Create the agent config file. Do not update after - CM will manage this file
+# after initial deployment of the hadoop cluster.
+agent_config_file = "/etc/cloudera-scm-agent/config.ini"
+if !File.exists?(agent_config_file)
+  Chef::Log.info("CM - installing cm-agent config file [#{agent_config_file}]") if debug
+  cm_server = "not_configured"
+  vars = { :cm_server => cm_server } 
+  template agent_config_file do
+    source "cm-agent-config.erb" 
+    variables( :vars => vars )
+    notifies :restart, "service[cloudera-scm-agent]"
+  end
+else
+  Chef::Log.info("CM - cm-agent already configured - skipping") if debug
+end
+
 # Start the cloudera agent service.
 service "cloudera-scm-agent" do
   action :start 
