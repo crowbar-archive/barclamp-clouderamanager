@@ -171,6 +171,7 @@ rpms:
     - enterprise-debuginfo
     - jdk
     # SQL packages
+    - mysql-server
     - postgresql
     - postgresql-server
 
