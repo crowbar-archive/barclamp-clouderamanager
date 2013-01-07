@@ -177,8 +177,9 @@ rpms:
     # Packages for impala
     - boost-thread
     - boost-regex
-    - mysql-connector-java
     - boost-date-time
+    - java-gcj-compat
+    - mysql-connector-java
 
 smoketest:
   timeout: 900
