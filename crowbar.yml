@@ -175,8 +175,10 @@ rpms:
     - postgresql
     - postgresql-server
     # Packages for impala
-    - libboost
+    - boost-thread
+    - boost-regex
     - mysql-connector-java
+    - boost-date-time
 
 smoketest:
   timeout: 900
