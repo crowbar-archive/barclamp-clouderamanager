@@ -178,7 +178,7 @@ rpms:
     - boost-thread
     - boost-regex
     - boost-date-time
-    - java-gcj-compat
+    - java-1.5.0-gcj
     - mysql-connector-java
 
 smoketest:
