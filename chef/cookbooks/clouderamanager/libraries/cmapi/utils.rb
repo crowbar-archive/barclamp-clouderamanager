@@ -1,6 +1,4 @@
-#
-# Cookbook Name: clouderamanager
-# Recipe: cm-common.rb
+#!/usr/bin/ruby
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -16,28 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Note : This code is in development mode and is not full debugged yet.
+# It is being exercised through the use of the cm API test harness script 
+# and is not currently part of crowbar/clouderamanager barclamp cluster
+# deployments. 
+# 
+
+require 'time'
 
 #######################################################################
-# Begin recipe
+# Convert a time string received from the API into a datetime object.
+# This method is used internally for db date/time conversion with UTC. 
+# The input timestamp is expected to be in ISO 8601 format with the "Z"
+# sufix to express UTC.
+# @param s: A time string received from the API (e.g "2012-02-18T01:01:03.234Z")
+# @return: A datetime object.
 #######################################################################
-debug = node[:clouderamanager][:debug]
-Chef::Log.info("CM - BEGIN clouderamanager:cm-common") if debug
-
-# Configuration filter for the crowbar environment.
-env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
-
-# Install the common packages (all discovered cluster nodes).
-common_packages=%w{
-    hue-plugins
-  }
-
-common_packages.each do |pkg|
-  package pkg do
-    action :install
-  end
+def api_time_to_datetime(s)
+  return Time.iso8601(s)
 end
-
-#######################################################################
-# End recipe
-#######################################################################
-Chef::Log.info("CM - END clouderamanager:cm-common") if debug
