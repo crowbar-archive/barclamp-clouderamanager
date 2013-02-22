@@ -41,9 +41,10 @@ end
 # Find all the storage type disks.
 to_use_disks = []
 all_disks = node[:crowbar][:disks]
+boot_disk=File.readlink("/dev/#{node[:crowbar_wall][:boot_device]}").split('/')[-1] rescue "sda"
 if !all_disks.nil?
   all_disks.each { |k,v|
-    to_use_disks << k if v["usage"] == "Storage"  
+    to_use_disks << k unless k == boot_disk
   }
 end
 
@@ -64,6 +65,7 @@ to_use_disks.sort.each { |k|
     next
   end
   disk = Hash.new
+  disk[:valid] = true
   disk[:name] = target_dev_part
   
   # Make sure that the kernel is aware of the current state of the 
@@ -118,40 +120,44 @@ found_disks.each { |disk|
     # We just created this filesystem. Grab its UUID and create a mount point.
     disk[:uuid]=get_uuid disk[:name]
     Chef::Log.info("CM - Adding #{disk[:name]} (#{disk[:uuid]}) to the Hadoop configuration.")
-    # disk[:mount_point]="#{dfs_base_dir}/#{disk[:uuid]}/dfs/dn"
     disk[:mount_point]="#{dfs_base_dir}/#{cnt}"
     ::Kernel.system("mkdir -p #{disk[:mount_point]}")
   elsif disk[:uuid]
     # This filesystem already existed.
     # If we did not create a mountpoint for it, print a warning and skip it.
-    # disk[:mount_point]="#{dfs_base_dir}/#{disk[:uuid]}/dfs/dn"
     disk[:mount_point]="#{dfs_base_dir}/#{cnt}"
     unless ::File.exists?(disk[:mount_point]) and ::File.directory?(disk[:mount_point])
       Chef::Log.warn("CM - #{disk[:name]} (#{disk[:uuid]}) was not created by configure-disks, ignoring.")
       Chef::Log.warn("CM - If you want to use this disk, please erase any data on it and zero the partition information.")
+      # Invalidate the mount point array entry.
+      disk[:valid] = false
       next
     end
   end
-  cnt += 1
   
-  # Update the crowbar data for this node.
-  node[:clouderamanager][:devices] << disk
-  node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
-  node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
-  
-  # Mount the storage disks. These directories should be mounted noatime and the
-  # disks should be configured JBOD. RAID is not recommended. Example;
-  # UUID=b6447526-276d-457a-ad2f-54a5cc8bf450 /data/1 ext3 noatime,nodiratime 0 0
-  # UUID=b5210382-750c-4c46-9e36-99baec825023 /data/2 ext3 noatime,nodiratime 0 0
-  # UUID=2866e2a0-f191-4493-a080-c031b6bcbd12 /data/3 ext3 noatime,nodiratime 0 0
-  mount disk[:mount_point]  do  
-    device disk[:uuid]
-    device_type :uuid
-    options "noatime,nodiratime"
-    dump 0  
-    pass 0 
-    fstype fs_type
-    action [:mount, :enable]
+  # Make the HDFS file system mount point.
+  if disk[:valid]
+    cnt += 1
+    
+    # Update the crowbar data for this node.
+    node[:clouderamanager][:devices] << disk
+    node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
+    node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
+    
+    # Mount the storage disks. These directories should be mounted noatime and the
+    # disks should be configured JBOD. RAID is not recommended. Example;
+    # UUID=b6447526-276d-457a-ad2f-54a5cc8bf450 /data/1 ext3 noatime,nodiratime 0 0
+    # UUID=b5210382-750c-4c46-9e36-99baec825023 /data/2 ext3 noatime,nodiratime 0 0
+    # UUID=2866e2a0-f191-4493-a080-c031b6bcbd12 /data/3 ext3 noatime,nodiratime 0 0
+    mount disk[:mount_point]  do  
+      device disk[:uuid]
+      device_type :uuid
+      options "noatime,nodiratime"
+      dump 0  
+      pass 0 
+      fstype fs_type
+      action [:mount, :enable]
+    end
   end
 }
 
