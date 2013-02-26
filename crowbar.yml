@@ -96,20 +96,44 @@ rpms:
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-impala 10 http://beta.cloudera.com/impala/redhat/6/x86_64/impala/0/
   pkgs:
-    # CDH packages
-    - bigtop-jsvc
-    - bigtop-jsvc-debuginfo
+    # CDH 4.2.x noarch
     - bigtop-tomcat
     - bigtop-utils
     - flume-ng
     - flume-ng-agent
     - flume-ng-doc
-    - hadoop
+    - hadoop-0.20-mapreduce-jobtracker   
+    - hadoop-0.20-mapreduce-jobtrackerha
+    - hadoop-0.20-mapreduce-tasktracker
+    - hadoop-0.20-mapreduce-zkfc
+    - hcatalog
+    - hcatalog-server
+    - hive
+    - hive-metastore
+    - hive-server
+    - hive-server2
+    - mahout
+    - mahout-doc
+    - oozie
+    - oozie-client
+    - pig
+    - pig-udf-datafu
+    - sqoop
+    - sqoop-metastore
+    - sqoop2
+    - sqoop2-client
+    - sqoop2-server
+    - webhcat
+    - webhcat-server
+    - whirr
+    - zookeeper
+    - zookeeper-server
+    # CDH 4.2.x X86_64
+    - bigtop-jsvc-debuginfo
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
     - hadoop-0.20-mapreduce-debuginfo
-    - hadoop-0.20-mapreduce-jobtracker
-    - hadoop-0.20-mapreduce-tasktracker
+    - hadoop-2.0.0
     - hadoop-client
     - hadoop-conf-pseudo
     - hadoop-debuginfo
@@ -135,16 +159,13 @@ rpms:
     - hbase-regionserver
     - hbase-rest
     - hbase-thrift
-    - hive
-    - hive-metastore
-    - hive-server
-    - hive-server2
-    - hue
+    - hue-2.2.0
     - hue-about
     - hue-beeswax
     - hue-common
     - hue-filebrowser
     - hue-help
+    - hue-impala
     - hue-jobbrowser
     - hue-jobsub
     - hue-oozie
@@ -153,19 +174,8 @@ rpms:
     - hue-server
     - hue-shell
     - hue-useradmin
-    - mahout
-    - mahout-doc
-    - oozie
-    - oozie-client
-    - pig
-    - pig-udf-datafu
-    - sqoop
-    - sqoop-metastore
-    - whirr
-    - zookeeper
-    - zookeeper-server
     # Cloudera Manager packages
-    - cloudera-manager-parcel-4.1.3
+    - cloudera-manager-parcel-4.5.0
     - cloudera-manager-agent
     - cloudera-manager-daemons
     - cloudera-manager-server
