@@ -133,7 +133,7 @@ rpms:
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
     - hadoop-0.20-mapreduce-debuginfo
-    - hadoop-2.0.0
+    - hadoop
     - hadoop-client
     - hadoop-conf-pseudo
     - hadoop-debuginfo
@@ -159,7 +159,7 @@ rpms:
     - hbase-regionserver
     - hbase-rest
     - hbase-thrift
-    - hue-2.2.0
+    - hue
     - hue-about
     - hue-beeswax
     - hue-common
