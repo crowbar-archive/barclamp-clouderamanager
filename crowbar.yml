@@ -26,6 +26,7 @@ barclamp:
   supercedes:
     - hadoop
     - zookeeper
+    - hive
 
 crowbar:
   layout: 1
