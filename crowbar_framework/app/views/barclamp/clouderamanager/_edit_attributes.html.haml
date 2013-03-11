@@ -32,7 +32,15 @@
     %p
       %label{ :for => :hbase_openfiles }= t('.hbase_openfiles')
       %input#hbase_openfiles{:type => "text", :name => "hbase_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["hbase_openfiles"], :onchange => "update_value('os', 'hbase_openfiles', 'string')"}
+    
+    %p
+    %br
+    %strong= t('.cluster_settings')
 
+    %p
+      %label{ :for => :license_key }= t('.license_key')
+      %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
+    
     %p
     %br
     %strong= t('.ha_settings')
@@ -49,11 +57,3 @@
       %label{ :for => :shared_edits_mount_options }= t('.shared_edits_mount_options')
       %input#shared_edits_mount_options{:type => "text", :name => "shared_edits_mount_options", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_mount_options"], :onchange => "update_value('ha', 'shared_edits_mount_options', 'string')"}
 
-    %p
-    %br
-    %strong= t('.cluster_settings')
-
-    %p
-      %label{ :for => :license_key }= t('.license_key')
-      %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
-    
