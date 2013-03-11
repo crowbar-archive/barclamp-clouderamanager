@@ -20,7 +20,7 @@
               "required": true,
               "mapping": {
                 "deployment_type": { "type": "str", "required": true},
-                "license_key": { "type": "str", "required": true}
+                "license_key": { "type": "str", "required": false}
               }  
             },
             "ha": {
