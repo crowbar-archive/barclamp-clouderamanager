@@ -85,11 +85,123 @@ class ApiResource < Resource
   #----------------------------------------------------------------------
   
   #######################################################################
-  # Returns a Cloudera Manager object.
+  # Retrieve a list of running global commands.
+  # @param view: View to materialize('full' or 'summary')
+  # @return: A list of running commands.
   #######################################################################
+  def get_commands(view=nil)
+    return ClouderaManager.get_commands(self, view)
+  end
   
-  def get_cloudera_manager
-    return cms.ClouderaManager.new(self)
+  #######################################################################
+  # Setup the Cloudera Management Service.
+  # @param service_setup_info: ApiServiceSetupInfo object.
+  # @return: The management service instance.
+  #######################################################################
+  def create_mgmt_service(service_setup_info)
+    return ClouderaManager.create_mgmt_service(self, service_setup_info)
+  end
+  
+  #######################################################################
+  # Return the Cloudera Management Services instance.
+  # @return: An ApiService instance.
+  #######################################################################
+  def get_service
+    return ClouderaManager.get_service(self)
+  end
+  
+  #######################################################################
+  # Return information about the currently installed license.
+  # @return: License information.
+  #######################################################################
+  def get_license
+    return ClouderaManager.get_license(self)
+  end
+  
+  #######################################################################
+  # Install or update the Cloudera Manager license.
+  # @param license_text: the license in text form
+  #######################################################################
+  def update_license(license_text)
+    return ClouderaManager.update_license(self, license_text)
+  end
+  
+  #######################################################################
+  # Retrieve the Cloudera Manager configuration.
+  # The 'summary' view contains strings as the dictionary values. The full
+  # view contains ApiConfig instances as the values.
+  # @param view: View to materialize('full' or 'summary')
+  # @return: Dictionary with configuration data.
+  #######################################################################
+  def get_config(view = nil)
+    return ClouderaManager.get_config(self, view)
+  end
+  
+  #######################################################################
+  # Update the CM configuration.
+  # @param: config Dictionary with configuration to update.
+  # @return: Dictionary with updated configuration.
+  #######################################################################
+  def update_config(config)
+    return ClouderaManager.update_config(self, config)
+  end
+  
+  #######################################################################
+  # Generate credentials for services configured with Kerberos.
+  # @return: Information about the submitted command.
+  #######################################################################
+  def generate_credentials()
+    return ClouderaManager.generate_credentials(self)
+  end
+  
+  #######################################################################
+  # Runs the host inspector on the configured hosts.
+  # @return: Information about the submitted command.
+  #######################################################################
+  def inspect_hosts()
+    return ClouderaManager.inspect_hosts(self)
+  end
+  
+  #######################################################################
+  # Issue the command to collect diagnostic data.
+  # @param start_datetime: The start of the collection period. Type datetime.
+  # @param end_datetime: The end of the collection period. Type datetime.
+  # @param includeInfoLog: Whether to include INFO level log messages.
+  #######################################################################
+  def collect_diagnostic_data(start_datetime, end_datetime, includeInfoLog=false)
+    return ClouderaManager.collect_diagnostic_data(self, start_datetime, end_datetime, includeInfoLog)
+  end
+  
+  #######################################################################
+  # Decommission the specified hosts by decommissioning the slave roles
+  # and stopping the remaining ones.
+  # @param host_names: List of names of hosts to be decommissioned.
+  # @return: Information about the submitted command.
+  # @since: API v2
+  #######################################################################
+  def hosts_decommission(host_names)
+    return ClouderaManager.hosts_decommission(self, host_names)
+  end
+  
+  #######################################################################
+  # Recommission the specified hosts by recommissioning the slave roles.
+  # This command doesn't start the roles. Use hosts_start_roles for that.
+  # @param host_names: List of names of hosts to be recommissioned.
+  # @return: Information about the submitted command.
+  # @since: API v2
+  #######################################################################
+  def hosts_recommission(host_names)
+    return ClouderaManager.hosts_recommission(self, host_names)
+  end
+  
+  #######################################################################
+  # Start all the roles on the specified hosts.
+  # @param host_names: List of names of hosts on which to start all roles.
+  # @return: Information about the submitted command.
+  # @since: API v2
+  #######################################################################
+  def hosts_start_roles(host_names)
+    return ClouderaManager.hosts_start_roles(self, host_names)
   end
   
   #######################################################################
