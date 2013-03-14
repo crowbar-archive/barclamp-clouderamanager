@@ -27,7 +27,7 @@ require "#{libbase}/utils.rb"
 #######################################################################
 # Local variables.
 #######################################################################
-server_host = "192.168.124.81"
+server_host = "192.168.124.82"
 server_port = "7180"
 username = "admin"
 password = "admin"
@@ -118,6 +118,10 @@ print "api.get_all_users results : [#{results}]\n"
 #----------------------------------------------------------------------
 # cms related methods.
 #----------------------------------------------------------------------
+
+# api.get_license
+results = api.get_license()
+print "api.api.get_license results : [#{results}]\n"
 
 #----------------------------------------------------------------------
 # Tool related methods.

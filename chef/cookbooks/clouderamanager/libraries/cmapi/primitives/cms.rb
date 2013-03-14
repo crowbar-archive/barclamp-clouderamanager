@@ -43,16 +43,20 @@ class ClouderaManager < BaseApiObject
     end
   end
   
+  #----------------------------------------------------------------------
+  # Static methods.
+  #----------------------------------------------------------------------
+  
   #######################################################################
   # Invokes a global command.
   # @param command: Command name.
   # @param data: Optional data to send to the command.
   # @return Information about the submitted command.
   #######################################################################
-  def _cmd(command, data = nil)
+  def self._cmd(resource_root, command, data = nil)
     subpath = "/cm/commands/#{command}"
-    resp = _get_resource_root().post(subpath, data)
-    return ApiCommand.from_json_dict(resp, _get_resource_root())
+    resp = resource_root.post(subpath, data)
+    return ApiCommand.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -60,12 +64,12 @@ class ClouderaManager < BaseApiObject
   # @param view: View to materialize('full' or 'summary')
   # @return: A list of running commands.
   #######################################################################
-  def get_commands(view=nil)
+  def self.get_commands(resource_root, view=nil)
     subpath = '/cm/commands'
     params = nil 
     params = { :view => view } if(view)
-    resp = _get_resource_root().get(subpath, params)
-    return ApiList.from_json_dict(ApiCommand, resp, _get_resource_root())
+    resp = resource_root.get(subpath, params)
+    return ApiList.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -73,39 +77,39 @@ class ClouderaManager < BaseApiObject
   # @param service_setup_info: ApiServiceSetupInfo object.
   # @return: The management service instance.
   #######################################################################
-  def create_mgmt_service(service_setup_info)
+  def self.create_mgmt_service(resource_root, service_setup_info)
     subpath = '/cm/service'
     jdict = service_setup_info.to_json_dict(self)
     data = JSON.generate(jdict)
-    resp = _get_resource_root().put(subpath, data)
-    return ApiService.from_json_dict(resp, _get_resource_root())
+    resp = resource_root.put(subpath, data)
+    return ApiService.from_json_dict(ApiService, resp, resource_root)
   end
   
   #######################################################################
   # Return the Cloudera Management Services instance.
   # @return: An ApiService instance.
   #######################################################################
-  def get_service
+  def self.get_service(resource_root) 
     subpath = '/cm/service'
-    resp = _get_resource_root().get(subpath)
-    return ApiService.from_json_dict(resp, _get_resource_root())
+    resp = resource_root.get(subpath)
+    return ApiService.from_json_dict(ApiService, resp, resource_root)
   end
   
   #######################################################################
   # Return information about the currently installed license.
   # @return: License information.
   #######################################################################
-  def get_license
+  def self.get_license(resource_root)
     subpath = '/cm/license'
-    resp = _get_resource_root().get(subpath)
-    return ApiLicense.from_json_dict(resp, _get_resource_root())
+    resp = resource_root.get(subpath)
+    return ApiLicense.from_json_dict(ApiLicense, resp, resource_root)
   end
   
   #######################################################################
   # Install or update the Cloudera Manager license.
   # @param license_text: the license in text form
   #######################################################################
-  def update_license(license_text)
+  def self.update_license(resource_root, license_text)
     content = [
         '--MULTI_BOUNDARY',
         'Content-Disposition: form-data; name="license"',
@@ -115,8 +119,8 @@ class ClouderaManager < BaseApiObject
         '' ]
     data = "\r\n".join(content)
     contenttype='multipart/form-data; boundary=MULTI_BOUNDARY'
-    resp = _get_resource_root().post('cm/license', data, contenttype)
-    return ApiLicense.from_json_dict(resp, _get_resource_root())
+    resp = resource_root.post('cm/license', data, contenttype)
+    return ApiLicense.from_json_dict(ApiLicense, resp, resource_root)
   end
   
   #######################################################################
@@ -126,11 +130,11 @@ class ClouderaManager < BaseApiObject
   # @param view: View to materialize('full' or 'summary')
   # @return: Dictionary with configuration data.
   #######################################################################
-  def get_config(view = nil)
+  def self.get_config(resource_root, view = nil)
     subpath = '/cm/config'
     params = nil 
     params = { :view => view } if(view)
-    resp = _get_resource_root().get(subpath, params)
+    resp = resource_root.get(subpath, params)
     return json_to_config(resp, view)
   end
   
@@ -139,10 +143,10 @@ class ClouderaManager < BaseApiObject
   # @param: config Dictionary with configuration to update.
   # @return: Dictionary with updated configuration.
   #######################################################################
-  def update_config(config)
+  def self.update_config(resource_root, config)
     subpath = '/cm/config'
     data = config_to_json(config)
-    resp = _get_resource_root().put(subpath, data)
+    resp = resource_root.put(subpath, data)
     return json_to_config(resp, false)
   end
   
@@ -150,7 +154,7 @@ class ClouderaManager < BaseApiObject
   # Generate credentials for services configured with Kerberos.
   # @return: Information about the submitted command.
   #######################################################################
-  def generate_credentials
+  def self.generate_credentials(resource_root)
     return _cmd('generateCredentials')
   end
   
@@ -158,7 +162,7 @@ class ClouderaManager < BaseApiObject
   # Runs the host inspector on the configured hosts.
   # @return: Information about the submitted command.
   #######################################################################
-  def inspect_hosts
+  def self.inspect_hosts(resource_root)
     return _cmd('inspectHosts')
   end
   
@@ -168,7 +172,7 @@ class ClouderaManager < BaseApiObject
   # @param end_datetime: The end of the collection period. Type datetime.
   # @param includeInfoLog: Whether to include INFO level log messages.
   #######################################################################
-  def collect_diagnostic_data(start_datetime, end_datetime, includeInfoLog=false)
+  def self.collect_diagnostic_data(resource_root, start_datetime, end_datetime, includeInfoLog=false)
     args = {
         'startTime' => start_datetime.isoformat(),
         'endTime' => end_datetime.isoformat(),
@@ -185,7 +189,7 @@ class ClouderaManager < BaseApiObject
   # @return: Information about the submitted command.
   # @since: API v2
   #######################################################################
-  def hosts_decommission(host_names)
+  def self.hosts_decommission(resource_root, host_names)
     jdict = { ApiList.LIST_KEY => host_names }
     data = JSON.generate(jdict)
     return _cmd('hostsDecommission', data)
@@ -198,7 +202,7 @@ class ClouderaManager < BaseApiObject
   # @return: Information about the submitted command.
   # @since: API v2
   #######################################################################
-  def hosts_recommission(host_names)
+  def self.hosts_recommission(resource_root, host_names)
     jdict = { ApiList.LIST_KEY => host_names }
     data = JSON.generate(jdict)
     return _cmd('hostsRecommission', data)
@@ -210,7 +214,7 @@ class ClouderaManager < BaseApiObject
   # @return: Information about the submitted command.
   # @since: API v2
   #######################################################################
-  def hosts_start_roles(host_names)
+  def self.hosts_start_roles(resource_root, host_names)
     jdict = { ApiList.LIST_KEY => host_names }
     data = JSON.generate(jdict)
     return _cmd('hostsStartRoles', data)
