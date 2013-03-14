@@ -613,11 +613,17 @@ class ApiLicense < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
+  end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiLicense>(#{@owner}, #{@uuid}, #{@expiration})"
   end
 end
