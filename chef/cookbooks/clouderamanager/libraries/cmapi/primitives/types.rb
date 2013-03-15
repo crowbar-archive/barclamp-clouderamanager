@@ -46,9 +46,9 @@ class BaseApiObject < Object
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root, rw_attrs)
+  def initialize(resource_root, dict)
     @resource_root = resource_root
-    rw_attrs.each do |k, v|
+    dict.each do |k, v|
 =begin
       if k not in @RW_ATTR
         raise ArgumentError, "Unexpected argument #{k} in #{self.class.name}"
@@ -181,14 +181,6 @@ class ApiList < Object
   end
   
   #######################################################################
-  # to_s
-  #######################################################################
-  def to_s
-    str = @objects.join(",")
-    return "<ApiList>(#{@objects.length}): [#{str}]"
-  end
-  
-  #######################################################################
   # length
   #######################################################################
   def __len__
@@ -241,6 +233,14 @@ class ApiList < Object
     end
     return ApiList.new(objs)
   end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    str = @objects.join(",")
+    return "<ApiList> (length:#{@objects.length}, str:#{str})"
+  end
 end
 
 #######################################################################
@@ -259,19 +259,11 @@ class ApiCommand < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
-  end
-  
-  #######################################################################
-  # to_s
-  #######################################################################
-  def to_s
-    return "<ApiCommand>: #{@name}(id: #{@id}; active: #{@active}; success: #{@success})"
   end
   
   #######################################################################
@@ -358,6 +350,13 @@ class ApiCommand < BaseApiObject
     resp = _get_resource_root().post(subpath)
     return ApiCommand.from_json_dict(resp, _get_resource_root())
   end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiCommand> (name:#{@name}, id:#{@id}, active:#{@active}, success:#{@success})"
+  end
 end
 
 #######################################################################
@@ -371,12 +370,18 @@ class ApiMetricData < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
+  end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiMetricData> (timestamp:#{@timestamp}, value:#{@value})"
   end
 end
 
@@ -391,8 +396,7 @@ class ApiMetric < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
@@ -415,6 +419,13 @@ class ApiMetric < BaseApiObject
       end
     end
   end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiMetric> (name:#{@name}, description:#{@description})"
+  end
 end  
 
 #######################################################################
@@ -431,8 +442,7 @@ class ApiActivity < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
@@ -443,7 +453,7 @@ class ApiActivity < BaseApiObject
   # to_s
   #######################################################################
   def to_s
-    return "<ApiActivity>: #{@name} (#{@status})"
+    return "<ApiActivity> (name:#{@name} (status:#{@status})"
   end
 end
 
@@ -466,13 +476,6 @@ class ApiConfig < BaseApiObject
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
-  end
-  
-  #######################################################################
-  # to_s
-  #######################################################################
-  def to_s
-    return "<ApiConfig>: #{@name} = #{@value}"
   end
   
   #######################################################################
@@ -520,6 +523,13 @@ class ApiConfig < BaseApiObject
     end
     return config
   end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiConfig> (name:#{@name}, value:#{@value})"
+  end
 end
 
 #######################################################################
@@ -533,12 +543,18 @@ class ApiHostRef < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root, hostId)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
+  end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiHostRef> (hostId:#{@hostId})"
   end
 end
 
@@ -553,12 +569,18 @@ class ApiServiceRef < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root, serviceName, clusterName = nil)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
+  end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiServiceRef> (clusterName:#{@clusterName}, serviceName:#{@serviceName})"
   end
 end
 
@@ -573,12 +595,18 @@ class ApiClusterRef < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root, clusterName = nil)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
+  end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiClusterRef> (clusterName:#{@clusterName})"
   end
 end
 
@@ -593,12 +621,18 @@ class ApiRoleRef < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root, serviceName, roleName, clusterName = nil)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
+  end
+  
+  #######################################################################
+  # to_s
+  #######################################################################
+  def to_s
+    return "<ApiRoleRef> (clusterName:#{@clusterName}, serviceName:#{@serviceName}, roleName:#{@roleName})"
   end
 end
 
@@ -624,6 +658,6 @@ class ApiLicense < BaseApiObject
   # to_s
   #######################################################################
   def to_s
-    return "<ApiLicense>(#{@owner}, #{@uuid}, #{@expiration})"
+    return "<ApiLicense> (owner:#{@owner}, uuid:#{@uuid}, expiration:#{@expiration})"
   end
 end
