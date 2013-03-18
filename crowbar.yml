@@ -59,7 +59,6 @@ locale_additions:
           hbase_openfiles: HBASE File Handles
           ha_settings: Hadoop High Availability
           cluster_settings: Cluster Settings
-          license_key: Cloudera Manager License Key
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
           shared_edits_mount_options: Shared Edits Mount Options 
