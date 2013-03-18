@@ -7,8 +7,7 @@
 	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
       "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
       "cluster": {
-          "deployment_type": "manual",
-          "license_key": ""
+          "deployment_type": "manual"
       },
       "ha": {
           "shared_edits_directory": "/dfs/ha",

@@ -34,9 +34,6 @@ default[:clouderamanager][:cluster][:namenodes] = []
 default[:clouderamanager][:cluster][:datanodes] = []
 default[:clouderamanager][:cluster][:edgenodes] = []
 
-# Cloudera License Key
-default[:clouderamanager][:cluster][:license_key] = ""
-
 # File system type (ext3/ext4/xfs) - must be a valid mkfs type (See man mkfs).
 default[:clouderamanager][:os][:fs_type] = "ext4"
 
