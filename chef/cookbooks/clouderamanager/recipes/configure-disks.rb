@@ -58,6 +58,7 @@ to_use_disks.sort.each { |k|
   target_suffix= k + "1" 
   target_dev = "/dev/#{k}"
   target_dev_part = "/dev/#{target_suffix}"
+  
   # Protect against OS's that confuse ohai. if the device isn't there,
   # don't try to use it.
   if ! File.exists?(target_dev)
@@ -65,6 +66,7 @@ to_use_disks.sort.each { |k|
     next
   end
   disk = Hash.new
+  disk[:pid] = 0
   disk[:valid] = true
   disk[:name] = target_dev_part
   
@@ -95,9 +97,11 @@ to_use_disks.sort.each { |k|
     disk[:uuid]=get_uuid target_dev_part
   else
     Chef::Log.info("CM - formatting #{target_dev_part}") if debug
-    ::Kernel.exec "mkfs.#{fs_type} #{target_dev_part}" unless ::Process.fork
+    ::Kernel.exec "mkfs.#{fs_type} #{target_dev_part}" unless pid = ::Process.fork
     disk[:fresh] = true
+    disk[:pid] = pid
     wait_for_format = true
+    Chef::Log.info("CM - format exec #{pid} #{target_dev_part}") if debug
   end
   found_disks << disk.dup
 }
@@ -105,14 +109,36 @@ to_use_disks.sort.each { |k|
 # Wait for formatting to finish.
 if wait_for_format
   Chef::Log.info("CM - Waiting on all drives to finish formatting") if debug
-  ::Process.waitall
+  pstatus = ::Process.waitall
+  # Loop through all the formatting processes and make sure they completed successfully.
+  # Mark any format failures as being invalid.
+  pstatus.each { |pobj|
+    pid = 0
+    is_ok = false
+    if pobj
+      pid = pobj[0]
+      stat = pobj[1]
+      if stat and stat.exited? and stat.exitstatus == 0
+        is_ok = true
+      end
+    end
+    Chef::Log.info("CM - format status PID:#{pid} status:#{is_ok}") if debug
+    if !is_ok
+      found_disks.each { |disk|
+        if pid == disk[:pid]
+          disk[:valid] = false
+          Chef::Log.info("CM - disk format failed for #{disk[:name]}") if debug
+        end
+      }
+    end 
+  }
 end
 
 # Setup the mount points.
 # Storage disk mount point are named as follows - /data/N for N = 1, 2, 3...
 # Hadoop dfs.data.dir entries are named as follows - /data/N/dfs/dn for N = 1, 2, 3...
 # Note : Cloudera Manager adds the /dfs/dn to the end after initial mount point
-# detection. This matches the default setting in the CLoudera Manager UI.
+# detection. This matches the default setting in the Cloudera Manager UI.
 cnt = 1
 dfs_base_dir = node[:clouderamanager][:hdfs][:dfs_base_dir]
 found_disks.each { |disk|
@@ -137,13 +163,6 @@ found_disks.each { |disk|
   
   # Make the HDFS file system mount point.
   if disk[:valid]
-    cnt += 1
-    
-    # Update the crowbar data for this node.
-    node[:clouderamanager][:devices] << disk
-    node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
-    node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
-    
     # Mount the storage disks. These directories should be mounted noatime and the
     # disks should be configured JBOD. RAID is not recommended. Example;
     # UUID=b6447526-276d-457a-ad2f-54a5cc8bf450 /data/1 ext3 noatime,nodiratime 0 0
@@ -158,7 +177,14 @@ found_disks.each { |disk|
       fstype fs_type
       action [:mount, :enable]
     end
+    
+    # Update the crowbar data for this node.
+    node[:clouderamanager][:devices] << disk
+    node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
+    node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
   end
+  
+  cnt += 1
 }
 
 # Save the node data.
