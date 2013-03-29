@@ -18,6 +18,14 @@
       }
     }
   },
+    "roles": {
+        "clouderamanager-masternamenode": { "jig": "chef" },
+        "clouderamanager-secondarynamenode": { "jig": "chef" },
+        "clouderamanager-edgenode": { "jig": "chef" },
+        "clouderamanager-slavenode": { "jig": "chef" },
+        "clouderamanager-webapp": { "jig": "chef" },
+        "clouderamanager-ha-filer": { "jig": "chef" }
+    },
   "deployment": {
     "clouderamanager": {
       "crowbar-revision": 0,
