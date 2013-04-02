@@ -135,7 +135,7 @@ class ClouderaManager < BaseApiObject
     params = nil 
     params = { :view => view } if(view)
     resp = resource_root.get(subpath, params)
-    return json_to_config(resp, view)
+    return ApiConfig.json_to_config(resp, resource_root, view)
   end
   
   #######################################################################

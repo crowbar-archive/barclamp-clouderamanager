@@ -504,21 +504,24 @@ class ApiConfig < BaseApiObject
   end
   
   #######################################################################
-  # Converts a JSON-decoded config dictionary to a python dictionary.
+  # Converts a JSON-decoded configuration dictionary to a ruby dictionary.
   # When materializing the full view, the values in the dictionary will be
   # instances of ApiConfig, instead of strings.
-  # @param dic JSON-decoded config dictionary.
+  # @param dic JSON-decoded configuration dictionary.
   # @param full Whether to materialize the full view of the config data.
-  # @return Python dictionary with config data.
+  # @return dictionary with configuration data.
   #######################################################################
-  def json_to_config(dic, full = false)
+  def self.json_to_config(dic, resource_root, view)
     config = { }
-    for entry in dic['items']
+    items = dic['items']
+    puts ">>> items #{items}"
+    items.each do |entry|
+      puts "%%% entry #{entry}"
       k = entry['name']
-      if full
-        config[k] = ApiConfig.from_json_dict(entry, nil)
+      if view == 'full'
+        config[k] = ApiConfig.from_json_dict(ApiConfig, entry, resource_root)
       else
-        config[k] = entry.get('value')
+        config[k] = entry['value']
       end
     end
     return config
