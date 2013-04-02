@@ -27,7 +27,7 @@ require "#{libbase}/utils.rb"
 #######################################################################
 # Local variables.
 #######################################################################
-server_host = "192.168.124.82"
+server_host = "192.168.124.81"
 server_port = "7180"
 username = "admin"
 password = "admin"
@@ -122,6 +122,23 @@ print "api.get_all_users results : [#{results}]\n"
 # api.get_license
 results = api.get_license()
 print "api.api.get_license results : [#{results}]\n"
+
+# api.get_config
+# When materializing the full view, the values in the dictionary will be
+# instances of ApiConfig, instead of strings.
+view = 'summary'
+results = api.get_config(view)
+if view == 'full'
+  print "api.api.get_config results;\n"
+  results.each do |apiconfig|
+    print "#{apiconfig.to_s}\n"
+  end
+else
+  print "api.api.get_config results;\n"
+  results.each do |k, v|
+    print "#{k}=#{v}\n"
+  end
+end
 
 #----------------------------------------------------------------------
 # Tool related methods.
