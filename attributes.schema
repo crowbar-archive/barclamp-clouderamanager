@@ -1,0 +1,33 @@
+{
+    "type": "map",
+    "required": true,
+    "mapping": {
+	"clouderamanager": {
+	    "type": "map",
+	    "required": true,
+	    "mapping": {
+		"debug":  { "type": "bool", "required": true},
+		"admin_ip_eval": { "type": "str", "required": true },
+		"admin_interface_eval": { "type": "str", "required": true },
+		"ha": {
+		    "type": "map",
+		    "required": true,
+		    "mapping": {
+			"shared_edits_directory": { "type": "str", "required": true},
+			"shared_edits_export_options": { "type": "str", "required": true},
+			"shared_edits_mount_options": { "type": "str", "required": true}
+		    }
+		},
+		"os": {
+		    "type": "map",
+		    "required": true,
+		    "mapping": {
+			"mapred_openfiles": { "type": "str", "required": true},
+			"hdfs_openfiles": { "type": "str", "required": true},
+			"hbase_openfiles": { "type": "str", "required": true}
+		    }
+		}
+	    }
+	}
+    }
+}
