@@ -59,7 +59,8 @@ class ApiEvent < BaseApiObject
   def self.query_events (resource_root, query_str=nil)
     params = nil
     params = { :query => query_str } if query_str
-    resp = resource_root.get(EVENTS_PATH, params)
+    path = EVENTS_PATH
+    resp = resource_root.get(path, params)
     return ApiList.from_json_dict(ApiEvent, resp, resource_root)
   end
   
@@ -69,8 +70,8 @@ class ApiEvent < BaseApiObject
   # @return: An ApiEvent.
   #######################################################################
   def self.get_event (resource_root, event_id)
-    str = "#{EVENTS_PATH}/#{event_id}"
-    resp = resource_root.get(str)
+    path = "#{EVENTS_PATH}/#{event_id}"
+    resp = resource_root.get(path)
     return ApiEvent.from_json_dict(resp, resource_root)
   end
   

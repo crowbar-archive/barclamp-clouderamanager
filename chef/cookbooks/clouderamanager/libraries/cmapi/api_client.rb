@@ -54,7 +54,7 @@ class ApiResource < Resource
   # @param version: API version.
   # @return Resource object referring to the root.
   #######################################################################
-  def initialize(server_host, server_port=nil, username="admin", password="admin", use_tls=false, version=API_CURRENT_VERSION)
+  def initialize(server_host, server_port=nil, username="admin", password="admin", use_tls=false, version=API_CURRENT_VERSION, debug=false)
     @version = version
     if use_tls
       protocol = "https"
@@ -70,7 +70,7 @@ class ApiResource < Resource
     end
     base_url = "#{protocol}://#{server_host}:#{server_port}/api/v#{version}"
     client = RestClient::Resource.new(base_url, username, password)
-    super(client, base_url)
+    super(client, base_url, debug)
   end
   
   #######################################################################
