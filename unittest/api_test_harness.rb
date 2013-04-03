@@ -123,6 +123,22 @@ print "api.get_all_users results : [#{results}]\n"
 results = api.get_license()
 print "api.api.get_license results : [#{results}]\n"
 
+#######################################################################
+# api.update_license
+#######################################################################
+=begin
+f = File.open("dell-devel-06-02282014_cloudera_enterprise_license.txt")
+contents = ""
+while line = f.gets do
+  contents = contents + line
+end
+f.close
+
+# Update Cloudera Manager with the new license information
+results = api.update_license(contents)
+print "api.get_license results : [#{results}]\n"
+=end
+
 # api.get_config
 # When materializing the full view, the values in the dictionary will be
 # instances of ApiConfig, instead of strings.

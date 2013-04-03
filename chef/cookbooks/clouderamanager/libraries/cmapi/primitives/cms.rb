@@ -117,9 +117,10 @@ class ClouderaManager < BaseApiObject
     license_text,
         '--MULTI_BOUNDARY--',
         '' ]
+    params = nil
     data = content.join("\r\n")
     contenttype='multipart/form-data; boundary=MULTI_BOUNDARY'
-    resp = resource_root.post('cm/license', contenttype, data)
+    resp = resource_root.post('cm/license', data, params, contenttype)
     return ApiLicense.from_json_dict(ApiLicense, resp, resource_root)
   end
   
