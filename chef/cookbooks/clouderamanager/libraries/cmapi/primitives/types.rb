@@ -479,7 +479,7 @@ class ApiConfig < BaseApiObject
   end
   
   #######################################################################
-  # Converts a python dictionary into a list containing the proper
+  # Converts a dictionary into a list containing the proper
   # ApiConfig encoding for configuration data.
   # @param dic Key-value pairs to convert.
   # @return JSON dictionary of an ApiConfig list(*not* an ApiList).
@@ -514,9 +514,7 @@ class ApiConfig < BaseApiObject
   def self.json_to_config(dic, resource_root, view)
     config = { }
     items = dic['items']
-    puts ">>> items #{items}"
     items.each do |entry|
-      puts "%%% entry #{entry}"
       k = entry['name']
       if view == 'full'
         config[k] = ApiConfig.from_json_dict(ApiConfig, entry, resource_root)

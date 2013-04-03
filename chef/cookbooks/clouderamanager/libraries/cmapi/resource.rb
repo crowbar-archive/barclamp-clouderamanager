@@ -36,6 +36,7 @@ class Resource < Object
   def initialize(client, base_url)
     @client = client
     @base_url = base_url
+    @debug = true
   end
   
   #######################################################################
@@ -46,42 +47,19 @@ class Resource < Object
   end
   
   #######################################################################
-  # Invoke an API method.
-  # @return: A dictionary of the JSON result if(contenttype=:json) or Raw body.
-  #######################################################################
-  def invoke(method, relpath=nil, data=nil, contenttype=nil, params=nil)
-    json = nil
-    resp = nil
-    puts ">>>> Resource.invoke : [#{method}] [#{relpath}] [#{data}] [#{contenttype}] [#{params}])"
-    if method == "GET" 
-      resp = @client[relpath].get
-    elsif method == "PUT" 
-      if(params)
-        resp = @client[relpath].put data, :params => params, :content_type => contenttype
-      else
-        resp = @client[relpath].put data, :content_type => contenttype
-      end
-    elsif method == "POST"
-      if(params)
-        resp = @client[relpath].post data, :params => params, :content_type => contenttype
-      else
-        resp = @client[relpath].post data, :content_type => contenttype, :accept => :'multipart'
-      end
-    elsif method == "DELETE" 
-      resp = @client[relpath].delete
-    end
-    json = JSON.parse(resp) if resp
-    return json
-  end
-  
-  #######################################################################
   # Invoke the GET method on a resource.
   # @param relpath: Optional. A relative path to this resource's path.
   # @param params: Key-value data.
   # @return: A dictionary of the JSON result.
   #######################################################################
   def get(relpath=nil, params=nil)
-    return invoke("GET", relpath, params)
+    if @debug
+      puts ">>>> Resource.get : (relpath:#{relpath}, params:#{params})"
+    end
+    json = nil
+    resp = @client[relpath].get
+    json = JSON.parse(resp) if resp
+    return json
   end
   
   #######################################################################
@@ -93,7 +71,15 @@ class Resource < Object
   # @return: A dictionary of the JSON result.
   #######################################################################
   def put(relpath=nil, data=nil, params=nil, contenttype=nil)
-    return invoke("PUT", relpath, params, data, contenttype)
+    puts ">>>> Resource.put : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype})"
+    json = nil
+    if params
+      resp = @client[relpath].put data, :params => params, :content_type => contenttype
+    else
+      resp = @client[relpath].put data, :content_type => contenttype
+    end
+    json = JSON.parse(resp) if resp
+    return json
   end
   
   #######################################################################
@@ -104,8 +90,18 @@ class Resource < Object
   # @param contenttype: Optional.
   # @return: A dictionary of the JSON result.
   #######################################################################
-  def post(relpath=nil, data=nil, params=nil, contenttype=nil)
-    return invoke("POST", relpath,  params, data, contenttype)
+  def post(relpath=nil, data=nil, params=nil, contenttype=:json, accepttype=:json)
+    if @debug
+      puts ">>>> Resource.post : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype}, accepttype:#{accepttype})"
+    end
+    json = nil
+    if params
+      resp = @client[relpath].post data, :params => params, :content_type => contenttype, :accept => accepttype
+    else
+      resp = @client[relpath].post data, :content_type => contenttype, :accept => accepttype
+    end
+    json = JSON.parse(resp) if resp
+    return json
   end
   
   #######################################################################
@@ -115,6 +111,12 @@ class Resource < Object
   # @return: A dictionary of the JSON result.
   #######################################################################
   def delete(relpath=nil, params=nil)
-    return invoke("DELETE", relpath, params)
+    if @debug
+      puts ">>>> Resource.delete : (relpath:#{relpath}, params:#{params})"
+    end
+    json = nil
+    resp = @client[relpath].delete
+    json = JSON.parse(resp) if resp
+    return json
   end
 end

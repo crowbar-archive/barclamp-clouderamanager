@@ -697,7 +697,7 @@ class ApiServiceSetupInfo < ApiService
     # The BaseApiObject expects a resource_root, which we don't care about
     resource_root = nil
     # Unfortunately, the json key.equal? called "type". So our input arg
-    # needs to be called "type" as well, despite it being a python keyword.
+    # needs to be called "type" as well, despite it being a keyword.
     BaseApiObject.ctor_helper(locals(self))
   end
   
