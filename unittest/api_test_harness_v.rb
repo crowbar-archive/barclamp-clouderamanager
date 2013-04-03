@@ -52,5 +52,5 @@ f.close
 # Get current Cloudera License Information
 print api.get_license
 
-# Update Cloudera Manager with the new text information
+# Update Cloudera Manager with the new license information
 api.update_license(contents)

@@ -49,10 +49,10 @@ class Resource < Object
   # Invoke an API method.
   # @return: A dictionary of the JSON result if(contenttype=:json) or Raw body.
   #######################################################################
-  def invoke(method, relpath=nil, params=nil, data=nil, contenttype=nil)
+  def invoke(method, relpath=nil, data=nil, contenttype=nil, params=nil)
     json = nil
     resp = nil
-    puts ">>>> Resource.invoke : [#{method}] [#{relpath}] [#{params}] [#{data}] [#{contenttype}])"
+    puts ">>>> Resource.invoke : [#{method}] [#{relpath}] [#{data}] [#{contenttype}] [#{params}])"
     if method == "GET" 
       resp = @client[relpath].get
     elsif method == "PUT" 
@@ -61,11 +61,11 @@ class Resource < Object
       else
         resp = @client[relpath].put data, :content_type => contenttype
       end
-    elsif method == "POST" 
+    elsif method == "POST"
       if(params)
-        resp = @client[relpath].post data, :params => params, :content_type => :json, :accept => :json
+        resp = @client[relpath].post data, :params => params, :content_type => contenttype
       else
-        resp = @client[relpath].post data, :content_type => :json, :accept => :json
+        resp = @client[relpath].post data, :content_type => contenttype, :accept => :'multipart'
       end
     elsif method == "DELETE" 
       resp = @client[relpath].delete
