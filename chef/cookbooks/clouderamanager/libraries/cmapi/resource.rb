@@ -56,10 +56,8 @@ class Resource < Object
     if @debug
       puts ">>>> Resource.get : (relpath:#{relpath}, params:#{params})"
     end
-    json = nil
     resp = @client[relpath].get
-    json = JSON.parse(resp) if resp
-    return json
+    return JSON.parse(resp)
   end
   
   #######################################################################
@@ -70,16 +68,14 @@ class Resource < Object
   # @param contenttype: Optional.
   # @return: A dictionary of the JSON result.
   #######################################################################
-  def put(relpath=nil, data=nil, params=nil, contenttype=nil)
+  def put(relpath=nil, data=nil, params=nil, contenttype=:json)
     puts ">>>> Resource.put : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype})"
-    json = nil
     if params
       resp = @client[relpath].put data, :params => params, :content_type => contenttype
     else
       resp = @client[relpath].put data, :content_type => contenttype
     end
-    json = JSON.parse(resp) if resp
-    return json
+    return JSON.parse(resp)
   end
   
   #######################################################################
@@ -94,14 +90,12 @@ class Resource < Object
     if @debug
       puts ">>>> Resource.post : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype}, accepttype:#{accepttype})"
     end
-    json = nil
     if params
       resp = @client[relpath].post data, :params => params, :content_type => contenttype, :accept => accepttype
     else
       resp = @client[relpath].post data, :content_type => contenttype, :accept => accepttype
     end
-    json = JSON.parse(resp) if resp
-    return json
+    return JSON.parse(resp)
   end
   
   #######################################################################
@@ -114,9 +108,7 @@ class Resource < Object
     if @debug
       puts ">>>> Resource.delete : (relpath:#{relpath}, params:#{params})"
     end
-    json = nil
     resp = @client[relpath].delete
-    json = JSON.parse(resp) if resp
-    return json
+    return JSON.parse(resp)
   end
 end
