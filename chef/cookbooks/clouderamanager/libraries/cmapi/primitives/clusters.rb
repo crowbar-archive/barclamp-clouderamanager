@@ -63,8 +63,8 @@ class ApiCluster < BaseApiObject
     apicluster = ApiCluster.new(resource_root, dict)
     apicluster_list = ApiList.new([apicluster])
     jdict = apicluster_list.to_json_dict(self)
-    body = JSON.generate(jdict)
-    resp = resource_root.post(CLUSTERS_PATH, body)
+    data = JSON.generate(jdict)
+    resp = resource_root.post(CLUSTERS_PATH, data)
     # The server returns a list of created clusters (size=1)
     return ApiList.from_json_dict(ApiCluster, resp, resource_root)[0]
   end

@@ -36,9 +36,9 @@ ROLETYPES_CFG_KEY = 'roleTypeConfigs'
 def create_service(resource_root, name, service_type, cluster_name="default")
   apiservice = ApiService.new(resource_root, name, service_type)
   apiservice_list = ApiList.new([apiservice])
-  body = JSON.generate(apiservice_list.to_json_dict(self))
+  data = JSON.generate(apiservice_list.to_json_dict(self))
   subpath = "/clusters/#{cluster_name}/services"
-  resp = resource_root.post(subpath, data=body)
+  resp = resource_root.post(subpath, data)
   # The server returns a list of created services(size=1).
   return ApiList.from_json_dict(ApiService, resp, resource_root)[0]
 end
