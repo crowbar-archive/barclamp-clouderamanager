@@ -80,7 +80,8 @@ class ApiRole < BaseApiObject
     apirole = ApiRole.new(resource_root, role_name, role_type, ApiHostRef.new(resource_root, host_id))
     apirole_list = ApiList.new([apirole])
     data = JSON.generate(apirole_list.to_json_dict(self))
-    resp = resource_root.post(_get_roles_path(cluster_name, service_name), data)
+    subpath = _get_roles_path(cluster_name, service_name)
+    resp = resource_root.post(subpath, data)
     # The server returns a list of created roles (size=1)
     return ApiList.from_json_dict(ApiRole, resp, resource_root)[0]
   end
