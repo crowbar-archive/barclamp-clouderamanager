@@ -27,7 +27,7 @@ require "#{libbase}/utils.rb"
 #######################################################################
 # Local variables.
 #######################################################################
-server_host = "192.168.124.82"
+server_host = "192.168.124.87"
 server_port = "7180"
 username = "admin"
 password = "admin"
@@ -40,104 +40,17 @@ version = "2"
 api = ApiResource.new(server_host, server_port, username, password, use_tls, version)
 
 #######################################################################
-# Get the API version
+# Open the license file for reading
 #######################################################################
-#----------------------------------------------------------------------
-# API related methods.
-#----------------------------------------------------------------------
-
-# api.version
-results = api.version()
-print "api.version : [#{results}]\n"
-
-#----------------------------------------------------------------------
-# Utils related methods.
-#----------------------------------------------------------------------
-
-# Convert a time string received from the API into a datetime object.
-# This method is used internally for db date/time conversion with UTC. 
-# The input timestamp is expected to be in ISO 8601 format with the "Z"
-# sufix to express UTC.
-results = api_time_to_datetime("2012-02-18T01:01:03.234Z")
-print "api_time_to_datetime(2012-02-18T01:01:03.234Z) : [#{results}]\n"
-
-#----------------------------------------------------------------------
-# Cluster related methods.
-#----------------------------------------------------------------------
-
-# api.get_all_clusters()
-results = api.get_all_clusters()
-print "api.get_all_clusters() : [#{results}]\n"
-
-# create_cluster
-clustername = "testcluster1"
-cdhversion = "CDH4" 
-results = api.create_cluster(clustername, cdhversion)
-print "api.create_cluster(#{clustername}, #{cdhversion}) results : [#{results}]\n"
-
-# api.get_cluster
-clustername = "testcluster1"
-results = api.get_cluster(clustername)
-print "api.get_cluster(#{clustername}) : [#{results}]\n"
-
-# delete cluster
-clustername = "testcluster1"
-cdhversion = "CDH4" 
-results = api.delete_cluster(clustername)
-print "api.delete_cluster(#{clustername}) results : [#{results}]\n"
-
-#----------------------------------------------------------------------
-# Hosts related methods.
-#----------------------------------------------------------------------
-
-# api.create_host
-host_id = "d00-0c-29-06-87-ff.pod.openstack.org"
-name = "testhost"
-ipaddr = "192.168.124.86"
-rack_id = "/default"
-# results = api.create_host(host_id, name, ipaddr, rack_id)
-# print "api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) : [#{results}]\n"
-
-# api.get_all_hosts
-results = api.get_all_hosts('full')
-print "api.get_all_hosts results : [#{results}]\n"
-
-# api.get_host
-host_id = "d00-0c-29-06-87-7d.pod.openstack.org"
-results = api.get_host(host_id)
-print "api.get_host (#{host_id}) results : [#{results}]\n"
-
-#----------------------------------------------------------------------
-# User related methods.
-#----------------------------------------------------------------------
-
-# api.get_all_users
-results = api.get_all_users('full')
-print "api.get_all_users results : [#{results}]\n"
-
-#----------------------------------------------------------------------
-# cms related methods.
-#----------------------------------------------------------------------
-
-# api.get_license
-results = api.get_license()
-print "api.api.get_license results : [#{results}]\n"
-
-#----------------------------------------------------------------------
-# Tool related methods.
-#----------------------------------------------------------------------
-
-# api.echo - Have the server echo a message back.
-results = api.echo("Test API echo method call")
-print "api.echo() results : [#{results}]\n"
-
-# api.echo_error - Generate an error, but we get to set the error message.
-# This will always generate an exception when called.
-begin
-  results = api.echo_error("Test API echo_error method call")
-  print "api.echo_error() results : [#{results}]\n"
-rescue Exception => e   
-  # Catch the exception
-  # puts e.message   
-  # puts e.backtrace.inspect   
+f = File.open("dell-devel-05-02282014_cloudera_enterprise_license_Vinayak.txt")
+contents = ""
+while line = f.gets do
+    contents = contents + line
 end
+f.close
+
+# Get current Cloudera License Information
+print api.get_license
+
+# Update Cloudera Manager with the new license information
+api.update_license(contents)
