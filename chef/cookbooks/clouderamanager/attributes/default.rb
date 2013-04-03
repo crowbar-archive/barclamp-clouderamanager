@@ -17,25 +17,20 @@
 # limitations under the License.
 #
 
-#######################################################################
-# Crowbar barclamp configuration parameters.
-#######################################################################
-
-# Debug flag.
+#----------------------------------------------------------------------
+# Global configuration parameters.
+#----------------------------------------------------------------------
 default[:clouderamanager][:debug] = false
 
-# Crowbar configuration environment.
+#----------------------------------------------------------------------
+# Crowbar configuration parameters.
+#----------------------------------------------------------------------
 default[:clouderamanager][:config] = {}
 default[:clouderamanager][:config][:environment] = "clouderamanager-config-default"
 
-# Cluster configuration parameters.
-default[:clouderamanager][:cluster] = {}
-default[:clouderamanager][:cluster][:namenodes] = []
-default[:clouderamanager][:cluster][:datanodes] = []
-default[:clouderamanager][:cluster][:edgenodes] = []
-
-# Cloudera License Key
-default[:clouderamanager][:cluster][:license_key] = ""
+#----------------------------------------------------------------------
+# Operating system configuration parameters.
+#----------------------------------------------------------------------
 
 # File system type (ext3/ext4/xfs) - must be a valid mkfs type (See man mkfs).
 default[:clouderamanager][:os][:fs_type] = "ext4"
@@ -45,20 +40,52 @@ default[:clouderamanager][:os][:mapred_openfiles] = "32768"
 default[:clouderamanager][:os][:hdfs_openfiles] = "32768"
 default[:clouderamanager][:os][:hbase_openfiles] = "32768"
 
-# Hadoop high availability (HA) parameters (CDH4/CM4).
-# shared_edits_directory - Directory on a shared storage device, such as an
-# NFS mount from a NAS, to store the name node edits.
-# shared_edits_mount_options specifies the mount options for the nfs mount point.
-default[:clouderamanager][:ha][:shared_edits_directory] = "/dfs/ha"
-default[:clouderamanager][:ha][:shared_edits_export_options] = "rw,async,no_root_squash,no_subtree_check"
-default[:clouderamanager][:ha][:shared_edits_mount_options] = "rsize=65536,wsize=65536,intr,soft,bg"
+#----------------------------------------------------------------------
+# CM API configuration parameters.
+#----------------------------------------------------------------------
+default[:clouderamanager][:cmapi][:deployment_type] = "manual"
+default[:clouderamanager][:cmapi][:server_host] = "192.168.124.81"
+default[:clouderamanager][:cmapi][:server_port] = "7180"
+default[:clouderamanager][:cmapi][:username] = "admin"
+default[:clouderamanager][:cmapi][:password] = "admin"
+default[:clouderamanager][:cmapi][:use_tls] = false
+default[:clouderamanager][:cmapi][:version] = "2"
 
-# HDFS.
+#----------------------------------------------------------------------
+# Cluster configuration parameters.
+#----------------------------------------------------------------------
+default[:clouderamanager][:cluster] = {}
+default[:clouderamanager][:cluster][:namenodes] = []
+default[:clouderamanager][:cluster][:datanodes] = []
+default[:clouderamanager][:cluster][:edgenodes] = []
+
+# Cloudera License Key
+default[:clouderamanager][:cluster][:license_key] = ""
+
+#----------------------------------------------------------------------
+# HDFS configuration parameters.
+#----------------------------------------------------------------------
 default[:clouderamanager][:hdfs][:dfs_base_dir] = "/data"
 default[:clouderamanager][:hdfs][:dfs_data_dir] = []
 
-# Devices.
+#----------------------------------------------------------------------
+# Device configuration parameters.
+#----------------------------------------------------------------------
 default[:clouderamanager][:devices] = []
 
-# Map Reduce.
+#----------------------------------------------------------------------
+# Map Reduce configuration parameters.
+#----------------------------------------------------------------------
 default[:clouderamanager][:mapred][:mapred_local_dir] = []
+
+#----------------------------------------------------------------------
+# Hadoop high availability (HA) configuration (CDH4/CM4).
+#----------------------------------------------------------------------
+
+# shared_edits_directory - Directory on a shared storage device, such as
+# an NFS mount from a NAS, to store the name node edits.
+# shared_edits_mount_options specifies the mount options for the
+# nfs mount point. These parameters are only used for NFS filer HA mode.
+default[:clouderamanager][:ha][:shared_edits_directory] = "/dfs/ha"
+default[:clouderamanager][:ha][:shared_edits_export_options] = "rw,async,no_root_squash,no_subtree_check"
+default[:clouderamanager][:ha][:shared_edits_mount_options] = "rsize=65536,wsize=65536,intr,soft,bg"

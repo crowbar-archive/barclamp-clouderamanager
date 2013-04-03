@@ -26,7 +26,9 @@ Chef::Log.info("CM - BEGIN clouderamanager:default") if debug
 # Configuration filter for the crowbar environment
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-# Install the Oracle/SUN JAVA package.
+#######################################################################
+# Install JAVA.
+#######################################################################
 base_packages=%w{
   jdk
 }
@@ -37,12 +39,20 @@ base_packages.each do |pkg|
   end
 end
 
+#######################################################################
+# Setup the hadoop/hdfs/mr user and groups.
+#######################################################################
+
+#----------------------------------------------------------------------
 # hdfs:x:600:
+#----------------------------------------------------------------------
 group "hdfs" do
   gid 600
 end
 
+#----------------------------------------------------------------------
 # hdfs:x:600:600:Hadoop HDFS:/var/lib/hadoop-hdfs:/bin/bash
+#----------------------------------------------------------------------
 user "hdfs" do
   comment "Hadoop HDFS"
   uid 600
@@ -52,12 +62,16 @@ user "hdfs" do
   system true
 end
 
+#----------------------------------------------------------------------
 # mapred:x:601
+#----------------------------------------------------------------------
 group "mapred" do
   gid 601
 end
 
+#----------------------------------------------------------------------
 # mapred:x:601:601:Hadoop MapReduce:/var/lib/hadoop-mapreduce:/bin/bash
+#----------------------------------------------------------------------
 user "mapred" do
   comment "Hadoop MapReduce"
   uid 601
@@ -67,16 +81,20 @@ user "mapred" do
   system true
 end
 
+#----------------------------------------------------------------------
 # hadoop:x:602:hdfs
+#----------------------------------------------------------------------
 group "hadoop" do
   gid 602
   members ['hdfs', 'mapred']
 end
 
+#######################################################################
 # Configure /etc/security/limits.conf.  
 # mapred      -    nofile     32768
 # hdfs        -    nofile     32768
 # hbase       -    nofile     32768
+#######################################################################
 template "/etc/security/limits.conf" do
   owner "root"
   group "root"
@@ -84,7 +102,9 @@ template "/etc/security/limits.conf" do
   source "limits.conf.erb"
 end
 
+#######################################################################
 # Ensure localtime is set consistently across the cluster (UTC).
+#######################################################################
 file "/etc/localtime" do
   action :delete
   only_if "test -F /etc/localtime"
@@ -94,9 +114,19 @@ link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
 end
 
+#######################################################################
+# Setup the postgresql server for CM management functions.
+#######################################################################
+include_recipe 'clouderamanager::postgresql'
+
+#######################################################################
+# Setup the SSH keys.
+#######################################################################
 keys = {}
 
+#----------------------------------------------------------------------
 # Find the namenodes. 
+#----------------------------------------------------------------------
 namenodes = []
 search(:node, "roles:clouderamanager-namenode#{env_filter}") do |n|
   if n[:fqdn] && !n[:fqdn].empty?
@@ -111,7 +141,9 @@ if namenodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find Hadoop master name node")
 end
 
+#----------------------------------------------------------------------
 # Find the edgenodes. 
+#----------------------------------------------------------------------
 edgenodes = []
 search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |n|
   if n[:fqdn] && !n[:fqdn].empty?
@@ -122,7 +154,9 @@ search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |n|
 end
 node[:clouderamanager][:cluster][:edgenodes] = edgenodes
 
+#----------------------------------------------------------------------
 # Find the slave nodes. 
+#----------------------------------------------------------------------
 datanodes = []
 search(:node, "roles:clouderamanager-datanode#{env_filter}") do |n|
   if n[:fqdn] && !n[:fqdn].empty?
@@ -137,7 +171,9 @@ if datanodes.length == 0
   Chef::Log.info("CM - WARNING - Cannot find any Hadoop data nodes")
 end
 
+#----------------------------------------------------------------------
 # Find the HA filer nodes. 
+#----------------------------------------------------------------------
 hafilernodes = []
 search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
   if n[:fqdn] && !n[:fqdn].empty?
@@ -148,7 +184,9 @@ search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
 end
 node[:clouderamanager][:cluster][:hafilernodes] = hafilernodes
 
+#----------------------------------------------------------------------
 # Find the HA journaling nodes. 
+#----------------------------------------------------------------------
 hajournalingnodes = []
 search(:node, "roles:clouderamanager-ha-journalingnode#{env_filter}") do |n|
   if n[:fqdn] && !n[:fqdn].empty?
@@ -167,7 +205,9 @@ if debug
   Chef::Log.info("CM - hajournalingnodes [" + node[:clouderamanager][:cluster][:hajournalingnodes].join(",") + "]")
 end
 
-# Add hadoop nodes to ssh authorized key list. 
+#######################################################################
+# Add hadoop nodes to SSH authorized key list. 
+#######################################################################
 keys.each do |k,v|
   unless v.nil?
     node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?

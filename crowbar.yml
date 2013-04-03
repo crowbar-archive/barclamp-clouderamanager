@@ -58,8 +58,16 @@ locale_additions:
           hdfs_openfiles: HDFS File Handles
           hbase_openfiles: HBASE File Handles
           ha_settings: Hadoop High Availability
-          cluster_settings: Cluster Settings
-          license_key: Cloudera Manager License Key
+          cmapi_settings: Cloudera Manager API
+          deployment_type: Deployment Type
+          server_host: Server Host
+          server_port: Server Port
+          username: User Name
+          password: Password
+          use_tls: Use TLS (https)
+          version: API Version
+          cluster_settings: Cluster
+          license_key: License Key (Optional)
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
           shared_edits_mount_options: Shared Edits Mount Options 

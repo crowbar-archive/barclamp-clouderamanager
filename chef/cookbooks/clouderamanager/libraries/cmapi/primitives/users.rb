@@ -74,8 +74,8 @@ class ApiUser < BaseApiObject
   end
   
   #######################################################################
-  # Grant admin access to a user. If the user already has admin access,
-  # this does nothing.
+  # Grant admin access to a user.
+  # If the user already has admin access, this does nothing.
   # @param resource_root: The root Resource object
   # @param username: Username to give admin access to.
   # @return: An ApiUser object
@@ -85,7 +85,8 @@ class ApiUser < BaseApiObject
     apiuser = ApiUser.new(resource_root, username, roles)
     jdict = apiuser.to_json_dict(self)
     data = JSON.generate(jdict)
-    resp = resource_root.put("#{USERS_PATH}/#{username}", data)
+    subpath = "#{USERS_PATH}/#{username}"
+    resp = resource_root.put(subpath, data)
     return ApiUser.from_json_dict(resp, resource_root)
   end
   
@@ -100,7 +101,8 @@ class ApiUser < BaseApiObject
     apiuser = ApiUser.new(resource_root, username, roles=[])
     jdict = apiuser.to_json_dict(self)
     data = JSON.generate(jdict)
-    resp = resource_root.put("#{USERS_PATH}/#{username}", data)
+    subpath = "#{USERS_PATH}/#{username}"
+    resp = resource_root.put(subpath, data)
     return ApiUser.from_json_dict(resp, resource_root)
   end
   
@@ -118,7 +120,8 @@ class ApiUser < BaseApiObject
     apiuser_list = ApiList.new([ "#{apiuser}" ])
     jdict = apiuser_list.to_json_dict(self)
     data = JSON.generate(jdict)
-    resp = resource_root.post(USERS_PATH, data)
+    subpath = USERS_PATH
+    resp = resource_root.post(subpath, data)
     return ApiList.from_json_dict(ApiUser, resp, resource_root)[0]
   end
   
@@ -129,7 +132,8 @@ class ApiUser < BaseApiObject
   # @return: An ApiUser object
   #######################################################################
   def self.delete_user(resource_root, username)
-    resp = resource_root.delete("#{USERS_PATH}/#{username}")
+    subpath = "#{USERS_PATH}/#{username}"
+    resp = resource_root.delete(subpath)
     return ApiUser.from_json_dict(resp, resource_root)
   end
   
@@ -143,7 +147,8 @@ class ApiUser < BaseApiObject
   # @return: An ApiUser object
   #######################################################################
   def grant_admin_role
-    return _grant_admin_role(_get_resource_root(), @name)
+    resource_root = _get_resource_root()
+    return _grant_admin_role(resource_root, @name)
   end
   
   #######################################################################
@@ -152,13 +157,14 @@ class ApiUser < BaseApiObject
   # @return: An ApiUser object
   #######################################################################
   def revoke_admin_role
-    return _revoke_admin_role(_get_resource_root(), @name)
+    resource_root = _get_resource_root()
+    return _revoke_admin_role(resource_root, @name)
   end
   
   #######################################################################
   # to_s
   #######################################################################
   def to_s
-    return "<ApiUser>: #{@name} (#{@password}; #{@roles})"
+    return "<ApiUser>: (name:#{@name}, password:#{@password}, roles:#{@roles})"
   end
 end
