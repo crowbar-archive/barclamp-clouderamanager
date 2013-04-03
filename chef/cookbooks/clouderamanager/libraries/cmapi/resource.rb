@@ -56,7 +56,11 @@ class Resource < Object
     if @debug
       puts ">>>> Resource.get : (relpath:#{relpath}, params:#{params})"
     end
-    resp = @client[relpath].get
+    if params
+      resp = @client[relpath].get :params => params
+    else
+      resp = @client[relpath].get
+    end
     return JSON.parse(resp)
   end
   
@@ -108,7 +112,11 @@ class Resource < Object
     if @debug
       puts ">>>> Resource.delete : (relpath:#{relpath}, params:#{params})"
     end
-    resp = @client[relpath].delete
+    if params
+      resp = @client[relpath].delete :params => params
+    else
+      resp = @client[relpath].delete
+    end
     return JSON.parse(resp)
   end
 end
