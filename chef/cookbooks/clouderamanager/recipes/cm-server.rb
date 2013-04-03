@@ -65,9 +65,7 @@ service "cloudera-scm-server-db" do
   action :enable 
 end
 
-include_recipe 'clouderamanager::postgresql'
-
-# Setup the postgresql configuration. This is used to store CM configuration information.
+# Setup the CM server.
 # This will only execute if the db is uninitialized, otherwise it returns 1. 
 # /var/lib/cloudera-scm-server-db/data is non-empty; perhaps the database
 # was already initialized?

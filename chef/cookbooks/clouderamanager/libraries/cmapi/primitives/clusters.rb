@@ -64,7 +64,8 @@ class ApiCluster < BaseApiObject
     apicluster_list = ApiList.new([apicluster])
     jdict = apicluster_list.to_json_dict(self)
     data = JSON.generate(jdict)
-    resp = resource_root.post(CLUSTERS_PATH, data)
+    path = CLUSTERS_PATH
+    resp = resource_root.post(path, data)
     # The server returns a list of created clusters (size=1)
     return ApiList.from_json_dict(ApiCluster, resp, resource_root)[0]
   end
@@ -77,7 +78,8 @@ class ApiCluster < BaseApiObject
   def self.get_all_clusters(resource_root, view=nil)
     params = nil 
     params = { :view => view } if (view)
-    jdict = resource_root.get(CLUSTERS_PATH, params)
+    path = CLUSTERS_PATH
+    jdict = resource_root.get(path, params)
     return ApiList.from_json_dict(ApiCluster, jdict, resource_root)
   end
   
@@ -88,7 +90,8 @@ class ApiCluster < BaseApiObject
   # @return: An ApiCluster object
   #######################################################################
   def self.get_cluster(resource_root, name)
-    jdict = resource_root.get("#{CLUSTERS_PATH}/#{name}")
+    path = "#{CLUSTERS_PATH}/#{name}"
+    jdict = resource_root.get(path)
     return ApiCluster.from_json_dict(ApiCluster, jdict, resource_root)
   end
   
@@ -99,7 +102,8 @@ class ApiCluster < BaseApiObject
   # @return: The deleted ApiCluster object
   #######################################################################
   def self.delete_cluster(resource_root, name)
-    jdict = resource_root.delete("#{CLUSTERS_PATH}/#{name}")
+    path = "#{CLUSTERS_PATH}/#{name}" 
+    jdict = resource_root.delete(path)
     return ApiCluster.from_json_dict(ApiCluster, jdict, resource_root)
   end
   
@@ -111,7 +115,7 @@ class ApiCluster < BaseApiObject
   # to_s
   #######################################################################
   def to_s
-    return "<ApiCluster>: #{@name}; version: #{@version}"
+    return "<ApiCluster>: (name:#{@name}, version:#{@version})"
   end
   
   #######################################################################
@@ -127,7 +131,8 @@ class ApiCluster < BaseApiObject
   def _cmd (cmd, data=nil)
     path = _path() + "/commands/#{cmd}"
     resp = _get_resource_root().post(path, data)
-    return ApiCommand.from_json_dict(resp, _get_resource_root())
+    resource_root = _get_resource_root()
+    return ApiCommand.from_json_dict(resp, resource_root)
   end
   
   #######################################################################
@@ -135,9 +140,10 @@ class ApiCluster < BaseApiObject
   # Change cluster attributes
   #######################################################################
   def _put (dic, params=nil)
-    data=JSON.generate(dic)
+    data = JSON.generate(dic)
     resp = _get_resource_root().put(_path(), params, data)
-    cluster = ApiCluster.from_json_dict(resp, _get_resource_root())
+    resource_root = _get_resource_root()
+    cluster = ApiCluster.from_json_dict(resp, resource_root)
     _update(cluster)
     return self
   end
@@ -150,9 +156,10 @@ class ApiCluster < BaseApiObject
   def get_commands(view=nil)
     params = nil 
     params = { :view => view } if (view)
-    subpath = _path() + '/commands'
-    resp = _get_resource_root().get(subpath, params)
-    return ApiList.from_json_dict(ApiCommand, resp, _get_resource_root())
+    path = _path() + '/commands'
+    resource_root = _get_resource_root()
+    resp = resource_root.get(path, params)
+    return ApiList.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -174,7 +181,8 @@ class ApiCluster < BaseApiObject
   # @return: An ApiService object
   #######################################################################
   def create_service(name, service_type)
-    return services.create_service(_get_resource_root(), name, service_type, @name)
+    resource_root = _get_resource_root()
+    return services.create_service(resource_root, name, service_type, @name)
   end
   
   #######################################################################
@@ -183,7 +191,8 @@ class ApiCluster < BaseApiObject
   # @return The deleted ApiService object
   #######################################################################
   def delete_service(name)
-    return services.delete_service(_get_resource_root(), name, @name)
+    resource_root = _get_resource_root()
+    return services.delete_service(resource_root, name, @name)
   end
   
   #######################################################################
@@ -192,7 +201,8 @@ class ApiCluster < BaseApiObject
   # @return: An ApiService object
   #######################################################################
   def get_service(name)
-    return services.get_service(_get_resource_root(), name, @name)
+    resource_root = _get_resource_root()
+    return services.get_service(resource_root, name, @name)
   end
   
   #######################################################################
@@ -200,7 +210,8 @@ class ApiCluster < BaseApiObject
   # @return: A list of ApiService objects.
   #######################################################################
   def get_all_services(view = nil)
-    return services.get_all_services(_get_resource_root(), @name, view)
+    resource_root = _get_resource_root()
+    return services.get_all_services(resource_root, @name, view)
   end
   
   #######################################################################

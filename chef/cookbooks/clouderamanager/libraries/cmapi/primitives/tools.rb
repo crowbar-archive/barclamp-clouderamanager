@@ -28,9 +28,6 @@ require "#{libbase}/types.rb"
 #######################################################################
 class Tools
   
-  ECHO_PATH = '/tools/echo'
-  ECHO_ERROR_PATH = '/tools/echoError'
-  
   #######################################################################
   # initialize
   #######################################################################
@@ -43,7 +40,8 @@ class Tools
   #######################################################################
   def self.echo(root_resource, message)
     params = { :message => message }
-    return root_resource.get(ECHO_PATH, params)
+    path = '/tools/echo'
+    return root_resource.get(path, params)
   end
   
   #######################################################################
@@ -52,6 +50,7 @@ class Tools
   #######################################################################
   def self.echo_error(root_resource, message)
     params = { :message => message }
-    return root_resource.get(ECHO_ERROR_PATH, params)
+    path = '/tools/echoError'
+    return root_resource.get(path, params)
   end
 end

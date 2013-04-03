@@ -5,6 +5,7 @@ description      "Provides end-to-end management for Apache Hadoop CDH4 with the
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.rdoc'))
 version          "1.0"
 recipe           "clouderamanager::cm-agent", "Installs the Cloudera Manager agent component."
+recipe           "clouderamanager::cm-api", "Installs the Cloudera Manager API programming component."
 recipe           "clouderamanager::cm-common", "Installs Cloudera Manager common components."
 recipe           "clouderamanager::cm-ha-filer-export", "Handle the HA file system export if HA enabled."
 recipe           "clouderamanager::cm-ha-filer-mount", "Handle the HA file system mount if HA enabled."

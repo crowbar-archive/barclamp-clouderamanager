@@ -54,8 +54,8 @@ class ClouderaManager < BaseApiObject
   # @return Information about the submitted command.
   #######################################################################
   def self._cmd(resource_root, command, data = nil)
-    subpath = "/cm/commands/#{command}"
-    resp = resource_root.post(subpath, data)
+    path = "/cm/commands/#{command}"
+    resp = resource_root.post(path, data)
     return ApiCommand.from_json_dict(ApiCommand, resp, resource_root)
   end
   
@@ -65,10 +65,10 @@ class ClouderaManager < BaseApiObject
   # @return: A list of running commands.
   #######################################################################
   def self.get_commands(resource_root, view=nil)
-    subpath = '/cm/commands'
     params = nil 
     params = { :view => view } if(view)
-    resp = resource_root.get(subpath, params)
+    path = '/cm/commands'
+    resp = resource_root.get(path, params)
     return ApiList.from_json_dict(ApiCommand, resp, resource_root)
   end
   
@@ -78,10 +78,10 @@ class ClouderaManager < BaseApiObject
   # @return: The management service instance.
   #######################################################################
   def self.create_mgmt_service(resource_root, service_setup_info)
-    subpath = '/cm/service'
     jdict = service_setup_info.to_json_dict(self)
     data = JSON.generate(jdict)
-    resp = resource_root.put(subpath, data)
+    path = '/cm/service'
+    resp = resource_root.put(path, data)
     return ApiService.from_json_dict(ApiService, resp, resource_root)
   end
   
@@ -90,8 +90,8 @@ class ClouderaManager < BaseApiObject
   # @return: An ApiService instance.
   #######################################################################
   def self.get_service(resource_root) 
-    subpath = '/cm/service'
-    resp = resource_root.get(subpath)
+    path = '/cm/service'
+    resp = resource_root.get(path)
     return ApiService.from_json_dict(ApiService, resp, resource_root)
   end
   
@@ -100,8 +100,8 @@ class ClouderaManager < BaseApiObject
   # @return: License information.
   #######################################################################
   def self.get_license(resource_root)
-    subpath = '/cm/license'
-    resp = resource_root.get(subpath)
+    path = '/cm/license'
+    resp = resource_root.get(path)
     return ApiLicense.from_json_dict(ApiLicense, resp, resource_root)
   end
   
@@ -120,7 +120,8 @@ class ClouderaManager < BaseApiObject
     params = nil
     data = content.join("\r\n")
     contenttype='multipart/form-data; boundary=MULTI_BOUNDARY'
-    resp = resource_root.post('cm/license', data, params, contenttype)
+    path = 'cm/license'
+    resp = resource_root.post(path, data, params, contenttype)
     return ApiLicense.from_json_dict(ApiLicense, resp, resource_root)
   end
   
@@ -132,10 +133,10 @@ class ClouderaManager < BaseApiObject
   # @return: Dictionary with configuration data.
   #######################################################################
   def self.get_config(resource_root, view = nil)
-    subpath = '/cm/config'
     params = nil 
     params = { :view => view } if(view)
-    resp = resource_root.get(subpath, params)
+    path = '/cm/config'
+    resp = resource_root.get(path, params)
     return ApiConfig.json_to_config(resp, resource_root, view)
   end
   
@@ -145,9 +146,9 @@ class ClouderaManager < BaseApiObject
   # @return: Dictionary with updated configuration.
   #######################################################################
   def self.update_config(resource_root, config)
-    subpath = '/cm/config'
     data = config_to_json(config)
-    resp = resource_root.put(subpath, data)
+    path = '/cm/config'
+    resp = resource_root.put(path, data)
     return json_to_config(resp, false)
   end
   
