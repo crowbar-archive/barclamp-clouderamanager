@@ -20,7 +20,7 @@
 # deployments. 
 # 
 
-libbase = File.join(File.dirname(__FILE__), '../chef/cookbooks/clouderamanager/libraries/cmapi' )
+libbase = File.join(File.dirname(__FILE__), '../chef/cookbooks/clouderamanager/libraries' )
 require "#{libbase}/api_client.rb"
 require "#{libbase}/utils.rb"
 

@@ -25,15 +25,15 @@ require 'restclient'
 
 libbase = File.dirname(__FILE__)
 require "#{libbase}/resource.rb"
-require "#{libbase}/primitives/clusters.rb"
-require "#{libbase}/primitives/cms.rb"
-require "#{libbase}/primitives/events.rb"
-require "#{libbase}/primitives/hosts.rb"
-require "#{libbase}/primitives/roles.rb"
-require "#{libbase}/primitives/services.rb"
-require "#{libbase}/primitives/tools.rb"
-require "#{libbase}/primitives/types.rb"
-require "#{libbase}/primitives/users.rb"
+require "#{libbase}/clusters.rb"
+require "#{libbase}/cms.rb"
+require "#{libbase}/events.rb"
+require "#{libbase}/hosts.rb"
+require "#{libbase}/roles.rb"
+require "#{libbase}/services.rb"
+require "#{libbase}/tools.rb"
+require "#{libbase}/types.rb"
+require "#{libbase}/users.rb"
 
 #######################################################################
 # ApiResource
