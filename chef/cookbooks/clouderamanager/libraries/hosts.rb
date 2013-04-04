@@ -104,7 +104,7 @@ class ApiHost < BaseApiObject
   #######################################################################
   def self.delete_host(resource_root, host_id)
     resp = resource_root.delete("#{HOSTS_PATH}/#{host_id}")
-    return ApiHost.from_json_dict(resp, resource_root)
+    return ApiHost.from_json_dict(ApiHost, resp, resource_root)
   end
   
   #----------------------------------------------------------------------

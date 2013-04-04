@@ -104,14 +104,18 @@ print "api.delete_cluster(#{clustername}) results : [#{results}]\n"
 #######################################################################
 # api.create_host
 #######################################################################
-=begin
-host_id = "d00-0c-29-06-87-ff.pod.openstack.org"
-name = "testhost"
-ipaddr = "192.168.124.86"
+host_id = "d00-ff-ff-ff-ff-ff.pod.openstack.org"
+name = "api_created_host"
+ipaddr = "192.168.124.150"
 rack_id = "/default"
 results = api.create_host(host_id, name, ipaddr, rack_id)
 print "api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) : [#{results}]\n"
-=end
+
+#######################################################################
+# api.delete_host
+#######################################################################
+results = api.delete_host(host_id)
+print "api.delete_host results(#{host_id}) : [#{results}]\n"
 
 #######################################################################
 # api.get_all_hosts
