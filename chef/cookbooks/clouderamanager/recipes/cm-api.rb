@@ -34,7 +34,7 @@ env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 #######################################################################
 if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   
-  libbase = File.join(File.dirname(__FILE__), '../libraries/cmapi' )
+  libbase = File.join(File.dirname(__FILE__), '../libraries' )
   require "#{libbase}/api_client.rb"
   require "#{libbase}/utils.rb"
   
