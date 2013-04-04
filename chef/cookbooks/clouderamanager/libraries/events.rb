@@ -22,7 +22,7 @@
 
 libbase = File.dirname(__FILE__)
 require "#{libbase}/types.rb"
-require "#{libbase}/../utils.rb"
+require "#{libbase}/utils.rb"
 
 #######################################################################
 # ApiEvent
