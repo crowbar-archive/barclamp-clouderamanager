@@ -80,15 +80,15 @@ class ApiEvent < BaseApiObject
   #----------------------------------------------------------------------
   
   #######################################################################
-  # _setattr (k, v)
+  # setattr (k, v)
   #######################################################################
-  def _setattr (k, v)
+  def setattr (k, v)
     if k == 'timeOccurred' and !v.nil?
       @timeOccurred = api_time_to_datetime(v)
     elsif k == 'timeReceived' and !v.nil?
       @timeReceived = api_time_to_datetime(v)
     else
-      BaseApiObject._setattr(self, k, v)
+      BaseApiObject.setattr(self, k, v)
     end
   end
 end

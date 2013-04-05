@@ -245,6 +245,20 @@ class ApiResource < Resource
     return ApiCluster.get_cluster(self, name)
   end
   
+  #######################################################################
+  # Determine if a cluster already exists.
+  # @param name Cluster name.
+  # @return true or false.
+  #######################################################################
+  def cluster_exists?(name)
+    results = self.get_all_clusters()
+    cluster_list = results.to_array
+    cluster_list.each do |cluster_object|
+      return true if cluster_object.getattr('name') == name
+    end
+    return false
+  end
+  
   #----------------------------------------------------------------------
   # Host related methods.
   #----------------------------------------------------------------------
@@ -286,6 +300,20 @@ class ApiResource < Resource
   #######################################################################
   def get_host(host_id)
     return ApiHost.get_host(self, host_id)
+  end
+  
+  #######################################################################
+  # Determine if a host already exists.
+  # @param name Cluster name.
+  # @return true or false.
+  #######################################################################
+  def host_exists?(host_id)
+    results = self.get_all_hosts()
+    host_list = results.to_array
+    host_list.each do |host_object|
+      return true if host_object.getattr('hostId') == host_id
+    end
+    return false
   end
   
   #######################################################################
