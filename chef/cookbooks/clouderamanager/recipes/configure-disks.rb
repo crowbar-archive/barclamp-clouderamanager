@@ -163,13 +163,6 @@ found_disks.each { |disk|
   
   # Make the HDFS file system mount point.
   if disk[:valid]
-    cnt += 1
-    
-    # Update the crowbar data for this node.
-    node[:clouderamanager][:devices] << disk
-    node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
-    node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
-    
     # Mount the storage disks. These directories should be mounted noatime and the
     # disks should be configured JBOD. RAID is not recommended. Example;
     # UUID=b6447526-276d-457a-ad2f-54a5cc8bf450 /data/1 ext3 noatime,nodiratime 0 0
@@ -184,6 +177,11 @@ found_disks.each { |disk|
       fstype fs_type
       action [:mount, :enable]
     end
+    
+    # Update the crowbar data for this node.
+    node[:clouderamanager][:devices] << disk
+    node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
+    node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
   end
   
   cnt += 1

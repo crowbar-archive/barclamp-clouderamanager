@@ -67,14 +67,6 @@
     
     %p
     %br
-    %strong= t('.cluster_settings')
-
-    %p
-      %label{ :for => :license_key }= t('.license_key')
-      %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
-    
-    %p
-    %br
     %strong= t('.ha_settings')
 
     %p
