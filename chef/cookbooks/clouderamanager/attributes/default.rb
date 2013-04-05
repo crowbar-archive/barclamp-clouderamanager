@@ -28,6 +28,11 @@ default[:clouderamanager][:debug] = false
 default[:clouderamanager][:config] = {}
 default[:clouderamanager][:config][:environment] = "clouderamanager-config-default"
 
+# Cluster configuration parameters.
+default[:clouderamanager][:cluster] = {}
+default[:clouderamanager][:cluster][:namenodes] = []
+default[:clouderamanager][:cluster][:datanodes] = []
+default[:clouderamanager][:cluster][:edgenodes] = []
 #----------------------------------------------------------------------
 # Operating system configuration parameters.
 #----------------------------------------------------------------------

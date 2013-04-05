@@ -22,7 +22,8 @@
           "version": "2"
       },
       "cluster": {
-          "license_key": ""
+          "license_key": "",
+          "deployment_type": "manual"
       },
       "ha": {
           "shared_edits_directory": "/dfs/ha",

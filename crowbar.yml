@@ -20,7 +20,7 @@ barclamp:
   display: Cloudera Manager for Apache Hadoop
   version: 0
   requires:
-    - @crowbar
+    - '@crowbar'
   member:
     - apachehadoop
   supercedes:
@@ -66,7 +66,6 @@ locale_additions:
           password: Password
           use_tls: Use TLS (https)
           version: API Version
-          cluster_settings: Cluster
           license_key: License Key (Optional)
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
