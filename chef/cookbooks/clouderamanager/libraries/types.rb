@@ -54,7 +54,7 @@ class BaseApiObject < Object
         raise ArgumentError, "Unexpected argument #{k} in #{self.class.name}"
       end
 =end
-      _setattr(k, v)
+      setattr(k, v)
     end
   end
   
@@ -75,8 +75,8 @@ class BaseApiObject < Object
     
     for attr in @RW_ATTR + @RO_ATTR
       begin
-        val = getattr(api_obj, attr)
-        setattr(self, attr, val)
+        val = getclassattr(api_obj, attr)
+        setclassattr(self, attr, val)
       rescue Exception => e   
         puts e.message   
         puts e.backtrace.inspect   
@@ -85,30 +85,30 @@ class BaseApiObject < Object
   end
   
   #######################################################################
-  # Set an attribute. 
+  # Set an object attribute. 
   #######################################################################
-  def setattr(cls, k, v)
+  def setclassattr(cls, k, v)
     cls.instance_variable_set("@#{k}", v)
   end
   
-  def _setattr(k, v)
-    setattr(self, k, v)
+  def setattr(k, v)
+    setclassattr(self, k, v)
   end
   
   #######################################################################
-  # Get an attribute. 
+  # Get a object attribute. 
   #######################################################################
   
-  def getattr(cls, k)
+  def getclassattr(cls, k)
     cls.instance_variable_get("@#{k}")
   end
   
-  def _getattr(k)
-    getattr(self, k)
+  def getattr(k)
+    getclassattr(self, k)
   end
   
   #######################################################################
-  # Place holder to  deal with unicode strings.
+  # Place holder to deal with unicode strings.
   #######################################################################
   def self.fix_unicode_kwargs(dic)
     return dic
@@ -120,7 +120,7 @@ class BaseApiObject < Object
   def to_json_dict(cls)
     dict = {}
     cls::RW_ATTR.each do |attr| 
-      value = getattr(self, attr)
+      value = getclassattr(self, attr)
       begin
         # If the value has to_json_dict(), call it
         value = value.to_json_dict(cls)
@@ -151,13 +151,13 @@ class BaseApiObject < Object
     
     # Initialize all RO_ATTR to be nil
     cls::RO_ATTR.each do |attr| 
-      obj._setattr(attr, nil)
+      obj.setattr(attr, nil)
     end
     
     # Now set the RO_ATTR based on the json
     dic.each do  |k, v| 
       if cls::RO_ATTR.include?(k)
-        obj._setattr(k, v)
+        obj.setattr(k, v)
       else
         print "Unexpected attribute #{k} in #{cls.class.name} json"
       end
@@ -187,13 +187,20 @@ class ApiList < Object
     return @objects.length
   end
   
+=begin  
   #######################################################################
   # __iter__
   #######################################################################
   def __iter__
-=begin
     return @objects.__iter__()
+  end
 =end
+  
+  #######################################################################
+  # [](i)
+  #######################################################################
+  def [](i)
+    return @objects[i]
   end
   
   #######################################################################
@@ -204,10 +211,11 @@ class ApiList < Object
   end
   
   #######################################################################
-  # [](i)
+  # to_array
   #######################################################################
-  def [](i)
-    return @objects[i]
+  
+  def to_array
+    return @objects
   end
   
   #######################################################################
@@ -274,15 +282,15 @@ class ApiCommand < BaseApiObject
   end
   
   #######################################################################
-  # _setattr(k, v)
+  # setattr(k, v)
   #######################################################################
-  def _setattr(k, v)
+  def setattr(k, v)
     if k == 'children' and v.not_equal? nil
       v = ApiList.from_json_dict(ApiCommand, v, _get_resource_root())
     elsif k == 'parent' and v.not_equal? nil
       v = ApiCommand.from_json_dict(v, _get_resource_root())
     end
-    BaseApiObject._setattr(self, k, v)
+    BaseApiObject.setclassattr(self, k, v)
   end
   
   #######################################################################
@@ -404,9 +412,9 @@ class ApiMetric < BaseApiObject
   end
   
   #######################################################################
-  # _setattr(k, v)
+  # setattr(k, v)
   #######################################################################
-  def _setattr(k, v)
+  def setattr(k, v)
     if k == 'data'
       if v
         assert isinstance(v, list)
@@ -415,7 +423,7 @@ class ApiMetric < BaseApiObject
           @data << ApiMetricData.from_json_dict(x, _get_resource_root())
         end
       else
-        BaseApiObject._setattr(self, k, v)
+        BaseApiObject.setclassattr(self, k, v)
       end
     end
   end
