@@ -51,7 +51,7 @@ results = api.version()
 print "api.version : [#{results}]\n"
 
 #----------------------------------------------------------------------
-# Utils related methods.
+# Utility related methods.
 #----------------------------------------------------------------------
 
 #######################################################################
@@ -71,31 +71,67 @@ print "api_time_to_datetime(2012-02-18T01:01:03.234Z) : [#{results}]\n"
 #######################################################################
 # api.get_all_clusters
 #######################################################################
+view = 'full'
+results = api.get_all_clusters(view)
 print "api.get_all_clusters() : [#{results}]\n"
-
 
 #######################################################################
 # api.create_cluster
 #######################################################################
-clustername = "testcluster1"
 cdhversion = "CDH4" 
-results = api.create_cluster(clustername, cdhversion)
-print "api.create_cluster(#{clustername}, #{cdhversion}) results : [#{results}]\n"
+clusters = [ "testcluster1", "testcluster2"]
+cluster_object = nil
+clusters.each do |cluster_name|
+  cluster_object = api.find_cluster(cluster_name)
+  if cluster_object == nil
+    print "cluster does not exists [#{cluster_name}]\n"
+    cluster_object = api.create_cluster(cluster_name, cdhversion)
+    print "api.create_cluster(#{cluster_name}, #{cdhversion}) results : [#{cluster_object}]\n"
+  else
+    print "cluster already exists [#{cluster_name}] results : [#{cluster_object}]\n"
+  end
+end
 
 #######################################################################
 # api.get_cluster
 #######################################################################
-clustername = "testcluster1"
-results = api.get_cluster(clustername)
-print "api.get_cluster(#{clustername}) : [#{results}]\n"
+cluster_name = "testcluster1"
+results = api.get_cluster(cluster_name)
+print "api.get_cluster(#{cluster_name}) : [#{results}]\n"
 
 #######################################################################
-# api.delete_cluster
+# api.delete_cluster (only testcluster1)
 #######################################################################
-clustername = "testcluster1"
+cluster_name = "testcluster1"
 cdhversion = "CDH4" 
-results = api.delete_cluster(clustername)
-print "api.delete_cluster(#{clustername}) results : [#{results}]\n"
+results = api.delete_cluster(cluster_name)
+print "api.delete_cluster(#{cluster_name}) results : [#{results}]\n"
+
+#----------------------------------------------------------------------
+# Service related methods.
+#----------------------------------------------------------------------
+
+#######################################################################
+# api.get_all_services
+#######################################################################
+cluster_name = "testcluster2"
+results = api.get_all_services(cluster_name, 'full')
+print "api.get_all_services() : [#{results}]\n"
+
+#######################################################################
+# api.find_service
+#######################################################################
+cluster_name = "testcluster2"
+service_name = "mapreduce01"
+service_type = "MAPREDUCE"
+service_object = api.find_service(service_name, cluster_name)
+if service_object == nil
+  print "service does not exists [#{service_name}, #{service_type}, #{cluster_name}]\n" if debug
+  service_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
+  print "api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service_object}]\n" if debug
+else
+  print "service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service_object}]\n" if debug
+end
 
 #----------------------------------------------------------------------
 # Hosts related methods.
@@ -104,16 +140,33 @@ print "api.delete_cluster(#{clustername}) results : [#{results}]\n"
 #######################################################################
 # api.create_host
 #######################################################################
-host_id = "d00-ff-ff-ff-ff-ff.pod.openstack.org"
-name = "api_created_host"
-ipaddr = "192.168.124.150"
 rack_id = "/default"
-results = api.create_host(host_id, name, ipaddr, rack_id)
-print "api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) : [#{results}]\n"
+host_list = [
+{ :host_id => "d00-ff-ff-ff-ff-f0.hadoop.org", :name => "namenode1", :ipaddr => "192.168.124.150"},
+{ :host_id => "d00-ff-ff-ff-ff-f1.hadoop.org", :name => "namenode2", :ipaddr => "192.168.124.151"},
+{ :host_id => "d00-ff-ff-ff-ff-f2.hadoop.org", :name => "slavenode1", :ipaddr => "192.168.124.152"},
+{ :host_id => "d00-ff-ff-ff-ff-f3.hadoop.org", :name => "slavenode2", :ipaddr => "192.168.124.153"},
+{ :host_id => "d00-ff-ff-ff-ff-f4.hadoop.org", :name => "slavenode3", :ipaddr => "192.168.124.154"}
+]
+
+host_list.each do |host_rec|
+  host_id = host_rec[:host_id]
+  name = host_rec[:name]
+  ipaddr = host_rec[:ipaddr]
+  host_object = api.find_host(host_id)
+  if host_object == nil
+    print "host does not exists [#{host_id}]\n"
+    host_object = api.create_host(host_id, name, ipaddr, rack_id)
+    print "api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) results : [#{host_object}]\n"
+  else
+    print "host already exists [#{host_id}] results : [#{host_object}]\n"
+  end
+end
 
 #######################################################################
 # api.delete_host
 #######################################################################
+host_id = host_list[0][:host_id]
 results = api.delete_host(host_id)
 print "api.delete_host results(#{host_id}) : [#{results}]\n"
 

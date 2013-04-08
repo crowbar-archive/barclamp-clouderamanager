@@ -205,7 +205,7 @@ class ApiResource < Resource
   end
   
   #######################################################################
-  # Cluster relate methods.
+  # Cluster related methods.
   #######################################################################
   
   #######################################################################
@@ -248,15 +248,74 @@ class ApiResource < Resource
   #######################################################################
   # Determine if a cluster already exists.
   # @param name Cluster name.
-  # @return true or false.
+  # @return cluster object or nil.
   #######################################################################
-  def cluster_exists?(name)
+  def find_cluster(name)
     results = self.get_all_clusters()
     cluster_list = results.to_array
     cluster_list.each do |cluster_object|
-      return true if cluster_object.getattr('name') == name
+      return cluster_object if cluster_object.getattr('name') == name
     end
-    return false
+    return nil
+  end
+  
+  #----------------------------------------------------------------------
+  # Service related methods.
+  #----------------------------------------------------------------------
+  
+  #######################################################################
+  # Create a service
+  # @param name: Service name
+  # @param service_type: Service type
+  # @param cluster_name: Cluster name
+  # @return: An ApiService object
+  #######################################################################
+  def create_service(cluster, name, service_type, cluster_name="default")
+    return ApiService.create_service(self, name, service_type, cluster_name)
+  end
+  
+  #######################################################################
+  # Lookup a service by name
+  # @param name: Service name
+  # @param cluster_name: Cluster name
+  # @return: An ApiService object
+  #######################################################################
+  def get_service(name, cluster_name="default")
+    return ApiService.get_service(self, name, cluster_name)
+  end
+  
+  #######################################################################
+  # Get all services
+  # @param cluster_name: Cluster name
+  # @return: A list of ApiService objects.
+  #######################################################################
+  def get_all_services(cluster_name="default", view=nil)
+    return ApiService.get_all_services(self, cluster_name, view)
+  end
+  
+  #######################################################################
+  # Delete a service by name.
+  # @param name: Service name
+  # @param cluster_name: Cluster name
+  # @return: The deleted ApiService object
+  #######################################################################
+  def delete_service(name, cluster_name="default")
+    ApiService.delete_service(self, name, cluster_name)
+  end
+  
+  #######################################################################
+  # Determine if a service already exists.
+  # @param name Service name.
+  # @param cluster_name Cluster name.
+  # @return service object or nil.
+  #######################################################################
+  def find_service(name, cluster_name="default")
+    results = self.get_all_services(cluster_name, 'full')
+    service_list = results.to_array
+    service_list.each do |service_object|
+      return service_object if service_object.getattr('name') == name
+    end
+    return nil
   end
   
   #----------------------------------------------------------------------
@@ -304,16 +363,16 @@ class ApiResource < Resource
   
   #######################################################################
   # Determine if a host already exists.
-  # @param name Cluster name.
-  # @return true or false.
+  # @param host_id Host ID.
+  # @return host object or nil.
   #######################################################################
-  def host_exists?(host_id)
+  def find_host(host_id)
     results = self.get_all_hosts()
     host_list = results.to_array
     host_list.each do |host_object|
-      return true if host_object.getattr('hostId') == host_id
+      return host_object if host_object.getattr('hostId') == host_id
     end
-    return false
+    return nil
   end
   
   #######################################################################

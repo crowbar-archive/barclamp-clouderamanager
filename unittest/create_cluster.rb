@@ -39,8 +39,8 @@ version = "2"
 # Cluster setup paraameters.
 #######################################################################
 debug = true
-clustername = "devel04"
-cdhversion = "CDH4" 
+cluster_name = "devel04"
+cdh_version = "CDH4" 
 rack_id = "/default"
 
 #######################################################################
@@ -49,17 +49,34 @@ rack_id = "/default"
 api = ApiResource.new(server_host, server_port, username, password, use_tls, version, debug)
 
 #######################################################################
-# Create the cluster if it doesn't already exists.
+# Step 1. Define the Cluster.
 #######################################################################
-cluster_exists = api.cluster_exists?(clustername)
-if cluster_exists
-  print "cluster already exists [#{clustername}]\n" if debug
+cluster_object = api.find_cluster(cluster_name)
+if cluster_object == nil
+  print "cluster does not exists [#{cluster_name}]\n" if debug
+  cluster_object = api.create_cluster(cluster_name, cdh_version)
+  print "api.create_cluster(#{cluster_name}, #{cdh_version}) results : [#{cluster_object}]\n" if debug
 else
-  print "cluster does not exists [#{clustername}]\n" if debug
-  results = api.create_cluster(clustername, cdhversion)
-  print "api.create_cluster(#{clustername}, #{cdhversion}) results : [#{results}]\n" if debug
+  print "cluster already exists [#{cluster_name}] results : [#{cluster_object}]\n" if debug
 end
 
+#######################################################################
+# Step 2. Create the HDFS Service.
+#######################################################################
+service_name = "hdfs99"
+service_type = "HDFS"
+service_object = api.find_service(service_name, cluster_name)
+if service_object == nil
+  print "service does not exists [#{service_name}, #{service_type}, #{cluster_name}]\n" if debug
+  service_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
+  print "api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service_object}]\n" if debug
+else
+  print "service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service_object}]\n" if debug
+end
+
+#######################################################################
+# Step 3. Create The host instances.
+#######################################################################
 host_list = [
 { :host_id => "d00-ff-ff-ff-ff-f0.hadoop.org", :name => "namenode1", :ipaddr => "192.168.124.150"},
 { :host_id => "d00-ff-ff-ff-ff-f1.hadoop.org", :name => "namenode2", :ipaddr => "192.168.124.151"},
@@ -68,19 +85,21 @@ host_list = [
 { :host_id => "d00-ff-ff-ff-ff-f4.hadoop.org", :name => "slavenode3", :ipaddr => "192.168.124.154"}
 ]
 
-#######################################################################
-# Create the host if it doesn't already exists.
-#######################################################################
 host_list.each do |host_rec|
   host_id = host_rec[:host_id]
   name = host_rec[:name]
   ipaddr = host_rec[:ipaddr]
-  host_exists = api.host_exists?(host_id)
-  if host_exists
-    print "host already exists [#{host_id}]\n" if debug
-  else
+  host_object = api.find_host(host_id)
+  if host_object == nil
     print "host does not exists [#{host_id}]\n" if debug
-    results = api.create_host(host_id, name, ipaddr, rack_id)
-    print "api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) : [#{results}]\n"
+    host_object = api.create_host(host_id, name, ipaddr, rack_id)
+    print "api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) results : [#{host_object}]\n"
+  else
+    print "host already exists [#{host_id}] results : [#{host_object}]\n" if debug
   end
 end
+
+#######################################################################
+# Step 4. Create Roles
+#######################################################################
+
