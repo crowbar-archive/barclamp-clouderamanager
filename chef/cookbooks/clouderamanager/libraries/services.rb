@@ -23,97 +23,107 @@
 libbase = File.dirname(__FILE__)
 require "#{libbase}/types.rb"
 
-ROLETYPES_CFG_KEY = 'roleTypeConfigs'
-
-#######################################################################
-# Create a service
-# @param resource_root: The root Resource object.
-# @param name: Service name
-# @param service_type: Service type
-# @param cluster_name: Cluster name
-# @return: An ApiService object
-#######################################################################
-def create_service(resource_root, name, service_type, cluster_name="default")
-  apiservice = ApiService.new(resource_root, name, service_type)
-  apiservice_list = ApiList.new([apiservice])
-  data = JSON.generate(apiservice_list.to_json_dict(self))
-  subpath = "/clusters/#{cluster_name}/services"
-  resp = resource_root.post(subpath, data)
-  # The server returns a list of created services(size=1).
-  return ApiList.from_json_dict(ApiService, resp, resource_root)[0]
-end
-
-#######################################################################
-# Lookup a service by name
-# @param resource_root: The root Resource object.
-# @param name: Service name
-# @param cluster_name: Cluster name
-# @return: An ApiService object
-#######################################################################
-def _get_service(resource_root, path)
-  dic = resource_root.get(path)
-  return ApiService.from_json_dict(dic, resource_root)
-end
-
-def get_service(resource_root, name, cluster_name="default")
-  subpath = "/clusters/#{cluster_name}/services"
-  return _get_service(resource_root, "#{subpath}/#{name}")
-end
-
-#######################################################################
-# Get all services
-# @param resource_root: The root Resource object.
-# @param cluster_name: Cluster name
-# @return: A list of ApiService objects.
-#######################################################################
-def get_all_services(resource_root, cluster_name="default", view=nil)
-  subpath = "/clusters/#{cluster_name}/services"
-  params = nil 
-  params = { :view => view } if (view)
-  dic = resource_root.get(subpath, params)
-  return ApiList.from_json_dict(ApiService, dic, resource_root)
-end
-
-#######################################################################
-# Delete a service by name.
-# @param resource_root: The root Resource object.
-# @param name: Service name
-# @param cluster_name: Cluster name
-# @return: The deleted ApiService object
-#######################################################################
-def delete_service(resource_root, name, cluster_name="default")
-  subpath = "/clusters/#{cluster_name}/services"
-  resp = resource_root.delete("#{subpath}/#{name}")
-  return ApiService.from_json_dict(resp, resource_root)
-end
-
 #######################################################################
 # ApiService
 #######################################################################
 class ApiService < BaseApiObject
   
+  ROLETYPES_CFG_KEY = 'roleTypeConfigs'
+  
   RO_ATTR = [ 'serviceState', 'healthSummary', 'healthChecks', 'clusterRef',
-             'configStale', 'serviceUrl', 'maintenanceMode', 'maintenanceOwners' ]
+             'configStale', 'serviceUrl', 'maintenanceMode', 'maintenanceOwners',
+             'displayName' ]
   
   RW_ATTR = [ 'name', 'type' ]
   
   #######################################################################
   # initialize(resource_root, name, type)
   #######################################################################
-  def initialize(resource_root, name, type)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
     end
   end
   
+  #----------------------------------------------------------------------
+  # Static methods.
+  #----------------------------------------------------------------------
+  
+  #######################################################################
+  # Create a service
+  # @param resource_root: The root Resource object.
+  # @param name: Service name
+  # @param service_type: Service type
+  # @param cluster_name: Cluster name
+  # @return: An ApiService object
+  #######################################################################
+  def self.create_service(resource_root, name, service_type, cluster_name="default")
+    dict = { :name => name, :type => service_type } 
+    apiservice = ApiService.new(resource_root, dict)
+    service_array = [ apiservice ]
+    apiservice_list = ApiList.new(service_array)
+    data = JSON.generate(apiservice_list.to_json_dict(self))
+    subpath = "/clusters/#{cluster_name}/services"
+    resp = resource_root.post(subpath, data)
+    # The server returns a list of created services (size=1).
+    return ApiList.from_json_dict(ApiService, resp, resource_root)[0]
+  end
+  
+  #######################################################################
+  # Lookup a service by name
+  # @param resource_root: The root Resource object.
+  # @param name: Service name
+  # @param cluster_name: Cluster name
+  # @return: An ApiService object
+  #######################################################################
+  def self._get_service(resource_root, path)
+    dict = resource_root.get(path)
+    return ApiService.from_json_dict(dict, resource_root)
+  end
+  
+  def self.get_service(resource_root, name, cluster_name="default")
+    subpath = "/clusters/#{cluster_name}/services"
+    return _get_service(resource_root, "#{subpath}/#{name}")
+  end
+  
+  #######################################################################
+  # Get all services
+  # @param resource_root: The root Resource object.
+  # @param cluster_name: Cluster name
+  # @return: A list of ApiService objects.
+  #######################################################################
+  def self.get_all_services(resource_root, cluster_name="default", view=nil)
+    subpath = "/clusters/#{cluster_name}/services"
+    params = nil 
+    params = { :view => view } if (view)
+    dict = resource_root.get(subpath, params)
+    return ApiList.from_json_dict(ApiService, dict, resource_root)
+  end
+  
+  #######################################################################
+  # Delete a service by name.
+  # @param resource_root: The root Resource object.
+  # @param name: Service name
+  # @param cluster_name: Cluster name
+  # @return: The deleted ApiService object
+  #######################################################################
+  def self.delete_service(resource_root, name, cluster_name="default")
+    subpath = "/clusters/#{cluster_name}/services"
+    resp = resource_root.delete("#{subpath}/#{name}")
+    return ApiService.from_json_dict(resp, resource_root)
+  end
+  
+  #----------------------------------------------------------------------
+  # Class methods.
+  #----------------------------------------------------------------------
+  
   #######################################################################
   # to_s
   #######################################################################
   def to_s
     cname = _get_cluster_name()
-    return "<ApiService>: #{@name}(cluster: #{cname})"
+    return "<ApiService>: #{@name} (cluster: #{cname})"
   end
   
   #######################################################################
@@ -121,7 +131,8 @@ class ApiService < BaseApiObject
   #######################################################################
   def _get_cluster_name
     if @clusterRef
-      return @clusterRef.clusterName
+      cname = @clusterRef["clusterName"];
+      return cname
     end
     return nil
   end

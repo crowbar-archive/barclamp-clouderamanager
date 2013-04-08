@@ -52,7 +52,7 @@ class Resource < Object
   # @param params: Key-value data.
   # @return: A dictionary of the JSON result.
   #######################################################################
-  def get(relpath=nil, params=nil)
+  def get(relpath, params=nil)
     if @debug
       puts ">>>> Resource.get : (relpath:#{relpath}, params:#{params})"
     end
@@ -72,8 +72,10 @@ class Resource < Object
   # @param contenttype: Optional.
   # @return: A dictionary of the JSON result.
   #######################################################################
-  def put(relpath=nil, data=nil, params=nil, contenttype=:json)
-    puts ">>>> Resource.put : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype})"
+  def put(relpath, data=nil, params=nil, contenttype=:json)
+    if @debug
+      puts ">>>> Resource.put : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype})"
+    end
     if params
       resp = @client[relpath].put data, :params => params, :content_type => contenttype
     else
@@ -90,7 +92,7 @@ class Resource < Object
   # @param contenttype: Optional.
   # @return: A dictionary of the JSON result.
   #######################################################################
-  def post(relpath=nil, data=nil, params=nil, contenttype=:json, accepttype=:json)
+  def post(relpath, data=nil, params=nil, contenttype=:json, accepttype=:json)
     if @debug
       puts ">>>> Resource.post : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype}, accepttype:#{accepttype})"
     end
@@ -108,7 +110,7 @@ class Resource < Object
   # @param params: Key-value data.
   # @return: A dictionary of the JSON result.
   #######################################################################
-  def delete(relpath=nil, params=nil)
+  def delete(relpath, params=nil)
     if @debug
       puts ">>>> Resource.delete : (relpath:#{relpath}, params:#{params})"
     end

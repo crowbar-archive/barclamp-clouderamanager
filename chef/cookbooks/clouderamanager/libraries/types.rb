@@ -159,7 +159,7 @@ class BaseApiObject < Object
       if cls::RO_ATTR.include?(k)
         obj.setattr(k, v)
       else
-        print "Unexpected attribute #{k} in #{cls.class.name} json"
+        print "Unexpected attribute #{k} in #{cls.class.name} json\n"
       end
     end
     return obj

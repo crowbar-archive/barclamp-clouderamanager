@@ -25,6 +25,7 @@ require 'json'
 
 libbase = File.dirname(__FILE__)
 require "#{libbase}/types.rb"
+require "#{libbase}/services.rb"
 
 #######################################################################
 # ApiCluster
@@ -182,7 +183,7 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def create_service(name, service_type)
     resource_root = _get_resource_root()
-    return services.create_service(resource_root, name, service_type, @name)
+    return ApiService.create_service(resource_root, name, service_type, @name)
   end
   
   #######################################################################
@@ -192,7 +193,7 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def delete_service(name)
     resource_root = _get_resource_root()
-    return services.delete_service(resource_root, name, @name)
+    return ApiService.delete_service(resource_root, name, @name)
   end
   
   #######################################################################
@@ -202,7 +203,7 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def get_service(name)
     resource_root = _get_resource_root()
-    return services.get_service(resource_root, name, @name)
+    return ApiService.get_service(resource_root, name, @name)
   end
   
   #######################################################################
@@ -211,7 +212,7 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def get_all_services(view = nil)
     resource_root = _get_resource_root()
-    return services.get_all_services(resource_root, @name, view)
+    return ApiService.get_all_services(resource_root, @name, view)
   end
   
   #######################################################################
