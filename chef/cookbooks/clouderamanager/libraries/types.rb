@@ -302,8 +302,9 @@ class ApiCommand < BaseApiObject
     if @id == ApiCommand.SYNCHRONOUS_COMMAND_ID
       return self
     end
-    resp = _get_resource_root().get(_path())
-    return ApiCommand.from_json_dict(resp, _get_resource_root())
+    resource_root = _get_resource_root()
+    resp = resource_root.get(_path())
+    return ApiCommand.from_json_dict(resp, resource_root)
   end
   
   #######################################################################
@@ -354,9 +355,10 @@ class ApiCommand < BaseApiObject
     if @id == ApiCommand.SYNCHRONOUS_COMMAND_ID
       return self
     end
-    subpath = _path() + '/abort'
-    resp = _get_resource_root().post(subpath)
-    return ApiCommand.from_json_dict(resp, _get_resource_root())
+    path = _path() + '/abort'
+    resource_root = _get_resource_root()
+    resp = resource_root.post(path)
+    return ApiCommand.from_json_dict(resp, resource_root)
   end
   
   #######################################################################
