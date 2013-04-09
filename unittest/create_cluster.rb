@@ -65,13 +65,13 @@ end
 #######################################################################
 service_name = "hdfs99"
 service_type = "HDFS"
-service_object = api.find_service(service_name, cluster_name)
-if service_object == nil
+hdfs_object = api.find_service(service_name, cluster_name)
+if hdfs_object == nil
   print "service does not exists [#{service_name}, #{service_type}, #{cluster_name}]\n" if debug
-  service_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
-  print "api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service_object}]\n" if debug
+  hdfs_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
+  print "api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{hdfs_object}]\n" if debug
 else
-  print "service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service_object}]\n" if debug
+  print "service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{hdfs_object}]\n" if debug
 end
 
 #######################################################################
@@ -102,4 +102,8 @@ end
 #######################################################################
 # Step 4. Create Roles
 #######################################################################
+
+=begin
+nn_role = api.create_role(hdfs_object, "hdfs01-n99", "NAMENODE", host_list[0][:host_id])
+=end
 

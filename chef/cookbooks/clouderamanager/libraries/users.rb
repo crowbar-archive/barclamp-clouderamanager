@@ -58,7 +58,8 @@ class ApiUser < BaseApiObject
   def self.get_all_users(resource_root, view=nil)
     params = nil 
     params = { :view => view } if(view)
-    jdict = resource_root.get(USERS_PATH, params)
+    path = USERS_PATH
+    jdict = resource_root.get(path, params)
     return ApiList.from_json_dict(ApiUser, jdict, resource_root)
   end
   
@@ -69,7 +70,8 @@ class ApiUser < BaseApiObject
   # @return: An ApiUser object
   #######################################################################
   def self.get_user(resource_root, username)
-    jdict = resource_root.get("#{USERS_PATH}/#{username}")
+    path = "#{USERS_PATH}/#{username}"
+    jdict = resource_root.get(path)
     return ApiUser.from_json_dict(jdict, resource_root)
   end
   
@@ -85,8 +87,8 @@ class ApiUser < BaseApiObject
     apiuser = ApiUser.new(resource_root, username, roles)
     jdict = apiuser.to_json_dict(self)
     data = JSON.generate(jdict)
-    subpath = "#{USERS_PATH}/#{username}"
-    resp = resource_root.put(subpath, data)
+    path = "#{USERS_PATH}/#{username}"
+    resp = resource_root.put(path, data)
     return ApiUser.from_json_dict(resp, resource_root)
   end
   
@@ -101,8 +103,8 @@ class ApiUser < BaseApiObject
     apiuser = ApiUser.new(resource_root, username, roles=[])
     jdict = apiuser.to_json_dict(self)
     data = JSON.generate(jdict)
-    subpath = "#{USERS_PATH}/#{username}"
-    resp = resource_root.put(subpath, data)
+    path = "#{USERS_PATH}/#{username}"
+    resp = resource_root.put(path, data)
     return ApiUser.from_json_dict(resp, resource_root)
   end
   
@@ -120,8 +122,8 @@ class ApiUser < BaseApiObject
     apiuser_list = ApiList.new([ "#{apiuser}" ])
     jdict = apiuser_list.to_json_dict(self)
     data = JSON.generate(jdict)
-    subpath = USERS_PATH
-    resp = resource_root.post(subpath, data)
+    path = USERS_PATH
+    resp = resource_root.post(path, data)
     return ApiList.from_json_dict(ApiUser, resp, resource_root)[0]
   end
   
@@ -132,8 +134,8 @@ class ApiUser < BaseApiObject
   # @return: An ApiUser object
   #######################################################################
   def self.delete_user(resource_root, username)
-    subpath = "#{USERS_PATH}/#{username}"
-    resp = resource_root.delete(subpath)
+    path = "#{USERS_PATH}/#{username}"
+    resp = resource_root.delete(path)
     return ApiUser.from_json_dict(resp, resource_root)
   end
   

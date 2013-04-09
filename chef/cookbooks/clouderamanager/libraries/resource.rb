@@ -33,7 +33,7 @@ class Resource < Object
   # @param client: A Client object.
   # @param base_url: The Base URL.
   #######################################################################
-  def initialize(client, base_url, debug)
+  def initialize(client, base_url, debug=false)
     @client = client
     @base_url = base_url
     @debug = debug
