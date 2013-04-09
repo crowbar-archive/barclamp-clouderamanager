@@ -35,8 +35,7 @@
                 "username": { "type": "str", "required": true},
                 "password": { "type": "str", "required": true},
                 "use_tls": { "type": "str", "required": true},
-                "version": { "type": "str", "required": true},
-                "deployment_type": { "type": "str", "required": true}
+                "version": { "type": "str", "required": true}
               }  
             },
             "cluster": {
