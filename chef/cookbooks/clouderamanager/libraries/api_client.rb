@@ -204,120 +204,6 @@ class ApiResource < Resource
     return ClouderaManager.hosts_start_roles(self, host_names)
   end
   
-  #######################################################################
-  # Cluster related methods.
-  #######################################################################
-  
-  #######################################################################
-  # Create a new cluster.
-  # @param name Cluster name.
-  # @param version Cluster CDH version.
-  # @return The created cluster.
-  #######################################################################
-  def create_cluster(name, version)
-    return ApiCluster.create_cluster(self, name, version)
-  end
-  
-  #######################################################################
-  # Delete a cluster by name.
-  # @param name: Cluster name
-  # @return The deleted ApiCluster object
-  #######################################################################
-  def delete_cluster(name)
-    return ApiCluster.delete_cluster(self, name)
-  end
-  
-  #######################################################################
-  # Retrieve a list of all clusters.
-  # @param view View to materialize('full' or 'summary').
-  # @return A list of ApiCluster objects.
-  #######################################################################
-  def get_all_clusters(view = nil)
-    return ApiCluster.get_all_clusters(self, view)
-  end
-  
-  #######################################################################
-  # Look up a cluster by name.
-  # @param name Cluster name.
-  # @return An ApiCluster object.
-  #######################################################################
-  def get_cluster(name)
-    return ApiCluster.get_cluster(self, name)
-  end
-  
-  #######################################################################
-  # Determine if a cluster already exists.
-  # @param name Cluster name.
-  # @return cluster object or nil.
-  #######################################################################
-  def find_cluster(name)
-    results = self.get_all_clusters()
-    cluster_list = results.to_array
-    cluster_list.each do |cluster_object|
-      return cluster_object if cluster_object.getattr('name') == name
-    end
-    return nil
-  end
-  
-  #----------------------------------------------------------------------
-  # Service related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Create a service
-  # @param name: Service name
-  # @param service_type: Service type
-  # @param cluster_name: Cluster name
-  # @return: An ApiService object
-  #######################################################################
-  def create_service(cluster, name, service_type, cluster_name="default")
-    return ApiService.create_service(self, name, service_type, cluster_name)
-  end
-  
-  #######################################################################
-  # Lookup a service by name
-  # @param name: Service name
-  # @param cluster_name: Cluster name
-  # @return: An ApiService object
-  #######################################################################
-  def get_service(name, cluster_name="default")
-    return ApiService.get_service(self, name, cluster_name)
-  end
-  
-  #######################################################################
-  # Get all services
-  # @param cluster_name: Cluster name
-  # @return: A list of ApiService objects.
-  #######################################################################
-  def get_all_services(cluster_name="default", view=nil)
-    return ApiService.get_all_services(self, cluster_name, view)
-  end
-  
-  #######################################################################
-  # Delete a service by name.
-  # @param name: Service name
-  # @param cluster_name: Cluster name
-  # @return: The deleted ApiService object
-  #######################################################################
-  def delete_service(name, cluster_name="default")
-    ApiService.delete_service(self, name, cluster_name)
-  end
-  
-  #######################################################################
-  # Determine if a service already exists.
-  # @param name Service name.
-  # @param cluster_name Cluster name.
-  # @return service object or nil.
-  #######################################################################
-  def find_service(name, cluster_name="default")
-    results = self.get_all_services(cluster_name, 'full')
-    service_list = results.to_array
-    service_list.each do |service_object|
-      return service_object if service_object.getattr('name') == name
-    end
-    return nil
-  end
-  
   #----------------------------------------------------------------------
   # Host related methods.
   #----------------------------------------------------------------------
@@ -375,9 +261,64 @@ class ApiResource < Resource
     return nil
   end
   
+  #----------------------------------------------------------------------
+  # Cluster related methods.
+  #----------------------------------------------------------------------
+  
   #######################################################################
+  # Create a new cluster.
+  # @param name Cluster name.
+  # @param version Cluster CDH version.
+  # @return The created cluster.
+  #######################################################################
+  def create_cluster(name, version)
+    return ApiCluster.create_cluster(self, name, version)
+  end
+  
+  #######################################################################
+  # Delete a cluster by name.
+  # @param name: Cluster name
+  # @return The deleted ApiCluster object
+  #######################################################################
+  def delete_cluster(name)
+    return ApiCluster.delete_cluster(self, name)
+  end
+  
+  #######################################################################
+  # Retrieve a list of all clusters.
+  # @param view View to materialize('full' or 'summary').
+  # @return A list of ApiCluster objects.
+  #######################################################################
+  def get_all_clusters(view = nil)
+    return ApiCluster.get_all_clusters(self, view)
+  end
+  
+  #######################################################################
+  # Look up a cluster by name.
+  # @param name Cluster name.
+  # @return An ApiCluster object.
+  #######################################################################
+  def get_cluster(name)
+    return ApiCluster.get_cluster(self, name)
+  end
+  
+  #######################################################################
+  # Determine if a cluster already exists.
+  # @param name Cluster name.
+  # @return cluster object or nil.
+  #######################################################################
+  def find_cluster(name)
+    results = self.get_all_clusters()
+    cluster_list = results.to_array
+    cluster_list.each do |cluster_object|
+      return cluster_object if cluster_object.getattr('name') == name
+    end
+    return nil
+  end
+  
+  #----------------------------------------------------------------------
   # User related methods.
-  #######################################################################
+  #----------------------------------------------------------------------
   
   #######################################################################
   # Get all users.
@@ -415,6 +356,131 @@ class ApiResource < Resource
   #######################################################################
   def delete_user(username)
     return ApiUser.delete_user(self, username)
+  end
+  
+  #----------------------------------------------------------------------
+  # Service related methods.
+  #----------------------------------------------------------------------
+  
+  #######################################################################
+  # Create a service
+  # @param name: Service name
+  # @param service_type: Service type
+  # @param cluster_name: Cluster name
+  # @return: An ApiService object
+  #######################################################################
+  def create_service(cluster, name, service_type, cluster_name="default")
+    return ApiService.create_service(self, name, service_type, cluster_name)
+  end
+  
+  #######################################################################
+  # Lookup a service by name
+  # @param name: Service name
+  # @param cluster_name: Cluster name
+  # @return: An ApiService object
+  #######################################################################
+  def get_service(name, cluster_name="default")
+    return ApiService.get_service(self, name, cluster_name)
+  end
+  
+  #######################################################################
+  # Get all services
+  # @param cluster_name: Cluster name
+  # @return: A list of ApiService objects.
+  #######################################################################
+  def get_all_services(cluster_name="default", view=nil)
+    return ApiService.get_all_services(self, cluster_name, view)
+  end
+  
+  #######################################################################
+  # Delete a service by name.
+  # @param name: Service name
+  # @param cluster_name: Cluster name
+  # @return: The deleted ApiService object
+  #######################################################################
+  def delete_service(name, cluster_name="default")
+    return ApiService.delete_service(self, name, cluster_name)
+  end
+  
+  #######################################################################
+  # Determine if a service already exists.
+  # @param name Service name.
+  # @param cluster_name Cluster name.
+  # @return service object or nil.
+  #######################################################################
+  def find_service(name, cluster_name="default")
+    results = self.get_all_services(cluster_name, 'full')
+    service_list = results.to_array
+    service_list.each do |service_object|
+      return service_object if service_object.getattr('name') == name
+    end
+    return nil
+  end
+  
+  #----------------------------------------------------------------------
+  # Role related methods.
+  #----------------------------------------------------------------------
+  
+  #######################################################################
+  # Create a role
+  # @param service_parent: Top level service object (i.e. HDFS).
+  # @param role_name: Role name
+  # @param role_type: Role type
+  # @param host_id: ID of the host to assign the role to
+  # @return: An ApiRole object
+  #######################################################################
+  def create_role(service_parent, role_name, role_type, host_id)
+    return service_parent.create_role(self, role_name, role_type, host_id)
+  end
+  
+  #######################################################################
+  # Lookup a role by name
+  # @param service_parent: Top level service object (i.e. HDFS).
+  # @param name: Role name
+  # @return: An ApiRole object
+  #######################################################################
+  def get_role(service_parent, name)
+    return service_parent.get_role(self, name)   
+  end
+  
+  #######################################################################
+  # Get all roles
+  # @param service_parent: Top level service object (i.e. HDFS).
+  # @param view: View to materialize('full' or 'summary')
+  # @return: A list of ApiRole objects.
+  #######################################################################
+  def get_all_roles(service_parent, view=nil)
+    return service_parent.get_all_roles(self, view)
+  end
+  
+  #######################################################################
+  # Get all roles of a certain type in a service
+  # @param service_parent: Top level service object (i.e. HDFS).
+  # @param role_type: Role type
+  # @param view: View to materialize('full' or 'summary')
+  # @return: A list of ApiRole objects.
+  #######################################################################
+  def get_roles_by_type(service_parent, role_type, view=nil)
+    return service_parent.get_roles_by_type(self, role_type, view)
+  end
+  
+  #######################################################################
+  # Delete a role by name
+  # @param service_parent: Top level service object (i.e. HDFS).
+  # @param name Role name
+  # @return The deleted ApiRole object
+  #######################################################################
+  def delete_role(service_parent, name)
+    return service_parent.delete_role(self, name)
+  end
+  
+  #######################################################################
+  # Get a list of role types in a service.
+  # @param resource_root Resource root object.
+  # @return: A list of role types(strings)
+  #######################################################################
+  def get_role_types(service_parent)
+    return service_parent.get_role_types(self)
   end
   
   #----------------------------------------------------------------------

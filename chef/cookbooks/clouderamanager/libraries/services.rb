@@ -64,8 +64,8 @@ class ApiService < BaseApiObject
     service_array = [ apiservice ]
     apiservice_list = ApiList.new(service_array)
     data = JSON.generate(apiservice_list.to_json_dict(self))
-    subpath = "/clusters/#{cluster_name}/services"
-    resp = resource_root.post(subpath, data)
+    path = "/clusters/#{cluster_name}/services"
+    resp = resource_root.post(path, data)
     # The server returns a list of created services (size=1).
     return ApiList.from_json_dict(ApiService, resp, resource_root)[0]
   end
@@ -83,8 +83,8 @@ class ApiService < BaseApiObject
   end
   
   def self.get_service(resource_root, name, cluster_name="default")
-    subpath = "/clusters/#{cluster_name}/services"
-    return _get_service(resource_root, "#{subpath}/#{name}")
+    path = "/clusters/#{cluster_name}/services"
+    return _get_service(resource_root, "#{path}/#{name}")
   end
   
   #######################################################################
@@ -94,10 +94,10 @@ class ApiService < BaseApiObject
   # @return: A list of ApiService objects.
   #######################################################################
   def self.get_all_services(resource_root, cluster_name="default", view=nil)
-    subpath = "/clusters/#{cluster_name}/services"
     params = nil 
     params = { :view => view } if (view)
-    dict = resource_root.get(subpath, params)
+    path = "/clusters/#{cluster_name}/services"
+    dict = resource_root.get(path, params)
     return ApiList.from_json_dict(ApiService, dict, resource_root)
   end
   
@@ -109,8 +109,8 @@ class ApiService < BaseApiObject
   # @return: The deleted ApiService object
   #######################################################################
   def self.delete_service(resource_root, name, cluster_name="default")
-    subpath = "/clusters/#{cluster_name}/services"
-    resp = resource_root.delete("#{subpath}/#{name}")
+    path = "/clusters/#{cluster_name}/services"
+    resp = resource_root.delete("#{path}/#{name}")
     return ApiService.from_json_dict(resp, resource_root)
   end
   
@@ -194,10 +194,12 @@ class ApiService < BaseApiObject
   # @return: A list of running commands.
   #######################################################################
   def get_commands(view=nil)
-    resp = _get_resource_root().get(_path() + '/commands')
     params = nil 
     params = { :view => view } if (view)
-    return ApiList.from_json_dict(ApiCommand, resp, _get_resource_root())
+    path = _path() + '/commands'
+    resource_root = _get_resource_root()
+    resp = resource_root.get(path)
+    return ApiList.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -205,21 +207,23 @@ class ApiService < BaseApiObject
   #######################################################################
   def get_running_activities
     path = _path() + '/activities'
-    resp = _get_resource_root().get(path)
-    return ApiList.from_json_dict(ApiActivity, resp, _get_resource_root())
+    resource_root = _get_resource_root()
+    resp = resource_root.get(path)
+    return ApiList.from_json_dict(ApiActivity, resp, resource_root)
   end
   
   #######################################################################
   # query_activities(query_str=nil)
   #######################################################################
   def query_activities(query_str=nil)
-    path = _path() + '/activities'
     params = { }
     if query_str
       params['query'] = query_str
     end
-    resp = _get_resource_root().get(path, params=params)
-    return ApiList.from_json_dict(ApiActivity, resp, _get_resource_root())
+    path = _path() + '/activities'
+    resource_root = _get_resource_root()
+    resp = resource_root.get(path, params)
+    return ApiList.from_json_dict(ApiActivity, resp, resource_root)
   end
   
   #######################################################################
@@ -227,8 +231,9 @@ class ApiService < BaseApiObject
   #######################################################################
   def get_activity(job_id)
     path = _path() + "/activities/#{job_id}"
-    resp = _get_resource_root().get(path)
-    return ApiActivity.from_json_dict(resp, _get_resource_root())
+    resource_root = _get_resource_root()
+    resp = resource_root.get(path)
+    return ApiActivity.from_json_dict(resp, resource_root)
   end
   
   #######################################################################
@@ -243,10 +248,11 @@ class ApiService < BaseApiObject
   # @return 2-tuple(service config dictionary, role type configurations)
   #######################################################################
   def get_config(view = nil)
-    path = _path() + '/config'
     params = nil 
     params = { :view => view } if (view)
-    resp = _get_resource_root().get(path, params)
+    path = _path() + '/config'
+    resource_root = _get_resource_root()
+    resp = resource_root.get(path, params)
     return _parse_svc_config(resp, view)
   end
   
@@ -257,12 +263,10 @@ class ApiService < BaseApiObject
   # @return 2-tuple(service config dictionary, role type configurations)
   #######################################################################
   def update_config(svc_config, rt_configs)
-    path = _path() + '/config'
     
+    ldata = { }
     if svc_config
-      data = config_to_api_list(svc_config)
-    else
-      data = { }
+      ldata = config_to_api_list(svc_config)
     end
     
     if rt_configs
@@ -272,69 +276,87 @@ class ApiService < BaseApiObject
         rt_data['roleType'] = rt
         rt_list.append(rt_data)
       end
-      data[ROLETYPES_CFG_KEY] = rt_list
+      ldata[ROLETYPES_CFG_KEY] = rt_list
     end
     
-    resp = _get_resource_root().put(path, data = JSON.generate(data))
+    resource_root = _get_resource_root()
+    path = _path() + '/config'
+    data = JSON.generate(ldata)
+    resp = resource_root.put(path, data)
     return _parse_svc_config(resp)
   end
   
+  #----------------------------------------------------------------------
+  # Role related methods.
+  #----------------------------------------------------------------------
+  
   #######################################################################
   # Create a role.
+  # @param resource_root Resource root object.
   # @param role_name: Role name
   # @param role_type: Role type
   # @param host_id: ID of the host to assign the role to
   # @return: An ApiRole object
   #######################################################################
-  def create_role(role_name, role_type, host_id)
-    return roles.create_role(_get_resource_root(), @name, role_type, role_name, host_id, _get_cluster_name())
+  def create_role(resource_root, role_name, role_type, host_id)
+    return ApiRole.create_role(resource_root, @name, role_type, role_name, host_id, _get_cluster_name())
   end
   
   #######################################################################
   # Delete a role by name.
+  # @param resource_root Resource root object.
   # @param name Role name
   # @return The deleted ApiRole object
   #######################################################################
-  def delete_role(name)
-    return roles.delete_role(_get_resource_root(), @name, name, _get_cluster_name())
+  def delete_role(resource_root, name)
+    return ApiRole.delete_role(resource_root, @name, name, _get_cluster_name())
   end
   
   #######################################################################
   # Lookup a role by name.
+  # @param resource_root Resource root object.
   # @param name: Role name
   # @return: An ApiRole object
   #######################################################################
-  def get_role(name)
-    return roles.get_role(_get_resource_root(), @name, name, _get_cluster_name())
+  def get_role(resource_root, name)
+    return ApiRole.get_role(resource_root, @name, name, _get_cluster_name())
   end
   
   #######################################################################
   # Get all roles in the service.
+  # @param resource_root Resource root object.
   # @param view: View to materialize('full' or 'summary')
   # @return: A list of ApiRole objects.
   #######################################################################
-  def get_all_roles(view = nil)
-    return roles.get_all_roles(_get_resource_root(), @name, _get_cluster_name(), view)
+  def get_all_roles(resource_root, view = nil)
+    return ApiRole.get_all_roles(resource_root, @name, _get_cluster_name(), view)
   end
   
   #######################################################################
   # Get all roles of a certain type in a service.
+  # @param resource_root Resource root object.
   # @param role_type: Role type
   # @param view: View to materialize('full' or 'summary')
   # @return: A list of ApiRole objects.
   #######################################################################
-  def get_roles_by_type(role_type, view = nil)
-    return roles.get_roles_by_type(_get_resource_root(), @name, role_type, _get_cluster_name(), view)
+  def get_roles_by_type(resource_root, role_type, view = nil)
+    return ApiRole.get_roles_by_type(resource_root, @name, role_type, _get_cluster_name(), view)
   end
   
   #######################################################################
   # Get a list of role types in a service.
+  # @param resource_root Resource root object.
   # @return: A list of role types(strings)
   #######################################################################
-  def get_role_types
-    resp = _get_resource_root().get(_path() + '/roleTypes')
+  def get_role_types(resource_root)
+    path = _path() + '/roleTypes'
+    resp = resource_root.get(path)
     return resp[ApiList.LIST_KEY]
   end
+  
+  #----------------------------------------------------------------------
+  # End of Role related methods.
+  #----------------------------------------------------------------------
   
   #######################################################################
   # Retrieve metric readings for the service.
@@ -345,7 +367,9 @@ class ApiService < BaseApiObject
   # @return List of metrics and their readings.
   #######################################################################
   def get_metrics(from_time=nil, to_time=nil, metrics=nil, view=nil)
-    return _get_resource_root().get_metrics(_path() + '/metrics', from_time, to_time, metrics, view)
+    resource_root = _get_resource_root()
+    path = _path() + '/metrics'
+    return resource_root.get_metrics(path, from_time, to_time, metrics, view)
   end
   
   #######################################################################
@@ -430,7 +454,7 @@ class ApiService < BaseApiObject
   # @param: role_names Names of the roles to refresh.
   # @return: Reference to the submitted command.
   #######################################################################
-  def refresh(*role_names)
+  def refresh(role_names)
     return _role_cmd('refresh', role_names)
   end
   
@@ -439,7 +463,7 @@ class ApiService < BaseApiObject
   # @param role_names Names of the roles to decommission.
   # @return Reference to the submitted command.
   #######################################################################
-  def decommission(*role_names)
+  def decommission(role_names)
     data = JSON.generate({ ApiList.LIST_KEY => role_names })
     return _cmd('decommission', data)
   end
@@ -450,7 +474,7 @@ class ApiService < BaseApiObject
   # @return Reference to the submitted command.
   # @since: API v2
   #######################################################################
-  def recommission(*role_names)
+  def recommission(role_names)
     data = JSON.generate({ ApiList.LIST_KEY => role_names })
     return _cmd('recommission', data)
   end
@@ -461,8 +485,8 @@ class ApiService < BaseApiObject
   # @return: Reference to the submitted command.
   #######################################################################
   def deploy_client_config(role_names)
-    rec = { ApiList.LIST_KEY => role_names }
-    data = JSON.generate(rec)
+    dict = { ApiList.LIST_KEY => role_names }
+    data = JSON.generate(dict)
     return _cmd('deployClientConfig', data)
   end
   
@@ -589,7 +613,7 @@ class ApiService < BaseApiObject
   # @return: Reference to the submitted command.
   #######################################################################
   def failover_hdfs(active_name, standby_name, force=false)
-    if (force)
+    if force
       params = { "force" => "true" }
     else
       params = { "force" => "false" }

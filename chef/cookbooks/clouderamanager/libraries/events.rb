@@ -37,10 +37,9 @@ class ApiEvent < BaseApiObject
   RW_ATTR = [ ]
   
   #######################################################################
-  # Class Initializer.
+  # initialize(resource_root)
   #######################################################################
-  def initialize (resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 

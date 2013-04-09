@@ -35,8 +35,7 @@ class ClouderaManager < BaseApiObject
   #######################################################################
   # Class Initializer.
   ####################################################################### 
-  def initialize(resource_root)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
@@ -53,7 +52,7 @@ class ClouderaManager < BaseApiObject
   # @param data: Optional data to send to the command.
   # @return Information about the submitted command.
   #######################################################################
-  def self._cmd(resource_root, command, data = nil)
+  def self._cmd(resource_root, command, data=nil)
     path = "/cm/commands/#{command}"
     resp = resource_root.post(path, data)
     return ApiCommand.from_json_dict(ApiCommand, resp, resource_root)

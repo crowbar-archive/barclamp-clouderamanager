@@ -80,8 +80,8 @@ class ApiCluster < BaseApiObject
     params = nil 
     params = { :view => view } if (view)
     path = CLUSTERS_PATH
-    jdict = resource_root.get(path, params)
-    return ApiList.from_json_dict(ApiCluster, jdict, resource_root)
+    dict = resource_root.get(path, params)
+    return ApiList.from_json_dict(ApiCluster, dict, resource_root)
   end
   
   #######################################################################
@@ -92,8 +92,8 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def self.get_cluster(resource_root, name)
     path = "#{CLUSTERS_PATH}/#{name}"
-    jdict = resource_root.get(path)
-    return ApiCluster.from_json_dict(ApiCluster, jdict, resource_root)
+    dict = resource_root.get(path)
+    return ApiCluster.from_json_dict(ApiCluster, dict, resource_root)
   end
   
   #######################################################################
@@ -104,8 +104,8 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def self.delete_cluster(resource_root, name)
     path = "#{CLUSTERS_PATH}/#{name}" 
-    jdict = resource_root.delete(path)
-    return ApiCluster.from_json_dict(ApiCluster, jdict, resource_root)
+    dict = resource_root.delete(path)
+    return ApiCluster.from_json_dict(ApiCluster, dict, resource_root)
   end
   
   #----------------------------------------------------------------------
@@ -131,8 +131,8 @@ class ApiCluster < BaseApiObject
   #######################################################################
   def _cmd (cmd, data=nil)
     path = _path() + "/commands/#{cmd}"
-    resp = _get_resource_root().post(path, data)
     resource_root = _get_resource_root()
+    resp = resource_root.post(path, data)
     return ApiCommand.from_json_dict(resp, resource_root)
   end
   
@@ -140,10 +140,11 @@ class ApiCluster < BaseApiObject
   # _put (dic, params=nil)
   # Change cluster attributes
   #######################################################################
-  def _put (dic, params=nil)
-    data = JSON.generate(dic)
-    resp = _get_resource_root().put(_path(), params, data)
+  def _put (dict, params=nil)
+    data = JSON.generate(dict)
+    path = _path()
     resource_root = _get_resource_root()
+    resp = resource_root.put(path, params, data)
     cluster = ApiCluster.from_json_dict(resp, resource_root)
     _update(cluster)
     return self
@@ -248,7 +249,8 @@ class ApiCluster < BaseApiObject
   def enter_maintenance_mode
     cmd = _cmd('enterMaintenanceMode')
     if cmd.success
-      _update(get_cluster(_get_resource_root(), @name))
+      resource_root = _get_resource_root()
+      _update(get_cluster(resource_root, @name))
     end
     return cmd
   end
@@ -261,7 +263,8 @@ class ApiCluster < BaseApiObject
   def exit_maintenance_mode
     cmd = _cmd('exitMaintenanceMode')
     if cmd.success
-      _update(get_cluster(_get_resource_root(), @name))
+      resource_root = _get_resource_root()
+      _update(get_cluster(resource_root, @name))
     end
     return cmd
   end
