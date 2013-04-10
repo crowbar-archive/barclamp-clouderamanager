@@ -77,11 +77,9 @@ class ApiRole < BaseApiObject
   #######################################################################
   def self.create_role(resource_root, service_name, role_type, role_name, host_id, cluster_name="default")
     hrdict  = { :hostId => host_id } 
-    hostRef = ApiHostRef.new(resource_root, hrdict)
-    srdict  = { :clusterName => cluster_name, :serviceName => service_name } 
-    serviceRef = ApiServiceRef.new(resource_root, srdict)
-    ardict  = { :name => role_name, :type => role_type, :hostRef => hostRef, :serviceRef => serviceRef  } 
-    apirole = ApiRole.new(resource_root, ardict)
+    host_ref = ApiHostRef.new(resource_root, hrdict)
+    dict  = { :name => role_name, :type => role_type, :hostRef => host_ref } 
+    apirole = ApiRole.new(resource_root, dict)
     apirole_array = [ apirole ]
     apirole_list = ApiList.new(apirole_array)
     jdict = apirole_list.to_json_dict(self)
@@ -162,8 +160,8 @@ class ApiRole < BaseApiObject
   # to_s
   #######################################################################
   def to_s
-    cluster = @serviceRef.getattr('clusterName')
-    service = @serviceRef.getattr('serviceName')
+    cluster = @serviceRef[:clusterName]
+    service = @serviceRef[:serviceName]
     return "<ApiRole>: #{@name} (cluster: #{cluster}; service: #{service})"
   end
   
@@ -171,8 +169,8 @@ class ApiRole < BaseApiObject
   # _path
   #######################################################################
   def _path
-    cluster = @serviceRef.getattr('clusterName')
-    service = @serviceRef.getattr('serviceName')
+    cluster = @serviceRef[:clusterName]
+    service = @serviceRef[:serviceName]
     return _get_role_path(cluster, service, @name)
   end
   

@@ -69,7 +69,7 @@ class BaseApiObject < Object
   # Copy state from api_obj to this object.
   #######################################################################
   def _update(api_obj)
-    if not isinstance(self, api_obj.class)
+    if not self.instance_of?(api_obj.class)
       raise ArgumentError, "Class #{self.class.name} does not derive from #{api_obj.class.name}; cannot update attributes."
     end
     
@@ -117,18 +117,26 @@ class BaseApiObject < Object
   #######################################################################
   # to_json_dict(cls)
   #######################################################################
+  
+  def to_json_dict_no_recurse(cls)
+    dict = {}
+    cls::RW_ATTR.each do |key| 
+      dict[key] = getclassattr(self, key)
+    end
+    return dict
+  end
+  
   def to_json_dict(cls)
     dict = {}
-    cls::RW_ATTR.each do |attr| 
-      value = getclassattr(self, attr)
-      begin
-        # If the value has to_json_dict(), call it
-        value = value.to_json_dict(cls)
-      rescue Exception => e   
-        # puts e.message   
-        # puts e.backtrace.inspect   
+    cls::RW_ATTR.each do |key| 
+      val = getclassattr(self, key)
+      # Non-recursive invocation of the subclass serializer method if it exists.
+      if val and val.kind_of?(BaseApiObject) and val.respond_to?('to_json_dict_no_recurse') 
+        dict[key] = val.to_json_dict_no_recurse(val.class)
+      else
+        dict[key] = val
       end
-      dict[attr] = value
+      # puts ">>>> serialize (cls:#{cls}, #{key}=#{dict[key]})"
     end
     return dict
   end
@@ -224,7 +232,8 @@ class ApiList < Object
   def to_json_dict(cls)
     ary = []
     @objects.each do |x|
-      ary << x.to_json_dict(cls)
+      jdict = x.to_json_dict(cls)
+      ary << jdict
     end
     rec = { ApiList::LIST_KEY => ary }
     return rec

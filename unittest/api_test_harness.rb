@@ -166,9 +166,15 @@ end
 #######################################################################
 # api.delete_host
 #######################################################################
+
+=begin
 host_id = host_list[0][:host_id]
-results = api.delete_host(host_id)
-print "api.delete_host results(#{host_id}) : [#{results}]\n"
+host_object = api.find_host(host_id)
+if host_object != nil
+  results = api.delete_host(host_id)
+  print "api.delete_host results(#{host_id}) : [#{results}]\n"
+end
+=end
 
 #######################################################################
 # api.get_all_hosts
