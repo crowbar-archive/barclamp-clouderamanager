@@ -476,11 +476,26 @@ class ApiResource < Resource
   
   #######################################################################
   # Get a list of role types in a service.
-  # @param resource_root Resource root object.
+  # @param service_parent: Top level service object (i.e. HDFS).
   # @return: A list of role types(strings)
   #######################################################################
   def get_role_types(service_parent)
     return service_parent.get_role_types(self)
+  end
+  
+  #######################################################################
+  # Determine if a role already exists.
+  # @param service_parent: Top level service object (i.e. HDFS).
+  # @param role_name Role name.
+  # @return role object or nil.
+  #######################################################################
+  def find_role(service_parent, name)
+    results = self.get_all_roles(service_parent, 'full')
+    role_list = results.to_array
+    role_list.each do |role_object|
+      return role_object if role_object.getattr('name') == name
+    end
+    return nil
   end
   
   #----------------------------------------------------------------------
