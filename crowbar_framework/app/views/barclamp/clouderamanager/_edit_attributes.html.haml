@@ -70,6 +70,14 @@
     %strong= t('.cluster_settings')
 
     %p
+      %label{ :for => :cluster_name }= t('.cluster_name')
+      %input#cluster_name{:type => "text", :name => "cluster_name", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cluster_name"], :onchange => "update_value('cluster', 'cluster_name', 'string')"}
+
+    %p
+      %label{ :for => :cdh_version }= t('.cdh_version')
+      %input#cdh_version{:type => "text", :name => "cdh_version", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cdh_version"], :onchange => "update_value('cluster', 'cdh_version', 'string')"}
+
+    %p
       %label{ :for => :license_key }= t('.license_key')
       %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
     

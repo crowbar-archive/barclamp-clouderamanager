@@ -1,6 +1,6 @@
 #
 # Cookbook: clouderamanager
-# Role: clouderamanager-server.rb
+# Role: clouderamanager-cb-adminnode.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -17,11 +17,10 @@
 # limitations under the License.
 #
 
-name "clouderamanager-server"
-description "Cloudera Manager Server Role"
+name "clouderamanager-cb-adminnode"
+description "Cloudera Manager Crowbar Admin Role"
 run_list(
-  "recipe[clouderamanager::default]",
-  "recipe[clouderamanager::cm-server]"
+  "recipe[clouderamanager::cm-api]"
 )
 default_attributes()
 override_attributes()
