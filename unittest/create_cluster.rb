@@ -28,7 +28,7 @@ require "#{libbase}/utils.rb"
 # CM API setup parameters.
 #######################################################################
 debug = true
-server_host = "192.168.124.81"
+server_host = "192.168.124.84"
 server_port = "7180"
 username = "admin"
 password = "admin"
@@ -39,13 +39,14 @@ version = "2"
 # Cluster setup paraameters.
 #######################################################################
 debug = true
-cluster_name = "devel04"
+cluster_name = "crowbar01"
 cdh_version = "CDH4" 
 rack_id = "/default"
 
 #######################################################################
 # Create the API resource object.
 #######################################################################
+print "create API resource [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]\n" if debug
 api = ApiResource.new(server_host, server_port, username, password, use_tls, version, debug)
 
 #######################################################################
@@ -60,6 +61,32 @@ else
   print "cluster already exists [#{cluster_name}] results : [#{cluster_object}]\n" if debug
 end
 
+#######################################################################
+# Step 2. Create the HDFS Service.
+#######################################################################
+service_name = "hdfs75"
+service_type = "HDFS"
+hdfs_object = api.find_service(service_name, cluster_name)
+if hdfs_object == nil
+  print "service does not exists [#{service_name}, #{service_type}, #{cluster_name}]\n" if debug
+  hdfs_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
+  print "api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{hdfs_object}]\n" if debug
+else
+  print "service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{hdfs_object}]\n" if debug
+end
+#######################################################################
+# Step 2. Create the HDFS Service.
+#######################################################################
+service_name = "hdfs75"
+service_type = "HDFS"
+hdfs_object = api.find_service(service_name, cluster_name)
+if hdfs_object == nil
+  print "service does not exists [#{service_name}, #{service_type}, #{cluster_name}]\n" if debug
+  hdfs_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
+  print "api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{hdfs_object}]\n" if debug
+else
+  print "service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{hdfs_object}]\n" if debug
+end
 #######################################################################
 # Step 2. Create the HDFS Service.
 #######################################################################
