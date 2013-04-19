@@ -1,12 +1,13 @@
 %h3 Display the node information for Cloudera Manager discovery
-= link_to( "Cloudera Manager nodes", "nodes") 
+= link_to( "Cloudera Manager Nodes", "nodes") 
 %p
   = render :partial => "barclamp/node_selector"
 
 :javascript
   $(document).ready(function(){
     var constraints = { 
-      "clouderamanager-server": { "unique": false, "count": -1, "admin": true },
+      "clouderamanager-cb-adminnode": { "unique": false, "count": -1, "admin": true },
+      "clouderamanager-server": { "unique": false, "count": -1 },
       "clouderamanager-namenode": { "unique": false, "count": -1 },
       "clouderamanager-datanode": { "unique": false, "count": -1 },
       "clouderamanager-edgenode": { "unique": false, "count": -1 },

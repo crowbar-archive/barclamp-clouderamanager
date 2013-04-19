@@ -18,10 +18,12 @@
           "server_port": "7180",
           "username": "admin",
           "password": "admin",
-          "use_tls": "false",
+          "use_tls": false,
           "version": "2"
       },
       "cluster": {
+          "cluster_name": "crowbar01",
+          "cdh_version": "CDH4",
           "license_key": ""
       },
       "ha": {
@@ -35,6 +37,7 @@
     "clouderamanager": {
       "crowbar-revision": 0,
       "element_states": {
+        "clouderamanager-cb-adminnode":   [ "readying", "ready", "applying" ],
         "clouderamanager-server":   [ "readying", "ready", "applying" ],
 		"clouderamanager-namenode": [ "readying", "ready", "applying" ],
         "clouderamanager-edgenode": [ "readying", "ready", "applying" ],
@@ -45,6 +48,7 @@
       "elements": {},
       "element_order": [
         [
+          "clouderamanager-cb-adminnode",
           "clouderamanager-server",
           "clouderamanager-namenode",
           "clouderamanager-datanode",
