@@ -50,6 +50,7 @@ default[:clouderamanager][:cmapi][:username] = "admin"
 default[:clouderamanager][:cmapi][:password] = "admin"
 default[:clouderamanager][:cmapi][:use_tls] = false
 default[:clouderamanager][:cmapi][:version] = "2"
+default[:clouderamanager][:cmapi][:license_key] = ""
 
 #----------------------------------------------------------------------
 # Cluster configuration parameters.
@@ -58,8 +59,6 @@ default[:clouderamanager][:cluster] = {}
 default[:clouderamanager][:cluster][:namenodes] = []
 default[:clouderamanager][:cluster][:datanodes] = []
 default[:clouderamanager][:cluster][:edgenodes] = []
-
-default[:clouderamanager][:cluster][:license_key] = ""
 default[:clouderamanager][:cluster][:cluster_name] = "crowbar01"
 default[:clouderamanager][:cluster][:cdh_version] = "CDH4"
 
