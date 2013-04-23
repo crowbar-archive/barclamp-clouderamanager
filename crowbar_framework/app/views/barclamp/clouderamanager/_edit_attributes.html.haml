@@ -66,10 +66,6 @@
       %input#version{:type => "text", :name => "version", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["version"], :onchange => "update_value('cmapi', 'version', 'string')"}
     
     %p
-    %br
-    %strong= t('.cluster_settings')
-
-    %p
       %label{ :for => :cluster_name }= t('.cluster_name')
       %input#cluster_name{:type => "text", :name => "cluster_name", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cluster_name"], :onchange => "update_value('cluster', 'cluster_name', 'string')"}
 
@@ -79,8 +75,9 @@
 
     %p
       %label{ :for => :license_key }= t('.license_key')
-      %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
-    
+      %form(action='upload' method='post' enctype='multipart/form-data')
+        %input(type='file' name='license_file')
+        %input(type='submit' value='Upload')    
     %p
     %br
     %strong= t('.ha_settings')
