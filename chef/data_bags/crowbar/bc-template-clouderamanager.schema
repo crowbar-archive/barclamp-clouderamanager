@@ -35,7 +35,8 @@
                 "username": { "type": "str", "required": true},
                 "password": { "type": "str", "required": true},
                 "use_tls": { "type": "bool", "required": true},
-                "version": { "type": "str", "required": true}
+                "version": { "type": "str", "required": true},
+                "license_key": { "type": "str", "required": false}
               }  
             },
             "cluster": {
@@ -43,8 +44,7 @@
               "required": true,
               "mapping": {
                 "cluster_name": { "type": "str", "required": true},
-                "cdh_version": { "type": "str", "required": true},
-                "license_key": { "type": "str", "required": false}
+                "cdh_version": { "type": "str", "required": true}
               }  
             },
             "ha": {
