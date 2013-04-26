@@ -99,12 +99,12 @@ locale_additions:
           hajournalingnodes: High Availability Journaling Nodes
 
 rpms:
-  redhat-6.2:
+  redhat-6.4:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-impala 10 http://beta.cloudera.com/impala/redhat/6/x86_64/impala/0/
-  centos-6.2:
+  centos-6.4:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
@@ -209,7 +209,3 @@ rpms:
 
 smoketest:
   timeout: 900
-
-git:
-  date: Sat Mar 24 13:09:33 2012 -0700
-  commit: 577fb16cdd0469657b9e9a33d40114ebec907899
