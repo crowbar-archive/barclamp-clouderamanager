@@ -89,6 +89,49 @@ group "hadoop" do
   members ['hdfs', 'mapred']
 end
 
+# If we are programmatically configuring the cluster via crowbar, we must pre-install
+# the hadoop base packages. We also start up the cm-agent processes with a valid config
+# (See cm-agent.rb). If CM sees the agents heartbeating, it assumes that the packages
+# are installed and that's why we need to install them here in-line.
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+  ext_packages=%w{
+    cloudera-manager-agent
+    cloudera-manager-daemons
+    bigtop-jsvc
+    bigtop-tomcat
+    hadoop-hdfs
+    hadoop-httpfs
+    hadoop-mapreduce
+    hadoop-client
+    hadoop-hdfs-fuse
+    hbase
+    hive
+    oozie
+    pig
+    hue-common
+    hue-proxy
+    hue-about
+    hue-help
+    hue-filebrowser
+    hue-jobbrowser
+    hue-jobsub
+    hue-beeswax
+    hue-useradmin
+    hue-shell
+    hue
+    sqoop
+    flume-ng
+    impala
+    impala-shell
+  }
+  
+  ext_packages.each do |pkg|
+    package pkg do
+      action :install
+    end
+  end
+end
+
 #######################################################################
 # Configure /etc/security/limits.conf.  
 # mapred      -    nofile     32768

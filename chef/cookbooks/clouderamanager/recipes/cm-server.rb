@@ -91,7 +91,7 @@ Chef::Log.info("CM - Cloudera manager web application {" + node[:fqdn] + "}") if
 server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(node,"admin").address
 node[:crowbar] = {} if node[:crowbar].nil? 
 node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-if server_ip && !server_ip.empty? 
+if server_ip and !server_ip.empty? 
   url = "http://#{server_ip}:7180/cmf/login" 
   Chef::Log.info("CM - Cloudera management services URL [#{url}]") if debug 
   node[:crowbar][:links]["Cloudera Manager"] = url 

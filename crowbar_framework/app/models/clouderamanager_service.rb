@@ -33,30 +33,38 @@ class ClouderamanagerService < ServiceObject
   def create_proposal
     @logger.debug("clouderamanager create_proposal: entering")
     base = super
-    adminnodes = []
-    namenodes = []
-    datanodes = []
-    edgenodes = []
     
+    adminnodes = [] # Crowbar admin node (size=1).
+    namenodes = []  # Hadoop name nodes (active/standby).
+    datanodes = []  # Hadoop data nodes (1..N, min=3).
+    edgenodes = []  # Hadoop edge nodes (1..N)
+    
+    #--------------------------------------------------------------------
+    # Make a temporary copy of all system nodes.
     # Find the admin node and delete it from the data set.
-    nodes = NodeObject.all
+    #--------------------------------------------------------------------
+    nodes = NodeObject.all.dup
     nodes.each do |n|
       if n.nil?
         nodes.delete(n)
         next
       end
       if n.admin?
-        adminnodes << n[:fqdn] if n[:fqdn]
+        if n[:fqdn] and !n[:fqdn].empty?
+          adminnodes << n[:fqdn]
+        end
         nodes.delete(n)
       end
     end
     
+    #--------------------------------------------------------------------
     # Configure the name nodes, edge nodes and data nodes.
     # We don't select any HA nodes by default because the end user needs to
     # make a decision if that want to deploy HA and the method to use
     # (NFS filer/Quorum based storage). These options can be selected in the 
-    # the default proposal UI screen after the initial cluster topology 
-    # has been suggested.  
+    # the default proposal UI screen after the initial cluster topology has
+    # been suggested.  
+    #--------------------------------------------------------------------
     if nodes.size == 1
       namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
     elsif nodes.size == 2
@@ -75,21 +83,28 @@ class ClouderamanagerService < ServiceObject
       }
     end
     
-    # Add the proposal deployment elements. 
+    #--------------------------------------------------------------------
+    # proposal deployment elements. 
+    #--------------------------------------------------------------------
     base["deployment"]["clouderamanager"]["elements"] = {} 
     
-    # Namenodes (active/standby).
+    # Crowbar admin node setup. CM API code gets executed from here by default.
+    if adminnodes and !adminnodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-cb-adminnode"] = [ adminnodes[0] ] 
+    end    
+    
+    # Name node setup (active/standby).
     if namenodes and !namenodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-namenode"] = namenodes 
     end    
     
-    # Edge nodes (public network - CM server defaults to the 1st edgenode per the RA). 
+    # Edge node setup. CM server on the first edge node by default. 
     if edgenodes and !edgenodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edgenodes
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-server"] = [ edgenodes[0] ] 
     end
     
-    # Data nodes.
+    # Data node setup.
     if datanodes and !datanodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-datanode"] = datanodes   
     end
