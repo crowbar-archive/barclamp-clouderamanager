@@ -66,6 +66,9 @@ locale_additions:
           password: Password
           use_tls: Use TLS (https)
           version: API Version
+          cluster_settings: Cluster
+          cluster_name: Cluster Name
+          cdh_version: CDH Version
           license_key: License Key (Optional)
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
@@ -87,6 +90,7 @@ locale_additions:
           cpu: CPU
           ram: RAM
           drives: Drives
+          adminnodes: Crowbar Admin Node
           servernodes: Cloudera Manager Server Node
           namenodes: Name Nodes
           datanodes: Data Nodes
@@ -205,3 +209,7 @@ rpms:
 
 smoketest:
   timeout: 900
+
+git:
+  date: Sat Mar 24 13:09:33 2012 -0700
+  commit: 577fb16cdd0469657b9e9a33d40114ebec907899

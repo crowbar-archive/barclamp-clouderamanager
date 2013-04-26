@@ -23,7 +23,8 @@ class ClouderamanagerController < BarclampController
   end
   
   def nodes
-    nodeswithroles = NodeObject.all.find_all { |n| n.roles != nil }
+    nodeswithroles       = NodeObject.all.find_all { |n| n.roles != nil }
+    @cbadminnodes        = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-cb-adminnode" ) }
     @cmservernodes       = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-server" ) }
     @cmnamenodes         = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-namenode" ) }
     @cmdatanodes         = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-datanode" ) }
@@ -35,6 +36,9 @@ class ClouderamanagerController < BarclampController
       format.html { render :template => 'barclamp/clouderamanager/nodes' }
       format.text {
         export = ["role, ip, name, cpu, ram, drives"]
+        @cbadminnodes.sort_by{|n| n.name }.each do |node|
+          export << I18n.t('.barclamp.clouderamanager.nodes.adminnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        end
         @cmservernodes.sort_by{|n| n.name }.each do |node|
           export << I18n.t('.barclamp.clouderamanager.nodes.servernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end

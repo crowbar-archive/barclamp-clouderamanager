@@ -28,7 +28,7 @@ require "#{libbase}/utils.rb"
 # Local variables.
 #######################################################################
 debug = true
-server_host = "192.168.124.81"
+server_host = "192.168.124.84"
 server_port = "7180"
 username = "admin"
 password = "admin"
@@ -38,6 +38,7 @@ version = "2"
 #######################################################################
 # Create the API resource object.
 #######################################################################
+print "create API resource [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]\n" if debug
 api = ApiResource.new(server_host, server_port, username, password, use_tls, version, debug)
 
 #----------------------------------------------------------------------
