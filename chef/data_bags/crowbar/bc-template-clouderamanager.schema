@@ -44,7 +44,8 @@
               "mapping": {
                 "cluster_name": { "type": "str", "required": true},
                 "cdh_version": { "type": "str", "required": true},
-                "license_key": { "type": "str", "required": false}
+                "license_key": { "type": "str", "required": false},
+                "rack_id": { "type": "str", "required": false}
               }  
             },
             "ha": {

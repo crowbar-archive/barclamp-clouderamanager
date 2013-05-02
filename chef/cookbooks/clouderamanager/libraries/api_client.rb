@@ -43,7 +43,7 @@ require "#{libbase}/users.rb"
 class ApiResource < Resource
   
   API_AUTH_REALM = "Cloudera Manager"
-  API_CURRENT_VERSION = 2
+  API_CURRENT_VERSION = 3 # As of CM 4.5.0
   
   #######################################################################
   # Creates a Resource object that provides API endpoints.

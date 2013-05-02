@@ -30,7 +30,7 @@ class ApiRole < BaseApiObject
   
   RO_ATTR = [ 'roleState', 'healthSummary', 'healthChecks', 'serviceRef',
       'configStale', 'haStatus', 'roleUrl', 'commissionState', 
-      'maintenanceMode', 'maintenanceOwners' ]
+      'maintenanceMode', 'maintenanceOwners', 'roleConfigGroupRef' ]
   
   RW_ATTR = [ 'name', 'type', 'hostRef' ]
   
