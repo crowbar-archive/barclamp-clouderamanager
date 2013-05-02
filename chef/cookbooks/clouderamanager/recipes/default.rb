@@ -89,10 +89,13 @@ group "hadoop" do
   members ['hdfs', 'mapred']
 end
 
-# If we are programmatically configuring the cluster via crowbar, we must pre-install
-# the hadoop base packages. We also start up the cm-agent processes with a valid config
-# (See cm-agent.rb). If CM sees the agents heartbeating, it assumes that the packages
-# are installed and that's why we need to install them here in-line.
+#######################################################################
+# If we are programmatically configuring the cluster via crowbar, we
+# must pre-install the hadoop base packages. We also start up the
+# cm-agent processes with a valid config (See cm-agent.rb). If CM sees
+# the agents heartbeating, it assumes that the packages are installed
+# and that's why we need to install them here in-line.
+#######################################################################
 if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   ext_packages=%w{
     cloudera-manager-agent
@@ -156,11 +159,6 @@ end
 link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
 end
-
-#######################################################################
-# Setup the postgresql server for CM management functions.
-#######################################################################
-include_recipe 'clouderamanager::postgresql'
 
 #######################################################################
 # Setup the SSH keys.
