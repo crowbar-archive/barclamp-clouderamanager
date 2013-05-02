@@ -41,9 +41,16 @@ server_packages.each do |pkg|
   end
 end
 
+#######################################################################
+# Setup the postgresql server for CM management functions.
+#######################################################################
+include_recipe 'clouderamanager::postgresql'
+
+#######################################################################
 # Cloudera Manager needs to have this directory present. Without it,
 # the slave node installation will fail. This is an empty directory and the
 # RPM package installer does not seem to create it.
+#######################################################################
 directory "/usr/share/cmf/packages" do
   owner "root"
   group "root"
@@ -51,24 +58,30 @@ directory "/usr/share/cmf/packages" do
   action :create
 end
 
+#######################################################################
 # Define the Cloudera Manager server service.
 # cloudera-scm-server {start|stop|restart|status}
+#######################################################################
 service "cloudera-scm-server" do
   supports :start => true, :stop => true, :restart => true, :status => true 
   action :enable 
 end
 
+#######################################################################
 # Define the Cloudera Manager database service.
 # cloudera-scm-server-db {start|stop|restart|status|initdb}
+#######################################################################
 service "cloudera-scm-server-db" do
   supports :start => true, :stop => true, :restart => true, :status => true 
   action :enable 
 end
 
+#######################################################################
 # Setup the CM server.
 # This will only execute if the db is uninitialized, otherwise it returns 1. 
 # /var/lib/cloudera-scm-server-db/data is non-empty; perhaps the database
 # was already initialized?
+#######################################################################
 bash "cloudera-scm-server-db" do
   code <<-EOH
 /etc/init.d/cloudera-scm-server-db initdb
@@ -86,7 +99,9 @@ service "cloudera-scm-server" do
   action :start 
 end
 
+#######################################################################
 # Add the cloudera manager link to the crowbar UI.
+#######################################################################
 Chef::Log.info("CM - Cloudera manager web application {" + node[:fqdn] + "}") if debug 
 server_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(node,"admin").address
 node[:crowbar] = {} if node[:crowbar].nil? 

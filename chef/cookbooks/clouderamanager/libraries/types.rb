@@ -167,7 +167,7 @@ class BaseApiObject < Object
       if cls::RO_ATTR.include?(k)
         obj.setattr(k, v)
       else
-        print "Unexpected attribute #{k} in #{cls.class.name} json\n"
+        print "Unexpected read only attribute #{k} in #{cls}\n"
       end
     end
     return obj

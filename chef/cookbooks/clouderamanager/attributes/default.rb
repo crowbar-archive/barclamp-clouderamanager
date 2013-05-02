@@ -49,7 +49,7 @@ default[:clouderamanager][:cmapi][:server_port] = "7180"
 default[:clouderamanager][:cmapi][:username] = "admin"
 default[:clouderamanager][:cmapi][:password] = "admin"
 default[:clouderamanager][:cmapi][:use_tls] = false
-default[:clouderamanager][:cmapi][:version] = "2"
+default[:clouderamanager][:cmapi][:version] = "3"
 
 #----------------------------------------------------------------------
 # Cluster configuration parameters.
@@ -58,9 +58,10 @@ default[:clouderamanager][:cluster] = {}
 default[:clouderamanager][:cluster][:namenodes] = []
 default[:clouderamanager][:cluster][:datanodes] = []
 default[:clouderamanager][:cluster][:edgenodes] = []
-default[:clouderamanager][:cluster][:cluster_name] = "crowbar01"
+default[:clouderamanager][:cluster][:cluster_name] = "crowbar05"
 default[:clouderamanager][:cluster][:cdh_version] = "CDH4"
 default[:clouderamanager][:cluster][:license_key] = ""
+default[:clouderamanager][:cluster][:rack_id] = "/default"
 
 #----------------------------------------------------------------------
 # HDFS configuration parameters.

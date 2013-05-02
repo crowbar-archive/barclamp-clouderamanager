@@ -82,6 +82,10 @@
       %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
 
     %p
+      %label{ :for => :rack_id }= t('.rack_id')
+      %input#rack_id{:type => "text", :name => "rack_id", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["rack_id"], :onchange => "update_value('cluster', 'rack_id', 'string')"}
+
+    %p
     %br
     %strong= t('.ha_settings')
 

@@ -70,6 +70,7 @@ locale_additions:
           cluster_name: Cluster Name
           cdh_version: CDH Version
           license_key: License Key (Optional)
+          rack_id: Rack ID
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
           shared_edits_mount_options: Shared Edits Mount Options 
