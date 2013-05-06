@@ -47,12 +47,25 @@ class Resource < Object
   end
   
   #######################################################################
+  # Convert the URL into web safe format before invoking the API call.
+  # @param relpath: Relative path to this resource's path.
+  # @return: Relative path to this resource's path.
+  #######################################################################
+  def to_safe_url(relpath)
+    if relpath and not relpath.empty?
+      relpath = relpath.gsub(' ','%20')
+    end
+    return relpath
+  end
+  
+  #######################################################################
   # Invoke the GET method on a resource.
-  # @param relpath: Optional. A relative path to this resource's path.
+  # @param relpath: A relative path to this resource's path.
   # @param params: Key-value data.
   # @return: A dictionary of the JSON result.
   #######################################################################
   def get(relpath, params=nil)
+    relpath = to_safe_url(relpath)
     if @debug
       puts ">>>> Resource.get : (relpath:#{relpath}, params:#{params})"
     end
@@ -66,13 +79,14 @@ class Resource < Object
   
   #######################################################################
   # Invoke the PUT method on a resource.
-  # @param relpath: Optional. A relative path to this resource's path.
+  # @param relpath: A relative path to this resource's path.
   # @param params: Key-value data.
   # @param data: Optional. Body of the request.
   # @param contenttype: Optional.
   # @return: A dictionary of the JSON result.
   #######################################################################
   def put(relpath, data=nil, params=nil, contenttype=:json)
+    relpath = to_safe_url(relpath)
     if @debug
       puts ">>>> Resource.put : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype})"
     end
@@ -86,13 +100,14 @@ class Resource < Object
   
   #######################################################################
   # Invoke the POST method on a resource.
-  # @param relpath: Optional. A relative path to this resource's path.
+  # @param relpath: A relative path to this resource's path.
   # @param params: Key-value data.
   # @param data: Optional. Body of the request.
   # @param contenttype: Optional.
   # @return: A dictionary of the JSON result.
   #######################################################################
   def post(relpath, data=nil, params=nil, contenttype=:json, accepttype=:json)
+    relpath = to_safe_url(relpath)
     if @debug
       puts ">>>> Resource.post : (relpath:#{relpath}, data:#{data}, params:#{params}, contenttype:#{contenttype}, accepttype:#{accepttype})"
     end
@@ -106,11 +121,12 @@ class Resource < Object
   
   #######################################################################
   # Invoke the DELETE method on a resource.
-  # @param relpath: Optional. A relative path to this resource's path.
+  # @param relpath: A relative path to this resource's path.
   # @param params: Key-value data.
   # @return: A dictionary of the JSON result.
   #######################################################################
   def delete(relpath, params=nil)
+    relpath = to_safe_url(relpath)
     if @debug
       puts ">>>> Resource.delete : (relpath:#{relpath}, params:#{params})"
     end
