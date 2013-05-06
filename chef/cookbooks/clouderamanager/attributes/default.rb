@@ -44,7 +44,6 @@ default[:clouderamanager][:os][:hbase_openfiles] = "32768"
 # CM API configuration parameters.
 #----------------------------------------------------------------------
 default[:clouderamanager][:cmapi][:deployment_type] = "manual"
-default[:clouderamanager][:cmapi][:server_host] = "192.168.124.81"
 default[:clouderamanager][:cmapi][:server_port] = "7180"
 default[:clouderamanager][:cmapi][:username] = "admin"
 default[:clouderamanager][:cmapi][:password] = "admin"
@@ -58,7 +57,7 @@ default[:clouderamanager][:cluster] = {}
 default[:clouderamanager][:cluster][:namenodes] = []
 default[:clouderamanager][:cluster][:datanodes] = []
 default[:clouderamanager][:cluster][:edgenodes] = []
-default[:clouderamanager][:cluster][:cluster_name] = "crowbar05"
+default[:clouderamanager][:cluster][:cluster_name] = "crowbar01"
 default[:clouderamanager][:cluster][:cdh_version] = "CDH4"
 default[:clouderamanager][:cluster][:license_key] = ""
 default[:clouderamanager][:cluster][:rack_id] = "/default"

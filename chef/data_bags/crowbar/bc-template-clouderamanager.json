@@ -14,7 +14,6 @@
       },
       "cmapi": {
           "deployment_type": "manual",
-          "server_host": "192.168.124.81",
           "server_port": "7180",
           "username": "admin",
           "password": "admin",
@@ -22,7 +21,7 @@
           "version": "3"
       },
       "cluster": {
-          "cluster_name": "crowbar05",
+          "cluster_name": "crowbar01",
           "cdh_version": "CDH4",
           "license_key": "",
           "rack_id": "/default"

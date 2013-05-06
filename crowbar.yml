@@ -60,7 +60,6 @@ locale_additions:
           ha_settings: Hadoop High Availability
           cmapi_settings: Cloudera Manager API
           deployment_type: Deployment Type
-          server_host: Server Host
           server_port: Server Port
           username: User Name
           password: Password
