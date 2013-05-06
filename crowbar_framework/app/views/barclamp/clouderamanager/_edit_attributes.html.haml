@@ -42,10 +42,6 @@
       = select_tag :deployment_type, options_for_select([['manual', 'manual'],['auto', 'auto']], @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["deployment_type"]), :onchange => "update_value('cmapi/deployment_type', 'deployment_type', 'string')"
 
     %p
-      %label{ :for => :server_host }= t('.server_host')
-      %input#server_host{:type => "text", :name => "server_host", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["server_host"], :onchange => "update_value('cmapi', 'server_host', 'string')"}
-
-    %p
       %label{ :for => :server_port }= t('.server_port')
       %input#server_port{:type => "text", :name => "server_port", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["server_port"], :onchange => "update_value('cmapi', 'server_port', 'string')"}
 
@@ -63,7 +59,7 @@
 
     %p
       %label{ :for => :version }= t('.version')
-      %input#version{:type => "text", :name => "version", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["version"], :onchange => "update_value('cmapi', 'version', 'string')"}
+      %input#version{:type => "text", :name => "version", :readonly => true, :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["version"], :onchange => "update_value('cmapi', 'version', 'string')"}
 
     %p
     %br
