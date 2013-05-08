@@ -53,19 +53,17 @@ end
 # cm server FQDN. Otherwise, let CM configure this parameter setting.
 agent_config_file = "/etc/cloudera-scm-agent/config.ini"
 cm_server = 'not_configured'
-if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
-  search(:node, "roles:clouderamanager-server#{env_filter}") do |n|
-    if n[:fqdn] && !n[:fqdn].empty? 
-      cm_server = n[:fqdn]
-      break;
-    end
-  end
+cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
+if cmservernodes and cmservernodes.length > 0 
+  rec = cmservernodes[0]
+  cm_server = rec[:fqdn]
 end
 
-# TODO: Need a better check here because the !File.exists check is not
-# reliable during node state transition (typical chef role sync problem).
+#######################################################################
+# Update the cm-agent config file.
+#######################################################################
 if !File.exists?(agent_config_file) or cm_server != 'not_configured' 
-  Chef::Log.info("CM - configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
+  Chef::Log.info("CM - Configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
   vars = { :cm_server => cm_server } 
   template agent_config_file do
     source "cm-agent-config.erb" 
