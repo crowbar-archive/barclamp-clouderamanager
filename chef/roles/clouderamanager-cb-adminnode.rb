@@ -20,6 +20,7 @@
 name "clouderamanager-cb-adminnode"
 description "Cloudera Manager Crowbar Admin Role"
 run_list(
+  "recipe[clouderamanager::node-setup]",
   "recipe[clouderamanager::cm-api]"
 )
 default_attributes()

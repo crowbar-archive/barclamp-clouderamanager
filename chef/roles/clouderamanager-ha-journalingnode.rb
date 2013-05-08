@@ -20,7 +20,8 @@
 name "clouderamanager-ha-journalingnode"
 description "Cloudera Manager High Availability Journaling Role"
 run_list(
-  "recipe[clouderamanager::default]",
+  "recipe[clouderamanager::node-setup]",
+  "recipe[clouderamanager::hadoop-setup]",
   "recipe[clouderamanager::cm-agent]"
 )
 default_attributes()

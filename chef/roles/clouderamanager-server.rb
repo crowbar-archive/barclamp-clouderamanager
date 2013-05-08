@@ -20,7 +20,8 @@
 name "clouderamanager-server"
 description "Cloudera Manager Server Role"
 run_list(
-  "recipe[clouderamanager::default]",
+  "recipe[clouderamanager::node-setup]",
+  "recipe[clouderamanager::hadoop-setup]",
   "recipe[clouderamanager::cm-server]"
 )
 default_attributes()
