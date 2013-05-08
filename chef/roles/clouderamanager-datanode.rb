@@ -20,7 +20,8 @@
 name "clouderamanager-datanode"
 description "Hadoop Data Node Role"
 run_list(
-  "recipe[clouderamanager::default]",
+  "recipe[clouderamanager::node-setup]",
+  "recipe[clouderamanager::hadoop-setup]",
   "recipe[clouderamanager::configure-disks]",
   "recipe[clouderamanager::cm-agent]"
 )

@@ -1,6 +1,6 @@
 #
 # Cookbook Name: clouderamanager
-# Recipe: default.rb
+# Recipe: hadoop-setup.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -21,7 +21,7 @@
 # Begin recipe
 #######################################################################
 debug = node[:clouderamanager][:debug]
-Chef::Log.info("CM - BEGIN clouderamanager:default") if debug
+Chef::Log.info("CM - BEGIN clouderamanager:hadoop-setup") if debug
 
 # Configuration filter for the crowbar environment
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
@@ -149,101 +149,68 @@ template "/etc/security/limits.conf" do
 end
 
 #######################################################################
-# Ensure localtime is set consistently across the cluster (UTC).
-#######################################################################
-file "/etc/localtime" do
-  action :delete
-  only_if "test -F /etc/localtime"
-end
-
-link "/etc/localtime" do
-  to "/usr/share/zoneinfo/Etc/UTC"
-end
-
-#######################################################################
 # Setup the SSH keys.
 #######################################################################
 keys = {}
 
 #----------------------------------------------------------------------
-# Find the namenodes. 
+# namenode keys. 
 #----------------------------------------------------------------------
-namenodes = []
-search(:node, "roles:clouderamanager-namenode#{env_filter}") do |n|
-  if n[:fqdn] && !n[:fqdn].empty?
-    Chef::Log.info("CM - NAMENODE [#{n[:fqdn]}]") if debug
-    namenodes << n[:fqdn]
-    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+if node[:clouderamanager][:cluster][:namenodes]
+  node[:clouderamanager][:cluster][:namenodes].each do |n|
+    Chef::Log.info("CM - Update SSH key [NAMENODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
+    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:namenodes] = namenodes
-
-if namenodes.length == 0
-  Chef::Log.info("CM - WARNING - Cannot find Hadoop master name node")
-end
 
 #----------------------------------------------------------------------
-# Find the edgenodes. 
+# datanode keys. 
 #----------------------------------------------------------------------
-edgenodes = []
-search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |n|
-  if n[:fqdn] && !n[:fqdn].empty?
-    Chef::Log.info("CM - EDGENODE [#{n[:fqdn]}]") if debug
-    edgenodes << n[:fqdn] 
-    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+if node[:clouderamanager][:cluster][:datanodes]
+  node[:clouderamanager][:cluster][:datanodes].each do |n|
+    Chef::Log.info("CM - Update SSH key [DATANODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
+    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:edgenodes] = edgenodes
 
 #----------------------------------------------------------------------
-# Find the slave nodes. 
+# edgenode keys. 
 #----------------------------------------------------------------------
-datanodes = []
-search(:node, "roles:clouderamanager-datanode#{env_filter}") do |n|
-  if n[:fqdn] && !n[:fqdn].empty?
-    Chef::Log.info("CM - DATANODE [#{n[:fqdn]}]") if debug
-    datanodes << n[:fqdn] 
-    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+if node[:clouderamanager][:cluster][:edgenodes]
+  node[:clouderamanager][:cluster][:edgenodes].each do |n|
+    Chef::Log.info("CM - Update SSH key [EDGENODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
+    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:datanodes] = datanodes
-
-if datanodes.length == 0
-  Chef::Log.info("CM - WARNING - Cannot find any Hadoop data nodes")
-end
 
 #----------------------------------------------------------------------
-# Find the HA filer nodes. 
+# cmservernodes keys. 
 #----------------------------------------------------------------------
-hafilernodes = []
-search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
-  if n[:fqdn] && !n[:fqdn].empty?
-    Chef::Log.info("CM - FILERNODE [#{n[:fqdn]}]") if debug
-    hafilernodes << n[:fqdn] 
-    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+if node[:clouderamanager][:cluster][:cmservernodes]
+  node[:clouderamanager][:cluster][:cmservernodes].each do |n|
+    Chef::Log.info("CM - Update SSH key [CMSERVERNODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
+    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:hafilernodes] = hafilernodes
 
 #----------------------------------------------------------------------
-# Find the HA journaling nodes. 
+# hafilernode keys. 
 #----------------------------------------------------------------------
-hajournalingnodes = []
-search(:node, "roles:clouderamanager-ha-journalingnode#{env_filter}") do |n|
-  if n[:fqdn] && !n[:fqdn].empty?
-    Chef::Log.info("CM - JOURNALINGNODE [#{n[:fqdn]}]") if debug
-    hajournalingnodes << n[:fqdn] 
-    keys[n.name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+if node[:clouderamanager][:cluster][:hafilernodes]
+  node[:clouderamanager][:cluster][:hafilernodes].each do |n|
+    Chef::Log.info("CM - Update SSH key [HAFILERNODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
+    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
   end
 end
-node[:clouderamanager][:cluster][:hajournalingnodes] = hajournalingnodes
 
-if debug
-  Chef::Log.info("CM - namenodes [" + node[:clouderamanager][:cluster][:namenodes].join(",") + "]")
-  Chef::Log.info("CM - edgenodes [" + node[:clouderamanager][:cluster][:edgenodes].join(",") + "]")
-  Chef::Log.info("CM - datanodes [" + node[:clouderamanager][:cluster][:datanodes].join(",") + "]")
-  Chef::Log.info("CM - hafilernodes [" + node[:clouderamanager][:cluster][:hafilernodes].join(",") + "]")
-  Chef::Log.info("CM - hajournalingnodes [" + node[:clouderamanager][:cluster][:hajournalingnodes].join(",") + "]")
+#----------------------------------------------------------------------
+# hajournalingnode keys. 
+#----------------------------------------------------------------------
+if node[:clouderamanager][:cluster][:hajournalingnodes]
+  node[:clouderamanager][:cluster][:hajournalingnodes].each do |n|
+    Chef::Log.info("CM - Update SSH key [HAJOURNALNODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
+    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+  end
 end
 
 #######################################################################
@@ -262,4 +229,4 @@ node.save
 #######################################################################
 # End recipe
 #######################################################################
-Chef::Log.info("CM - END clouderamanager:default") if debug
+Chef::Log.info("CM - END clouderamanager:hadoop-setup") if debug
