@@ -158,8 +158,9 @@ keys = {}
 #----------------------------------------------------------------------
 if node[:clouderamanager][:cluster][:namenodes]
   node[:clouderamanager][:cluster][:namenodes].each do |n|
-    Chef::Log.info("CM - Update SSH key [NAMENODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
-    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+    name = n[:name]
+    key = n[:ssh_key] rescue nil
+    keys[name] = key
   end
 end
 
@@ -168,8 +169,9 @@ end
 #----------------------------------------------------------------------
 if node[:clouderamanager][:cluster][:datanodes]
   node[:clouderamanager][:cluster][:datanodes].each do |n|
-    Chef::Log.info("CM - Update SSH key [DATANODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
-    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+    name = n[:name]
+    key = n[:ssh_key] rescue nil
+    keys[name] = key
   end
 end
 
@@ -178,8 +180,9 @@ end
 #----------------------------------------------------------------------
 if node[:clouderamanager][:cluster][:edgenodes]
   node[:clouderamanager][:cluster][:edgenodes].each do |n|
-    Chef::Log.info("CM - Update SSH key [EDGENODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
-    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+    name = n[:name]
+    key = n[:ssh_key] rescue nil
+    keys[name] = key
   end
 end
 
@@ -188,8 +191,9 @@ end
 #----------------------------------------------------------------------
 if node[:clouderamanager][:cluster][:cmservernodes]
   node[:clouderamanager][:cluster][:cmservernodes].each do |n|
-    Chef::Log.info("CM - Update SSH key [CMSERVERNODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
-    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+    name = n[:name]
+    key = n[:ssh_key] rescue nil
+    keys[name] = key
   end
 end
 
@@ -198,8 +202,9 @@ end
 #----------------------------------------------------------------------
 if node[:clouderamanager][:cluster][:hafilernodes]
   node[:clouderamanager][:cluster][:hafilernodes].each do |n|
-    Chef::Log.info("CM - Update SSH key [HAFILERNODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
-    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+    name = n[:name]
+    key = n[:ssh_key] rescue nil
+    keys[name] = key
   end
 end
 
@@ -208,8 +213,9 @@ end
 #----------------------------------------------------------------------
 if node[:clouderamanager][:cluster][:hajournalingnodes]
   node[:clouderamanager][:cluster][:hajournalingnodes].each do |n|
-    Chef::Log.info("CM - Update SSH key [HAJOURNALNODE, #{n[:fqdn]}, #{n[:ipaddr]}]") if debug
-    keys[:name] = n[:crowbar][:ssh][:root_pub_key] rescue nil
+    name = n[:name]
+    key = n[:ssh_key] rescue nil
+    keys[name] = key
   end
 end
 
@@ -217,9 +223,10 @@ end
 # Add hadoop nodes to SSH authorized key list. 
 #######################################################################
 keys.each do |k,v|
-  unless v.nil?
+  unless v.nil? or v.empty?
     node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?
     node[:crowbar][:ssh][:access_keys] = {} if node[:crowbar][:ssh][:access_keys].nil?
+    Chef::Log.info("CM - SSH key update [#{k}]") if debug
     node[:crowbar][:ssh][:access_keys][k] = v
   end
 end
