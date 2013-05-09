@@ -45,7 +45,7 @@ namenodes = []
 search(:node, "roles:clouderamanager-namenode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
-    ssh_key = n[:crowbar][:ssh][:root_pub_key]
+    ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
     Chef::Log.info("CM - NAMENODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
     namenodes << node_rec
@@ -60,7 +60,7 @@ datanodes = []
 search(:node, "roles:clouderamanager-datanode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
-    ssh_key = n[:crowbar][:ssh][:root_pub_key]
+    ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
     Chef::Log.info("CM - DATANODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
     datanodes << node_rec 
@@ -75,7 +75,7 @@ edgenodes = []
 search(:node, "roles:clouderamanager-edgenode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
-    ssh_key = n[:crowbar][:ssh][:root_pub_key]
+    ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
     Chef::Log.info("CM - EDGENODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
     edgenodes << node_rec 
@@ -90,7 +90,7 @@ cmservernodes = []
 search(:node, "roles:clouderamanager-server#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
-    ssh_key = n[:crowbar][:ssh][:root_pub_key]
+    ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
     Chef::Log.info("CM - CMSERVERNODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
     cmservernodes << node_rec 
@@ -105,7 +105,7 @@ hafilernodes = []
 search(:node, "roles:clouderamanager-ha-filernode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
-    ssh_key = n[:crowbar][:ssh][:root_pub_key]
+    ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
     Chef::Log.info("CM - FILERNODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
     hafilernodes << node_rec 
@@ -120,7 +120,7 @@ hajournalingnodes = []
 search(:node, "roles:clouderamanager-ha-journalingnode#{env_filter}") do |n|
   if n[:fqdn] and not n[:fqdn].empty?
     ipaddr = BarclampLibrary::Barclamp::Inventory.get_network_by_type(n,"admin").address
-    ssh_key = n[:crowbar][:ssh][:root_pub_key]
+    ssh_key = n[:crowbar][:ssh][:root_pub_key] rescue nil
     node_rec = { :fqdn => n[:fqdn], :ipaddr => ipaddr, :name => n.name, :ssh_key => ssh_key }
     Chef::Log.info("CM - JOURNALINGNODE [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]") if debug
     hajournalingnodes << node_rec 
