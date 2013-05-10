@@ -21,7 +21,7 @@
           "version": "3"
       },
       "cluster": {
-          "cluster_name": "crowbar01",
+          "cluster_name": "cluster01",
           "cdh_version": "CDH4",
           "license_key": "",
           "rack_id": "/default"

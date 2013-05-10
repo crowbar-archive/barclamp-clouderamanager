@@ -112,15 +112,21 @@ class ApiResource < Resource
   
   #######################################################################
   # Return information about the currently installed license.
+  # Return nil if no license key found.
   # @return: License information.
   #######################################################################
   def get_license
-    return ClouderaManager.get_license(self)
+    begin
+      return ClouderaManager.get_license(self)
+    rescue RestClient::ResourceNotFound => e
+      return nil
+    end
   end
   
   #######################################################################
   # Install or update the Cloudera Manager license.
-  # @param license_text: the license in text form
+  # Note: get_license will report nil until the cm-server has been restarted.
+  # @param license_text: the license in text form.
   #######################################################################
   def update_license(license_text)
     return ClouderaManager.update_license(self, license_text)

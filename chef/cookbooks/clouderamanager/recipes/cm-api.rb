@@ -54,20 +54,32 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   cluster_name = node[:clouderamanager][:cluster][:cluster_name] 
   cdh_version = node[:clouderamanager][:cluster][:cdh_version] 
   
-  # TODO: Need to configure rack by host location.
-  # Need to add a CB rack_id parameter for each node.
+  # TODO: Set the rack ID.
+  # Need to add a CB rack_id parameter on each node.
+  # See DE1174 for details.
   rack_id = node[:clouderamanager][:cluster][:rack_id] 
   
-  #####################################################################
-  # Configure the cluster setup array.
-  #####################################################################
-  cluster_config = []
+  #--------------------------------------------------------------------
+  # CB node information (each item is an array of records).
+  #--------------------------------------------------------------------
   namenodes = node[:clouderamanager][:cluster][:namenodes] 
   datanodes = node[:clouderamanager][:cluster][:datanodes]
   edgenodes = node[:clouderamanager][:cluster][:edgenodes] 
   
   #####################################################################
-  # role_appender helper method (CB->CM).
+  # Find the cm_server.
+  #####################################################################
+  def find_cm_server(debug, env_filter, node_object)
+    cmservernodes = node_object[:clouderamanager][:cluster][:cmservernodes]
+    if cmservernodes and cmservernodes.length > 0 
+      rec = cmservernodes[0]
+      return rec[:ipaddr]
+    end
+    return nil
+  end
+  
+  #####################################################################
+  # CM role setup helper method.
   #####################################################################
   def role_appender(debug, cluster_config, cb_nodes, role_type)
     if cb_nodes  
@@ -79,27 +91,8 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     end
   end    
   
-  #--------------------------------------------------------------------
-  # Create CM role associations.
-  #--------------------------------------------------------------------
-  role_appender(debug, cluster_config, namenodes, "NAMENODE")
-  role_appender(debug, cluster_config, datanodes, "DATANODE")
-  Chef::Log.info("CM - cluster configuration [#{cluster_config.inspect}]") if debug
-  
   #####################################################################
-  # Locate the cm_server.
-  #####################################################################
-  def find_cm_server(debug, env_filter)
-    cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
-    if cmservernodes and cmservernodes.length > 0 
-      rec = cmservernodes[0]
-      return rec[:ipaddr]
-    end
-    return nil
-  end
-  
-  #####################################################################
-  # Create the API resource object (establish the API connection).
+  # Create the API resource object (establish the RESTful API connection).
   #####################################################################
   def create_api_resource(debug, server_host, server_port, username, password, use_tls, version)
     Chef::Log.info("CM - Create API resource [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]") if debug
@@ -110,10 +103,22 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Apply the license key.
+  # Check the license key adn update if needed.
+  # Note: get_license will report nil until the cm-server has been restarted.
   #####################################################################
-  def set_license_key(debug, api, license_key)
-    Chef::Log.info("CM - license_key [#{license_key}]") if debug
+  def check_license_key(debug, api, license_key)
+    license_check  = api.get_license()
+    Chef::Log.info("CM - license_check") if debug
+    # Only update if not active or key has changed.
+    if license_check.nil? or license_check != license_key 
+      Chef::Log.info("CM - updating license") if debug
+      api_license = api.update_license(license_key)
+      Chef::Log.info("CM - update license returns [#{api_license}]") if debug
+      service "cloudera-scm-server" do
+        action :restart 
+      end
+      Chef::Log.info("CM - cm-server restarted") if debug
+    end
   end
   
   #####################################################################
@@ -167,7 +172,8 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   
   #####################################################################
   # Create the roles
-  # role_type = NAMENODE, DATANODE or TASKTRACKER.
+  # CM ROLES - NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
+  # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER.
   # Role names must be unique across all clusters. 
   #####################################################################
   def configure_roles(debug, api, hdfs_object, cluster_name, cluster_config)
@@ -198,7 +204,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   #--------------------------------------------------------------------
   # Find the cm server. 
   #--------------------------------------------------------------------
-  server_host = find_cm_server(debug, env_filter) 
+  server_host = find_cm_server(debug, env_filter, node) 
   if not server_host or server_host.empty?
     Chef::Log.info("CM - ERROR: Cannot locate CM server - skipping CM_API setup")
   else
@@ -210,10 +216,34 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       Chef::Log.info("CM - ERROR: Cannot create CM API resource - skipping CM_API setup")
     else
       #--------------------------------------------------------------------
+      # Configure the cluster setup array with CM role associations.
+      # CM ROLES - NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
+      # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER.
+      #--------------------------------------------------------------------
+      cluster_config = []
+      # primary namenode
+      if namenodes.length > 0
+        primary_namenode = [ namenodes[0] ]
+        role_appender(debug, cluster_config, primary_namenode, "NAMENODE")
+      end
+      # secondary namenode
+      if namenodes.length > 1
+        secondary_namenode = [ namenodes[1] ]
+        role_appender(debug, cluster_config, secondary_namenode, "SECONDARYNAMENODE")
+      end
+      # datanodes
+      role_appender(debug, cluster_config, datanodes, "DATANODE")
+      Chef::Log.info("CM - cluster configuration [#{cluster_config.inspect}]") if debug
+      # edgenodes
+      if edgenodes.length > 0
+        role_appender(debug, cluster_config, edgenodes, "GATEWAY")
+      end
+      
+      #--------------------------------------------------------------------
       # Set the license key if present. 
       #--------------------------------------------------------------------
       if license_key and not license_key.empty? 
-        set_license_key(debug, api, license_key)
+        check_license_key(debug, api, license_key)
       end
       
       #--------------------------------------------------------------------

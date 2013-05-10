@@ -39,7 +39,7 @@ version = "2"
 # Cluster setup paraameters.
 #######################################################################
 debug = true
-cluster_name = "crowbar01"
+cluster_name = "Cluster 1 - CDH4"
 cdh_version = "CDH4" 
 rack_id = "/default"
 

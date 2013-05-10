@@ -61,7 +61,7 @@ default[:clouderamanager][:cluster][:cmservernodes] = []
 default[:clouderamanager][:cluster][:hafilernodes] = []
 default[:clouderamanager][:cluster][:hajournalingnodes] = []
 
-default[:clouderamanager][:cluster][:cluster_name] = "crowbar01"
+default[:clouderamanager][:cluster][:cluster_name] = "cluster01"
 default[:clouderamanager][:cluster][:cdh_version] = "CDH4"
 default[:clouderamanager][:cluster][:license_key] = ""
 default[:clouderamanager][:cluster][:rack_id] = "/default"
