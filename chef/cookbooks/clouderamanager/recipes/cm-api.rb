@@ -140,15 +140,15 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   # Configure the services.
   #####################################################################
   def configure_services(debug, api, service_name, service_type, cluster_name, cluster_object)
-    hdfs_object = api.find_service(service_name, cluster_name)
-    if hdfs_object == nil
+    service = api.find_service(service_name, cluster_name)
+    if service == nil
       Chef::Log.info("CM - service does not exists [#{service_name}, #{service_type}, #{cluster_name}]") if debug
-      hdfs_object = api.create_service(cluster_object, service_name, service_type, cluster_name)
-      Chef::Log.info("CM - api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{hdfs_object}]") if debug
+      service = api.create_service(cluster_object, service_name, service_type, cluster_name)
+      Chef::Log.info("CM - api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service}]") if debug
     else
-      Chef::Log.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{hdfs_object}]") if debug
+      Chef::Log.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service}]") if debug
     end
-    return hdfs_object
+    return service
   end
   
   #####################################################################
@@ -252,11 +252,27 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       cluster_object = configure_cluster(debug, api, cluster_name, cdh_version)
       
       #--------------------------------------------------------------------
-      # Configure the services. 
+      # Configure the HDF service. 
       #--------------------------------------------------------------------
       service_name = "hdfs-#{cluster_name}"
       service_type = "HDFS"
       hdfs_object = configure_services(debug, api, service_name, service_type, cluster_name, cluster_object)  
+      
+      #--------------------------------------------------------------------
+      # Configure the MAPREDUCE service. 
+      #--------------------------------------------------------------------
+      service_name = "mapr-#{cluster_name}"
+      service_type = "MAPREDUCE"
+      mapr = configure_services(debug, api, service_name, service_type, cluster_name, cluster_object)  
+      
+      # Configure the job tracker.
+      if namenodes.length > 0
+        rec = namenodes[0]
+        host_id = rec[:fqdn]
+        role_name = "jobtracker-#{cluster_name}"
+        role_type = "JOBTRACKER"
+        jt = api.create_role(mapr, role_name, role_type, host_id)
+      end
       
       #--------------------------------------------------------------------
       # Configure the hosts. 
