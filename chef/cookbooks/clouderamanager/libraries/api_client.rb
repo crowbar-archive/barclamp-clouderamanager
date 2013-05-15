@@ -43,7 +43,7 @@ require "#{libbase}/users.rb"
 class ApiResource < Resource
   
   API_AUTH_REALM = "Cloudera Manager"
-  API_CURRENT_VERSION = 3 # As of CM 4.5.0
+  API_CURRENT_VERSION = 2 # V3 as of CM 4.5.0
   
   #######################################################################
   # Creates a Resource object that provides API endpoints.
@@ -377,6 +377,37 @@ class ApiResource < Resource
   #######################################################################
   def create_service(cluster, name, service_type, cluster_name="default")
     return ApiService.create_service(self, name, service_type, cluster_name)
+  end
+  
+  #######################################################################
+  # Retrieve the service's configuration.
+  # Retrieves both the service configuration and role type configuration
+  # for each of the service's supported role types. The role type
+  # configurations are returned as a dictionary, whose keys are the
+  # role type name, and values are the respective configuration dictionaries.
+  # The 'summary' view contains strings as the dictionary values. The full
+  # view contains ApiConfig instances as the values.
+  # @param view: View to materialize('full' or 'summary')
+  # @return: { :svc_config => svc_config, :rt_configs => rt_configs }
+  #######################################################################
+  def get_service_config(service_object, view = nil)
+    return service_object.get_config(self, view)
+  end
+  
+  #######################################################################
+  # Update the service's configuration.
+  # Note : Cloudera Manager API v3 (new in 4.5) does not support setting
+  # a service's roletype configuration, since that has been replaced by
+  # role group. Callers should set the configuration on the appropriate
+  # role group instead. Cloudera Manager 4.5 continues to support API v1
+  # and v2. But users who want to upgrade their existing clients to v3
+  # would need to rewrite any roletype configuration calls.  
+  # @param svc_config Dictionary with service configuration to update.
+  # @param rt_configs Dict of role type configurations to update.
+  # @return 2-tuple(service config dictionary, role type configurations)
+  #######################################################################
+  def update_service_config(service_object, svc_config, rt_configs=nil)
+    return service_object.update_config(self, svc_config, rt_configs)
   end
   
   #######################################################################

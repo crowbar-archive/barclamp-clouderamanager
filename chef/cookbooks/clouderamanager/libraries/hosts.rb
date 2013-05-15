@@ -141,12 +141,13 @@ class ApiHost < BaseApiObject
   # @param view: View to materialize('full' or 'summary')
   # @return Dictionary with configuration data.
   #######################################################################
-  def get_config(view=nil)
+  def self.get_config(view=nil)
     path = _path() + '/config'
     params = nil 
     params = { :view => view } if (view)
-    resp = _get_resource_root().get(path, params)
-    return json_to_config(resp, view)
+    resource_root = _get_resource_root() 
+    resp = resource_root.get(path, params)
+    return ApiConfig.json_to_config(resource_root, resp, view)
   end
   
   #######################################################################
@@ -154,11 +155,13 @@ class ApiHost < BaseApiObject
   # @param config Dictionary with configuration to update.
   # @return Dictionary with updated configuration.
   #######################################################################
-  def update_config(config)
+  def self.update_config(config)
     path = _path() + '/config'
     data = config_to_json(config)
-    resp = _get_resource_root().put(path, data)
-    return json_to_config(resp)
+    resource_root = _get_resource_root() 
+    resp = resource_root.put(path, data)
+    view = nil
+    return ApiConfig.json_to_config(resource_root, resp, view)
   end
   
   #######################################################################

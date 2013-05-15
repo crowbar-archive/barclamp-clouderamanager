@@ -44,6 +44,28 @@ end
 #######################################################################
 
 #----------------------------------------------------------------------
+# cleanup left over lock files if present.
+#----------------------------------------------------------------------
+lock_list=%w{
+  /etc/passwd.lock
+  /etc/shadow.lock
+  /etc/group.lock
+  /etc/gshadow.lock
+}
+
+lock_list.each do |lock_file|
+  if File.exists?(lock_file)
+    Chef::Log.info("CM - clearing lock #{lock_file}") if debug
+    bash "unlock-#{lock_file}" do
+      user "root"
+      code <<-EOH
+rm -f #{lock_file}
+  EOH
+    end
+  end
+end
+
+#----------------------------------------------------------------------
 # hdfs:x:600:
 #----------------------------------------------------------------------
 group "hdfs" do
