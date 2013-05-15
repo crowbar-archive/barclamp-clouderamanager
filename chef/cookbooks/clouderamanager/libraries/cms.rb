@@ -192,7 +192,7 @@ class ClouderaManager < BaseApiObject
   # @since: API v2
   #######################################################################
   def self.hosts_decommission(resource_root, host_names)
-    jdict = { ApiList.LIST_KEY => host_names }
+    jdict = { ApiList::LIST_KEY => host_names }
     data = JSON.generate(jdict)
     return _cmd('hostsDecommission', data)
   end
@@ -205,7 +205,7 @@ class ClouderaManager < BaseApiObject
   # @since: API v2
   #######################################################################
   def self.hosts_recommission(resource_root, host_names)
-    jdict = { ApiList.LIST_KEY => host_names }
+    jdict = { ApiList::LIST_KEY => host_names }
     data = JSON.generate(jdict)
     return _cmd('hostsRecommission', data)
   end
@@ -217,7 +217,7 @@ class ClouderaManager < BaseApiObject
   # @since: API v2
   #######################################################################
   def self.hosts_start_roles(resource_root, host_names)
-    jdict = { ApiList.LIST_KEY => host_names }
+    jdict = { ApiList::LIST_KEY => host_names }
     data = JSON.generate(jdict)
     return _cmd('hostsStartRoles', data)
   end
