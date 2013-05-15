@@ -18,7 +18,7 @@
           "username": "admin",
           "password": "admin",
           "use_tls": false,
-          "version": "3"
+          "version": "2"
       },
       "cluster": {
           "cluster_name": "cluster01",

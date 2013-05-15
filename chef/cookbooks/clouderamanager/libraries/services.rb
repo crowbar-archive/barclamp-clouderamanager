@@ -71,6 +71,81 @@ class ApiService < BaseApiObject
   end
   
   #######################################################################
+  # Parse a json-decoded ApiServiceConfig dictionary into a 2-tuple.
+  # @param json_dic: The json dictionary with the config data.
+  # @param view: View to materialize.
+  # @return: { :svc_config => svc_config, :rt_configs => rt_configs }
+  #######################################################################
+  def _parse_svc_config(resource_root, json_dic, view = 'full')
+    svc_config = ApiConfig.json_to_config(resource_root, json_dic, view)
+    rt_configs = { }
+    if json_dic.has_key?(ROLETYPES_CFG_KEY)
+      jdict = json_dic[ROLETYPES_CFG_KEY]
+      jdict.each do |rt_config|
+        rt_key = rt_config['roleType']
+        rt_data = ApiConfig.json_to_config(resource_root, rt_config, view)
+        rt_configs[rt_key] = rt_data  
+      end
+    end
+    return { :svc_config => svc_config, :rt_configs => rt_configs }
+  end
+  
+  #######################################################################
+  # Retrieve the service's configuration.
+  # Retrieves both the service configuration and role type configuration
+  # for each of the service's supported role types. The role type
+  # configurations are returned as a dictionary, whose keys are the
+  # role type name, and values are the respective configuration dictionaries.
+  # The 'summary' view contains strings as the dictionary values. The full
+  # view contains ApiConfig instances as the values.
+  # @param view: View to materialize('full' or 'summary')
+  # @return: { :svc_config => svc_config, :rt_configs => rt_configs }
+  #######################################################################
+  def get_config(resource_root, view = nil)
+    params = nil 
+    params = { :view => view } if (view)
+    path = _path() + '/config'
+    resp = resource_root.get(path, params)
+    return _parse_svc_config(resource_root, resp, view)
+  end
+  
+  #######################################################################
+  # Update the service's configuration.
+  # Note : Cloudera Manager API v3 (new in 4.5) does not support setting
+  # a service's roletype configuration, since that has been replaced by
+  # role group. Callers should set the configuration on the appropriate
+  # role group instead. Cloudera Manager 4.5 continues to support API v1
+  # and v2. But users who want to upgrade their existing clients to v3
+  # would need to rewrite any roletype configuration calls.  
+  # @param resource_root: The root Resource object.
+  # @param svc_config Dictionary with service configuration to update.
+  # @param rt_configs Dict of role type configurations to update.
+  # @return: { :svc_config => svc_config, :rt_configs => rt_configs }
+  #######################################################################
+  def update_config(resource_root, svc_config, rt_configs=nil)
+    ldata = { }
+    if svc_config
+      ldata = ApiConfig.config_to_api_list(svc_config)
+    end
+    
+    if rt_configs
+      rt_list = [ ]
+      rt_configs.each do |rt, cfg|
+        rt_data = ApiConfig.config_to_api_list(cfg)
+        rt_data['roleType'] = rt
+        rt_list << rt_data
+      end
+      ldata[ROLETYPES_CFG_KEY] = rt_list
+    end
+    
+    path = _path() + '/config'
+    data = JSON.generate(ldata)
+    print "\n######## #{data}\n"
+    resp = resource_root.put(path, data)
+    return _parse_svc_config(resource_root, resp)
+  end
+  
+  #######################################################################
   # Lookup a service by name
   # @param resource_root: The root Resource object.
   # @param name: Service name
@@ -171,24 +246,6 @@ class ApiService < BaseApiObject
   end
   
   #######################################################################
-  # Parse a json-decoded ApiServiceConfig dictionary into a 2-tuple.
-  # @param json_dic: The json dictionary with the config data.
-  # @param view: View to materialize.
-  # @return: 2-tuple(service config dictionary, role type configurations)
-  #######################################################################
-  def _parse_svc_config(json_dic, view = nil)
-    svc_config = json_to_config(json_dic, view == 'full')
-    rt_configs = { }
-    if json_dic.has_key(ROLETYPES_CFG_KEY)
-      for rt_config in json_dic[ROLETYPES_CFG_KEY]
-        rt_configs[rt_config['roleType']] = json_to_config(rt_config, view == 'full')
-      end
-    end
-    # return(svc_config, rt_configs)
-    return(rt_configs)
-  end
-  
-  #######################################################################
   # Retrieve a list of running commands for this service.
   # @param view: View to materialize('full' or 'summary')
   # @return: A list of running commands.
@@ -234,56 +291,6 @@ class ApiService < BaseApiObject
     resource_root = _get_resource_root()
     resp = resource_root.get(path)
     return ApiActivity.from_json_dict(resp, resource_root)
-  end
-  
-  #######################################################################
-  # Retrieve the service's configuration.
-  # Retrieves both the service configuration and role type configuration
-  # for each of the service's supported role types. The role type
-  # configurations are returned as a dictionary, whose keys are the
-  # role type name, and values are the respective configuration dictionaries.
-  # The 'summary' view contains strings as the dictionary values. The full
-  # view contains ApiConfig instances as the values.
-  # @param view: View to materialize('full' or 'summary')
-  # @return 2-tuple(service config dictionary, role type configurations)
-  #######################################################################
-  def get_config(view = nil)
-    params = nil 
-    params = { :view => view } if (view)
-    path = _path() + '/config'
-    resource_root = _get_resource_root()
-    resp = resource_root.get(path, params)
-    return _parse_svc_config(resp, view)
-  end
-  
-  #######################################################################
-  # Update the service's configuration.
-  # @param svc_config Dictionary with service configuration to update.
-  # @param rt_configs Dict of role type configurations to update.
-  # @return 2-tuple(service config dictionary, role type configurations)
-  #######################################################################
-  def update_config(svc_config, rt_configs)
-    
-    ldata = { }
-    if svc_config
-      ldata = config_to_api_list(svc_config)
-    end
-    
-    if rt_configs
-      rt_list = [ ]
-      for rt, cfg in rt_configs.iteritems()
-        rt_data = config_to_api_list(cfg)
-        rt_data['roleType'] = rt
-        rt_list.append(rt_data)
-      end
-      ldata[ROLETYPES_CFG_KEY] = rt_list
-    end
-    
-    resource_root = _get_resource_root()
-    path = _path() + '/config'
-    data = JSON.generate(ldata)
-    resp = resource_root.put(path, data)
-    return _parse_svc_config(resp)
   end
   
   #----------------------------------------------------------------------

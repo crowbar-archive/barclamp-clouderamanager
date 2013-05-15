@@ -79,17 +79,57 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # CM role setup helper method.
+  # Build the cluster configuration data structure with CM role associations.
+  # Role names must be unique across all clusters. 
+  # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY, HTTPFS,
+  # JOURNALNODE, FAILOVERCONTROLLER.
+  # MAPREDUCE : JOBTRACKER, TASKTRACKER, GATEWAY 
   #####################################################################
-  def role_appender(debug, cluster_config, cb_nodes, role_type)
-    if cb_nodes  
-      cb_nodes.each do |n|
-        rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :ipaddr => n[:ipaddr] }
-        Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
-        cluster_config << rec
+  def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
+    
+    #####################################################################
+    # Role appender helper method.
+    #####################################################################
+    def role_appender(debug, cluster_config, cluster_name, counter_map, cb_nodes, service_type, role_type)
+      if cb_nodes  
+        cb_nodes.each do |n|
+          counter_map[role_type] = 1 if counter_map[role_type].nil?
+          cnt = sprintf("%2.2d", counter_map[role_type])
+          role_name = "#{role_type}-#{cluster_name}-#{cnt}"
+          rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
+          Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
+          cluster_config << rec
+          counter_map[role_type] += 1
+        end
       end
+    end    
+    
+    #--------------------------------------------------------------------
+    # Add the CM role definitions.
+    #--------------------------------------------------------------------
+    config = []
+    counter_map = { }
+    # primary namenode
+    if namenodes.length > 0
+      primary_namenode = [ namenodes[0] ]
+      role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
+      role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
     end
-  end    
+    # secondary namenode
+    if namenodes.length > 1
+      secondary_namenode = [ namenodes[1] ]
+      role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
+    end
+    # datanodes
+    role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
+    role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
+    Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
+    # edgenodes
+    if edgenodes.length > 0
+      role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
+    end
+    return config
+  end
   
   #####################################################################
   # Create the API resource object (establish the RESTful API connection).
@@ -137,24 +177,9 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Configure the services.
+  # Configure the cluster hosts.
   #####################################################################
-  def configure_services(debug, api, service_name, service_type, cluster_name, cluster_object)
-    service = api.find_service(service_name, cluster_name)
-    if service == nil
-      Chef::Log.info("CM - service does not exists [#{service_name}, #{service_type}, #{cluster_name}]") if debug
-      service = api.create_service(cluster_object, service_name, service_type, cluster_name)
-      Chef::Log.info("CM - api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service}]") if debug
-    else
-      Chef::Log.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service}]") if debug
-    end
-    return service
-  end
-  
-  #####################################################################
-  # Configure the hosts.
-  #####################################################################
-  def configure_hosts(debug, api, rack_id, cluster_config)
+  def configur_host_instances(debug, api, rack_id, cluster_config)
     cluster_config.each do |host_rec|
       host_id = host_rec[:host_id]
       name = host_rec[:name]
@@ -171,29 +196,51 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Create the roles
-  # CM ROLES - NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
-  # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER.
-  # Role names must be unique across all clusters. 
+  # Configure the cluster services.
   #####################################################################
-  def configure_roles(debug, api, hdfs_object, cluster_name, cluster_config)
-    cnt = 1
+  def configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)
+    service = api.find_service(service_name, cluster_name)
+    if service == nil
+      Chef::Log.info("CM - service does not exists [#{service_name}, #{service_type}, #{cluster_name}]") if debug
+      service = api.create_service(cluster_object, service_name, service_type, cluster_name)
+      Chef::Log.info("CM - api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service}]") if debug
+    else
+      Chef::Log.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service}]") if debug
+    end
+    return service
+  end
+  
+  #####################################################################
+  # Apply the cluster roles.
+  #####################################################################
+  def apply_roles(debug, api, hdfs_service, mapr_service, cluster_name, cluster_config)
     cluster_config.each do |host_rec|
+      valid_config = true
       host_id = host_rec[:host_id]
       host_name = host_rec[:name]
       host_ip = host_rec[:ipaddr]
+      role_name = host_rec[:role_name]
       role_type = host_rec[:role_type]
-      role_name = "#{role_type}-#{cluster_name}-#{cnt}"    
-      service_object = hdfs_object
-      role_object = api.find_role(service_object, role_name)
-      if role_object == nil
-        Chef::Log.info("CM - role does not exists [#{host_id}]") if debug
-        role_object = api.create_role(service_object, role_name, role_type, host_id)
-        Chef::Log.info("CM - api.create_role results(#{role_name}, #{role_type}, #{host_id}) results : [#{role_object}]") if debug
+      service_type = host_rec[:service_type]
+      service_object = nil
+      if service_type == "HDFS"
+        service_object = hdfs_service
+      elsif service_type == "MAPREDUCE"
+        service_object = mapr_service
       else
-        Chef::Log.info("CM - role already exists [#{role_name}] results : [#{role_object}]") if debug
+        Chef::Log.info("CM - ERROR : Bad service type [#{service_type}] in apply_roles")
+        valid_config = false
       end
-      cnt += 1
+      if valid_config
+        role_object = api.find_role(service_object, role_name)
+        if role_object == nil
+          Chef::Log.info("CM - role does not exists [#{host_id}]") if debug
+          role_object = api.create_role(service_object, role_name, role_type, host_id)
+          Chef::Log.info("CM - api.create_role results(#{role_name}, #{role_type}, #{host_id}) results : [#{role_object}]") if debug
+        else
+          Chef::Log.info("CM - role already exists [#{role_name}] results : [#{role_object}]") if debug
+        end
+      end
     end
   end
   
@@ -209,35 +256,16 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     Chef::Log.info("CM - ERROR: Cannot locate CM server - skipping CM_API setup")
   else
     #--------------------------------------------------------------------
-    # Establish the API connection. 
+    # Establish the RESTful API connection. 
     #--------------------------------------------------------------------
     api = create_api_resource(debug, server_host, server_port, username, password, use_tls, version) 
     if not api
       Chef::Log.info("CM - ERROR: Cannot create CM API resource - skipping CM_API setup")
     else
       #--------------------------------------------------------------------
-      # Configure the cluster setup array with CM role associations.
-      # CM ROLES - NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
-      # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER.
+      # Build the cluster configuration data structure with CM role associations.
       #--------------------------------------------------------------------
-      cluster_config = []
-      # primary namenode
-      if namenodes.length > 0
-        primary_namenode = [ namenodes[0] ]
-        role_appender(debug, cluster_config, primary_namenode, "NAMENODE")
-      end
-      # secondary namenode
-      if namenodes.length > 1
-        secondary_namenode = [ namenodes[1] ]
-        role_appender(debug, cluster_config, secondary_namenode, "SECONDARYNAMENODE")
-      end
-      # datanodes
-      role_appender(debug, cluster_config, datanodes, "DATANODE")
-      Chef::Log.info("CM - cluster configuration [#{cluster_config.inspect}]") if debug
-      # edgenodes
-      if edgenodes.length > 0
-        role_appender(debug, cluster_config, edgenodes, "GATEWAY")
-      end
+      cluster_config = build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
       
       #--------------------------------------------------------------------
       # Set the license key if present. 
@@ -252,37 +280,71 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       cluster_object = configure_cluster(debug, api, cluster_name, cdh_version)
       
       #--------------------------------------------------------------------
-      # Configure the HDF service. 
+      # Configure the host instances. 
+      #--------------------------------------------------------------------
+      configur_host_instances(debug, api, rack_id, cluster_config)
+      
+      #--------------------------------------------------------------------
+      # Configure the HDFS service. 
       #--------------------------------------------------------------------
       service_name = "hdfs-#{cluster_name}"
       service_type = "HDFS"
-      hdfs_object = configure_services(debug, api, service_name, service_type, cluster_name, cluster_object)  
+      hdfs_service = configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)  
+      
+=begin
+      # Note: The v3 API does not support rt_configs and you
+      # must use role groups for this case. The v2 API does maintain
+      # backward compatibility with this call.
+      if debug
+        result = api.get_service_config(hdfs_service, 'full')
+        svc_config = result[:svc_config]
+        rt_configs = result[:rt_configs]
+        Chef::Log.info("\n######### svc_config\n#{svc_config}\n")
+        Chef::Log.info("\n######### rt_configs\n#{rt_configs}\n")
+      end
+=end
+      
+      #--------------------------------------------------------------------
+      # If we bypass the CM setup wizard, we need to set some required
+      # parameters or HDFS will not start-up correctly. Only set the
+      # bare minimum to get the cluster up and running
+      # (Rely the CM interface for everything else).
+      #--------------------------------------------------------------------
+      hdfs_service_config = {
+      }
+      nn_config = {
+        'dfs_name_dir_list' => '/dfs/nn',
+      }
+      snn_config = {
+        'fs_checkpoint_dir_list' => '/dfs/snn'
+      }
+      dn_config = {
+        'dfs_data_dir_list' => '/data/1/dfs/dn,/data/2/dfs/dn'
+      }
+      gw_config = {
+        'dfs_client_use_trash' => true
+      }
+      rt_configs = {
+        'NAMENODE' => nn_config,
+        'SECONDARYNAMENODE' => snn_config,
+        'DATANODE' => dn_config,
+        'GATEWAY' => gw_config
+      }      
+      Chef::Log.info("CM - Updating HDFS service configuration") if debug
+      result = api.update_service_config(hdfs_service, hdfs_service_config, rt_configs)
+      # Chef::Log.info("CM - HDFS service configuration results #{result}") if debug
       
       #--------------------------------------------------------------------
       # Configure the MAPREDUCE service. 
       #--------------------------------------------------------------------
       service_name = "mapr-#{cluster_name}"
       service_type = "MAPREDUCE"
-      mapr = configure_services(debug, api, service_name, service_type, cluster_name, cluster_object)  
-      
-      # Configure the job tracker.
-      if namenodes.length > 0
-        rec = namenodes[0]
-        host_id = rec[:fqdn]
-        role_name = "jobtracker-#{cluster_name}"
-        role_type = "JOBTRACKER"
-        jt = api.create_role(mapr, role_name, role_type, host_id)
-      end
+      mapr_service = configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)  
       
       #--------------------------------------------------------------------
-      # Configure the hosts. 
+      # Apply the cluster roles. 
       #--------------------------------------------------------------------
-      configure_hosts(debug, api, rack_id, cluster_config)
-      
-      #--------------------------------------------------------------------
-      # Configure the roles. 
-      #--------------------------------------------------------------------
-      configure_roles(debug, api, hdfs_object, cluster_name, cluster_config)
+      apply_roles(debug, api, hdfs_service, mapr_service, cluster_name, cluster_config)
     end
   end
   

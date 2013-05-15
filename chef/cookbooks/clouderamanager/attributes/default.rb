@@ -48,7 +48,7 @@ default[:clouderamanager][:cmapi][:server_port] = "7180"
 default[:clouderamanager][:cmapi][:username] = "admin"
 default[:clouderamanager][:cmapi][:password] = "admin"
 default[:clouderamanager][:cmapi][:use_tls] = false
-default[:clouderamanager][:cmapi][:version] = "3"
+default[:clouderamanager][:cmapi][:version] = "2"
 
 #----------------------------------------------------------------------
 # Cluster configuration parameters.
