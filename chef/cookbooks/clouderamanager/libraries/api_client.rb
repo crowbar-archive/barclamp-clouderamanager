@@ -365,7 +365,7 @@ class ApiResource < Resource
   end
   
   #----------------------------------------------------------------------
-  # Service related methods.
+  # Service control methods.
   #----------------------------------------------------------------------
   
   #######################################################################
@@ -409,6 +409,140 @@ class ApiResource < Resource
   def update_service_config(service_object, svc_config, rt_configs=nil)
     return service_object.update_config(self, svc_config, rt_configs)
   end
+  
+  #----------------------------------------------------------------------
+  # Service level control methods.
+  #----------------------------------------------------------------------
+  
+  #######################################################################
+  # Start a list of roles.
+  # @param role_names: names of the roles to start.
+  # @return: List of submitted commands.
+  #######################################################################
+  def start_roles(service_object, role_names)
+    return service_object.start_roles(self, role_names)
+  end
+  
+  #######################################################################
+  # Stop a list of roles.
+  # @param role_names: names of the roles to stop.
+  # @return: List of submitted commands.
+  #######################################################################
+  def stop_roles(service_object, role_names)
+    return service_object.stop_roles(self, role_names)
+  end
+  
+  #######################################################################
+  # Restart a list of roles.
+  # @param role_names: names of the roles to restart.
+  # @return: List of submitted commands.
+  #######################################################################
+  def restart_roles(service_object, role_names)
+    return service_object.restart_roles(self, role_names)
+  end
+  
+  #######################################################################
+  # Bootstrap HDFS stand-by NameNodes.
+  # Initialize their state by syncing it with the respective HA partner.
+  # @param role_names: NameNodes to bootstrap.
+  # @return: List of submitted commands.
+  #######################################################################
+  def bootstrap_hdfs_stand_by(service_object, role_names)
+    return service_object.bootstrap_hdfs_stand_by(self, role_names)
+  end
+  
+  #######################################################################
+  # Execute the "refresh" command on a set of roles.
+  # @param: role_names Names of the roles to refresh.
+  # @return: Reference to the submitted command.
+  #######################################################################
+  def refresh(service_object, role_names)
+    return service_object.refresh(self, role_names)
+  end
+  
+  #######################################################################
+  # Format NameNode instances of an HDFS service.
+  # 
+  # @param namenodes Name of NameNode instances to format.
+  # @return List of submitted commands.
+  #######################################################################
+  def format_hdfs(service_object, namenodes)
+    return service_object.format_hdfs(self, namenodes)
+  end
+  
+  #######################################################################
+  # Initialize HDFS failover controller metadata.
+  # Only one controller per nameservice needs to be initialized.
+  # @param controllers: Name of failover controller instances to initialize.
+  # @return: List of submitted commands.
+  #######################################################################
+  def init_hdfs_auto_failover(service_object, controllers)
+    return service_object.init_hdfs_auto_failover(self, controllers)
+  end
+  
+  #######################################################################
+  # Initialize a NameNode's shared edits directory.
+  # @param namenodes Name of NameNode instances.
+  # @return List of submitted commands.
+  #######################################################################
+  def init_hdfs_shared_dir(service_object, namenodes)
+    return service_object.init_hdfs_shared_dir(self, namenodes)
+  end
+  
+  #######################################################################
+  # Synchronize the Hue server's database.
+  # @param: servers Name of Hue Server roles to synchronize.
+  # @return: List of submitted commands.
+  #######################################################################
+  def sync_hue_db(service_object, servers)
+    return service_object.sync_hue_db(self, servers)
+  end
+  
+  #######################################################################
+  # Cleanup a ZooKeeper service or roles.
+  # If no server role names are provided, the command applies to the whole
+  # service, and cleans up all the server roles that are currently running.
+  # @param servers: ZK server role names(optional).
+  # @return: Command reference(for service command) or list of command
+  # references(for role commands).
+  #######################################################################
+  def cleanup_zookeeper(service_object, servers)
+    return service_object.cleanup_zookeeper(self, servers)
+  end
+  
+  #######################################################################
+  # Initialize a ZooKeeper service or roles.
+  # If no server role names are provided, the command applies to the whole
+  # service, and initializes all the configured server roles.
+  # @param servers: ZK server role names(optional).
+  # @return: Command reference(for service command) or list of command
+  # references(for role commands).
+  #######################################################################
+  def init_zookeeper(service_object, servers)
+    return service_object.init_zookeeper(self, servers)
+  end
+  
+  #######################################################################
+  # Put the service in maintenance mode.
+  # @return: Reference to the completed command.
+  # @since: API v2
+  #######################################################################
+  def enter_maintenance_mode(service_object)
+    return service_object.enter_maintenance_mode(self)
+  end
+  
+  #######################################################################
+  # Take the service out of maintenance mode.
+  # @return: Reference to the completed command.
+  # @since: API v2
+  #######################################################################
+  def exit_maintenance_mode(service_object)
+    return service_object.exit_maintenance_mode(self)
+  end
+  
+  #----------------------------------------------------------------------
+  # End of service level commands.
+  #----------------------------------------------------------------------
   
   #######################################################################
   # Lookup a service by name
