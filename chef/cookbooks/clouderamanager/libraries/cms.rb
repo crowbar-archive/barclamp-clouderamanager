@@ -133,10 +133,10 @@ class ClouderaManager < BaseApiObject
   #######################################################################
   def self.get_config(resource_root, view = nil)
     params = nil 
-    params = { :view => view } if(view)
+    params = { :view => view } if (view)
     path = '/cm/config'
     resp = resource_root.get(path, params)
-    return ApiConfig.json_to_config(resp, resource_root, view)
+    return ApiConfig.json_to_config(resource_root, resp, view)
   end
   
   #######################################################################
@@ -145,10 +145,11 @@ class ClouderaManager < BaseApiObject
   # @return: Dictionary with updated configuration.
   #######################################################################
   def self.update_config(resource_root, config)
+    view = nil
     data = config_to_json(config)
     path = '/cm/config'
     resp = resource_root.put(path, data)
-    return json_to_config(resp, false)
+    return ApiConfig.json_to_config(resource_root, resp, view)
   end
   
   #######################################################################

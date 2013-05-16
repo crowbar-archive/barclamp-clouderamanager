@@ -489,8 +489,7 @@ class ApiConfig < BaseApiObject
   #######################################################################
   # Class Initializer.
   #######################################################################
-  def initialize(resource_root, name, value = nil)
-    dict = {}
+  def initialize(resource_root, dict)
     BaseApiObject.new(resource_root, dict)
     dict.each do |k, v|
       self.instance_variable_set("@#{k}", v) 
@@ -503,12 +502,12 @@ class ApiConfig < BaseApiObject
   # @param dic Key-value pairs to convert.
   # @return JSON dictionary of an ApiConfig list(*not* an ApiList).
   #######################################################################
-  def config_to_api_list(dic)
+  def self.config_to_api_list(dic)
     config = [ ]
-    dic.iteritems().each do |k, v|
+    dic.each do |k, v|
       config << { :name => k, :value => v }
     end
-    return { ApiList.LIST_KEY => config }
+    return { ApiList::LIST_KEY => config }
   end
   
   #######################################################################
@@ -530,16 +529,18 @@ class ApiConfig < BaseApiObject
   # @param full Whether to materialize the full view of the config data.
   # @return dictionary with configuration data.
   #######################################################################
-  def self.json_to_config(dic, resource_root, view)
+  def self.json_to_config(resource_root, dic, view)
     config = { }
     items = dic['items']
-    items.each do |entry|
-      k = entry['name']
+    items.each do |r|
+      k = r['name']
       if view == 'full'
-        config[k] = ApiConfig.from_json_dict(ApiConfig, entry, resource_root)
+        v = ApiConfig.from_json_dict(ApiConfig, r, resource_root)
       else
-        config[k] = entry['value']
+        v = ''
+        v = r['value'] if r.has_key?('value') 
       end
+      config[k] = v
     end
     return config
   end

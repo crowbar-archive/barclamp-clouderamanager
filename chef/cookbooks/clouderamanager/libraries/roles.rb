@@ -222,7 +222,7 @@ class ApiRole < BaseApiObject
     path = _path() + '/config'
     resource_root = _get_resource_root() 
     resp = resource_root.get(path, params)
-    return json_to_config(resp, view)
+    return ApiConfig.json_to_config(resource_root, resp, view)
   end
   
   #######################################################################
@@ -235,7 +235,7 @@ class ApiRole < BaseApiObject
     data = config_to_json(config)
     resource_root = _get_resource_root() 
     resp = resource_root.put(path, data)
-    return json_to_config(resp)
+    return ApiConfig.json_to_config(resp)
   end
   
   #######################################################################
