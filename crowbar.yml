@@ -189,7 +189,7 @@ rpms:
     - hue-shell
     - hue-useradmin
     # Cloudera Manager packages
-    - cloudera-manager-parcel-4.5.1
+    - cloudera-manager-parcel-4.5.2
     - cloudera-manager-agent
     - cloudera-manager-daemons
     - cloudera-manager-server
