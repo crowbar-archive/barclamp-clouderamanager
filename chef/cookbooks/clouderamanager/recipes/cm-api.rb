@@ -125,9 +125,11 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
     Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
     # edgenodes
+=begin    
     if edgenodes.length > 0
       role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
     end
+=end
     return config
   end
   
@@ -293,7 +295,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       
 =begin
       # Note: The v3 API does not support rt_configs and you
-      # must use role groups for this case. The v2 API does maintain
+      # must use role groups for this case. The v2 API maintains
       # backward compatibility with this call.
       if debug
         result = api.get_service_config(hdfs_service, 'full')
@@ -321,17 +323,17 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       dn_config = {
         'dfs_data_dir_list' => '/data/1/dfs/dn,/data/2/dfs/dn'
       }
-      gw_config = {
+      hdfs_gw_config = {
         'dfs_client_use_trash' => true
       }
-      rt_configs = {
+      hdfs_rt_configs = {
         'NAMENODE' => nn_config,
         'SECONDARYNAMENODE' => snn_config,
         'DATANODE' => dn_config,
-        'GATEWAY' => gw_config
+        'GATEWAY' => hdfs_gw_config
       }      
       Chef::Log.info("CM - Updating HDFS service configuration") if debug
-      result = api.update_service_config(hdfs_service, hdfs_service_config, rt_configs)
+      result = api.update_service_config(hdfs_service, hdfs_service_config, hdfs_rt_configs)
       # Chef::Log.info("CM - HDFS service configuration results #{result}") if debug
       
       #--------------------------------------------------------------------
@@ -341,10 +343,57 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       service_type = "MAPREDUCE"
       mapr_service = configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)  
       
+      mapr_service_config = {
+        'hdfs_service' =>  'hdfs01'
+      }
+      jt_config = {
+        'jobtracker_mapred_local_dir_list' => '/mapred/jt',
+        'mapred_job_tracker_handler_count'=> 40
+      }
+      tt_config = {
+        'tasktracker_mapred_local_dir_list' => '/mapred/local',
+        'mapred_tasktracker_map_tasks_maximum' => 10,
+        'mapred_tasktracker_reduce_tasks_maximum' => 6
+      }
+      mapr_gw_config = {
+        'mapred_reduce_tasks' => 10,
+        'mapred_submit_replication' => 2
+      }
+      mapr_rt_configs = {
+        'JOBTRACKER' => jt_config,
+        'TASKTRACKER' => tt_config,
+        'GATEWAY' => mapr_gw_config
+      }      
+      Chef::Log.info("CM - Updating MAPR service configuration") if debug
+      result = api.update_service_config(mapr_service, mapr_service_config, mapr_rt_configs)
+      # Chef::Log.info("CM - MAPR service configuration results #{result}") if debug
+      
       #--------------------------------------------------------------------
       # Apply the cluster roles. 
       #--------------------------------------------------------------------
       apply_roles(debug, api, hdfs_service, mapr_service, cluster_name, cluster_config)
+      
+      #--------------------------------------------------------------------
+      # Format HDFS. 
+      # format_hdfs takes a list of NameNodes.
+      #--------------------------------------------------------------------
+=begin
+      CMD_TIMEOUT = 180 
+      cmd = api.format_hdfs(hdfs_service, [ 'NAMENODE-cluster01-01' ])
+      if not cmd.wait(CMD_TIMEOUT).success
+        Chef::Log.info("CM - HDFS format failed")
+      end
+=end
+      
+=begin      
+      #--------------------------------------------------------------------
+      # Start HDFS. 
+      #--------------------------------------------------------------------
+      cmd = hdfs_service.start()
+      if not cmd.wait(CMD_TIMEOUT).success
+        Chef::Log.info("CM - HDFS start failed")
+      end        
+=end
     end
   end
   

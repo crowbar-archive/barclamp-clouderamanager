@@ -140,7 +140,6 @@ class ApiService < BaseApiObject
     
     path = _path() + '/config'
     data = JSON.generate(ldata)
-    print "\n######## #{data}\n"
     resp = resource_root.put(path, data)
     return _parse_svc_config(resource_root, resp)
   end
@@ -226,23 +225,23 @@ class ApiService < BaseApiObject
   end
   
   #######################################################################
-  # _cmd(cmd, data=nil, params=nil)
+  # _system_cmd(resource_root, cmd, data=nil, params=nil)
   #######################################################################
-  def _cmd(cmd, data=nil, params=nil)
+  def _system_cmd(resource_root, cmd, data=nil, params=nil)
     path = _path() + '/commands/' + cmd
-    resp = _get_resource_root().post(path, data, params)
-    return ApiCommand.from_json_dict(resp, _get_resource_root())
+    resp = resource_root.post(path, data, params)
+    return ApiCommand.from_json_dict(resp, resource_root)
   end
   
   #######################################################################
-  # _role_cmd(cmd, roles)
+  # _role_cmd(resource_root, cmd, roles)
   #######################################################################
-  def _role_cmd(cmd, roles)
+  def _role_cmd(resource_root, cmd, roles)
     subpath = _path() + "/roleCommands/#{cmd}"
-    rec = { ApiList.LIST_KEY => roles }
+    rec = { ApiList::LIST_KEY => roles }
     data = JSON.generate(rec)
-    resp = _get_resource_root().post(subpath, data)
-    return ApiList.from_json_dict(ApiCommand, resp, _get_resource_root())
+    resp = resource_root.post(subpath, data)
+    return ApiList.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -358,7 +357,7 @@ class ApiService < BaseApiObject
   def get_role_types(resource_root)
     path = _path() + '/roleTypes'
     resp = resource_root.get(path)
-    return resp[ApiList.LIST_KEY]
+    return resp[ApiList::LIST_KEY]
   end
   
   #----------------------------------------------------------------------
@@ -379,37 +378,17 @@ class ApiService < BaseApiObject
     return resource_root.get_metrics(path, from_time, to_time, metrics, view)
   end
   
-  #######################################################################
-  # Start a service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def start
-    return _cmd('start')
-  end
-  
-  #######################################################################
-  # Stop a service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def stop
-    return _cmd('stop')
-  end
-  
-  #######################################################################
-  # Restart a service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def restart
-    return _cmd('restart')
-  end
+  #----------------------------------------------------------------------
+  # Service level control methods.
+  #----------------------------------------------------------------------
   
   #######################################################################
   # Start a list of roles.
   # @param role_names: names of the roles to start.
   # @return: List of submitted commands.
   #######################################################################
-  def start_roles(*role_names)
-    return _role_cmd('start', role_names)
+  def start_roles(resource_root, role_names)
+    return _role_cmd(resource_root, 'start', role_names)
   end
   
   #######################################################################
@@ -417,8 +396,8 @@ class ApiService < BaseApiObject
   # @param role_names: names of the roles to stop.
   # @return: List of submitted commands.
   #######################################################################
-  def stop_roles(*role_names)
-    return _role_cmd('stop', role_names)
+  def stop_roles(resource_root, role_names)
+    return _role_cmd(resource_root, 'stop', role_names)
   end
   
   #######################################################################
@@ -426,8 +405,8 @@ class ApiService < BaseApiObject
   # @param role_names: names of the roles to restart.
   # @return: List of submitted commands.
   #######################################################################
-  def restart_roles(*role_names)
-    return _role_cmd('restart', role_names)
+  def restart_roles(resource_root, role_names)
+    return _role_cmd(resource_root, 'restart', role_names)
   end
   
   #######################################################################
@@ -436,24 +415,8 @@ class ApiService < BaseApiObject
   # @param role_names: NameNodes to bootstrap.
   # @return: List of submitted commands.
   #######################################################################
-  def bootstrap_hdfs_stand_by(*role_names)
-    return _role_cmd('hdfsBootstrapStandBy', role_names)
-  end
-  
-  #######################################################################
-  # Create the Beeswax role's warehouse for a Hue service.
-  # @return: Reference to the submitted command.
-  #######################################################################
-  def create_beeswax_warehouse
-    return _cmd('hueCreateHiveWarehouse')
-  end
-  
-  #######################################################################
-  # Create the root directory of an HBase service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def create_hbase_root
-    return _cmd('hbaseCreateRoot')
+  def bootstrap_hdfs_stand_by(resource_root, role_names)
+    return _role_cmd(resource_root, 'hdfsBootstrapStandBy', role_names)
   end
   
   #######################################################################
@@ -461,8 +424,146 @@ class ApiService < BaseApiObject
   # @param: role_names Names of the roles to refresh.
   # @return: Reference to the submitted command.
   #######################################################################
-  def refresh(role_names)
-    return _role_cmd('refresh', role_names)
+  def refresh(resource_root, role_names)
+    return _role_cmd(resource_root, 'refresh', role_names)
+  end
+  
+  #######################################################################
+  # Format NameNode instances of an HDFS service.
+  # 
+  # @param namenodes Name of NameNode instances to format.
+  # @return List of submitted commands.
+  #######################################################################
+  def format_hdfs(resource_root, namenodes)
+    return _role_cmd(resource_root, 'hdfsFormat', namenodes)
+  end
+  
+  #######################################################################
+  # Initialize HDFS failover controller metadata.
+  # Only one controller per nameservice needs to be initialized.
+  # @param controllers: Name of failover controller instances to initialize.
+  # @return: List of submitted commands.
+  #######################################################################
+  def init_hdfs_auto_failover(resource_root, controllers)
+    return _role_cmd(resource_root, 'hdfsInitializeAutoFailover', controllers)
+  end
+  
+  #######################################################################
+  # Initialize a NameNode's shared edits directory.
+  # @param namenodes Name of NameNode instances.
+  # @return List of submitted commands.
+  #######################################################################
+  def init_hdfs_shared_dir(resource_root, namenodes)
+    return _role_cmd(resource_root, 'hdfsInitializeSharedDir', namenodes)
+  end
+  
+  #######################################################################
+  # Synchronize the Hue server's database.
+  # @param: servers Name of Hue Server roles to synchronize.
+  # @return: List of submitted commands.
+  #######################################################################
+  def sync_hue_db(resource_root, servers)
+    return _role_cmd(resource_root, 'hueSyncDb', servers)
+  end
+  
+  #######################################################################
+  # Cleanup a ZooKeeper service or roles.
+  # If no server role names are provided, the command applies to the whole
+  # service, and cleans up all the server roles that are currently running.
+  # @param servers: ZK server role names(optional).
+  # @return: Command reference(for service command) or list of command
+  # references(for role commands).
+  #######################################################################
+  def cleanup_zookeeper(resource_root, servers)
+    if servers
+      return _role_cmd(resource_root, 'zooKeeperCleanup', servers)
+    end
+    return _system_cmd('zooKeeperCleanup')
+  end
+  
+  #######################################################################
+  # Initialize a ZooKeeper service or roles.
+  # If no server role names are provided, the command applies to the whole
+  # service, and initializes all the configured server roles.
+  # @param servers: ZK server role names(optional).
+  # @return: Command reference(for service command) or list of command
+  # references(for role commands).
+  #######################################################################
+  def init_zookeeper(resource_root, servers)
+    if servers
+      return _role_cmd(resource_root, 'zooKeeperInit', servers)
+    end
+    return _system_cmd('zooKeeperInit')
+  end
+  
+  #######################################################################
+  # Put the service in maintenance mode.
+  # @return: Reference to the completed command.
+  # @since: API v2
+  #######################################################################
+  def enter_maintenance_mode(resource_root)
+    cmd = _system_cmd(resource_root, 'enterMaintenanceMode')
+    if cmd.success
+      _update(_get_service(resource_root, _path()))
+    end
+    return cmd
+  end
+  
+  #######################################################################
+  # Take the service out of maintenance mode.
+  # @return: Reference to the completed command.
+  # @since: API v2
+  #######################################################################
+  def exit_maintenance_mode(resource_root)
+    cmd = _system_cmd(resource_root, 'exitMaintenanceMode')
+    if cmd.success
+      _update(_get_service(resource_root, _path()))
+    end
+    return cmd
+  end
+  
+  #----------------------------------------------------------------------
+  # End of service control methods.
+  #----------------------------------------------------------------------
+  
+  #######################################################################
+  # Start a service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def start(resource_root)
+    return _system_cmd(resource_root, 'start')
+  end
+  
+  #######################################################################
+  # Stop a service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def stop(resource_root)
+    return _system_cmd(resource_root, 'stop')
+  end
+  
+  #######################################################################
+  # Restart a service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def restart(resource_root)
+    return _system_cmd(resource_root, 'restart')
+  end
+  
+  #######################################################################
+  # Create the Beeswax role's warehouse for a Hue service.
+  # @return: Reference to the submitted command.
+  #######################################################################
+  def create_beeswax_warehouse(resource_root)
+    return _system_cmd(resource_root, 'hueCreateHiveWarehouse')
+  end
+  
+  #######################################################################
+  # Create the root directory of an HBase service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def create_hbase_root(resource_root)
+    return _system_cmd(resource_root, 'hbaseCreateRoot')
   end
   
   #######################################################################
@@ -470,9 +571,9 @@ class ApiService < BaseApiObject
   # @param role_names Names of the roles to decommission.
   # @return Reference to the submitted command.
   #######################################################################
-  def decommission(role_names)
-    data = JSON.generate({ ApiList.LIST_KEY => role_names })
-    return _cmd('decommission', data)
+  def decommission(resource_root, role_names)
+    data = JSON.generate({ ApiList::LIST_KEY => role_names })
+    return _system_cmd(resource_root, 'decommission', data)
   end
   
   #######################################################################
@@ -481,9 +582,9 @@ class ApiService < BaseApiObject
   # @return Reference to the submitted command.
   # @since: API v2
   #######################################################################
-  def recommission(role_names)
-    data = JSON.generate({ ApiList.LIST_KEY => role_names })
-    return _cmd('recommission', data)
+  def recommission(resource_root, role_names)
+    data = JSON.generate({ ApiList::LIST_KEY => role_names })
+    return _system_cmd(resource_root, 'recommission', data)
   end
   
   #######################################################################
@@ -491,10 +592,10 @@ class ApiService < BaseApiObject
   # @param: role_names Names of the roles to decommission.
   # @return: Reference to the submitted command.
   #######################################################################
-  def deploy_client_config(role_names)
-    dict = { ApiList.LIST_KEY => role_names }
+  def deploy_client_config(resource_root, role_names)
+    dict = { ApiList::LIST_KEY => role_names }
     data = JSON.generate(dict)
-    return _cmd('deployClientConfig', data)
+    return _system_cmd(resource_root, 'deployClientConfig', data)
   end
   
   #######################################################################
@@ -502,9 +603,9 @@ class ApiService < BaseApiObject
   # @param nameservice: Affected nameservice.
   # @return: Reference to the submitted command.
   #######################################################################
-  def disable_hdfs_auto_failover(nameservice)
+  def disable_hdfs_auto_failover(resource_root, nameservice)
     data = JSON.generate(nameservice)
-    return _cmd('hdfsDisableAutoFailover', data)
+    return _system_cmd(resource_root, 'hdfsDisableAutoFailover', data)
   end
   
   #######################################################################
@@ -520,7 +621,7 @@ class ApiService < BaseApiObject
   # enabled.
   # @return: Reference to the submitted command.
   #######################################################################
-  def disable_hdfs_ha(active_name, secondary_name,
+  def disable_hdfs_ha(resource_root, active_name, secondary_name,
                       start_dependent_services=true, deploy_client_configs=true,
                       disable_quorum_storage=false)
     args = {
@@ -540,7 +641,7 @@ class ApiService < BaseApiObject
       args['disableQuorumStorage'] = disable_quorum_storage
     end
     
-    return _cmd('hdfsDisableHa', data = JSON.generate(args))
+    return _system_cmd(resource_root, 'hdfsDisableHa', data = JSON.generate(args))
   end
   
   #######################################################################
@@ -551,7 +652,7 @@ class ApiService < BaseApiObject
   # @param zk_service: ZooKeeper service to use.
   # @return: Reference to the submitted command.
   #######################################################################
-  def enable_hdfs_auto_failover(nameservice, active_fc_name, standby_fc_name, zk_service)
+  def enable_hdfs_auto_failover(resource_root, nameservice, active_fc_name, standby_fc_name, zk_service)
     args = {
       nameservice => nameservice,
       activeFCName => active_fc_name,
@@ -562,7 +663,7 @@ class ApiService < BaseApiObject
       }
     }
     data = JSON.generate(args)
-    return _cmd('hdfsEnableAutoFailover', data)
+    return _system_cmd(resource_root, 'hdfsEnableAutoFailover', data)
   end
   
   #######################################################################
@@ -582,7 +683,7 @@ class ApiService < BaseApiObject
   # Availability.
   # @return: Reference to the submitted command.
   #######################################################################
-  def enable_hdfs_ha(active_name, active_shared_path, standby_name,
+  def enable_hdfs_ha(resource_root, active_name, active_shared_path, standby_name,
                      standby_shared_path, nameservice, start_dependent_services=true,
                      deploy_client_configs=true, enable_quorum_storage=false)
     args = { 
@@ -608,7 +709,7 @@ class ApiService < BaseApiObject
       args['standBySharedEditsPath'] = standby_shared_path
     end
     
-    return _cmd('hdfsEnableHa', data = JSON.generate(args))
+    return _system_cmd(resource_root, 'hdfsEnableHa', data = JSON.generate(args))
   end
   
   #######################################################################
@@ -619,110 +720,17 @@ class ApiService < BaseApiObject
   # @param force: whether to force failover.
   # @return: Reference to the submitted command.
   #######################################################################
-  def failover_hdfs(active_name, standby_name, force=false)
+  def failover_hdfs(resource_root, active_name, standby_name, force=false)
     if force
       params = { "force" => "true" }
     else
       params = { "force" => "false" }
     end
-    args = { ApiList.LIST_KEY => [ active_name, standby_name ] }
+    args = { ApiList::LIST_KEY => [ active_name, standby_name ] }
     data = JSON.generate(args)
-    return _cmd('hdfsFailover', data)
+    return _system_cmd(resource_root, 'hdfsFailover', data)
   end
   
-  #######################################################################
-  # Format NameNode instances of an HDFS service.
-  # 
-  # @param namenodes Name of NameNode instances to format.
-  # @return List of submitted commands.
-  #######################################################################
-  def format_hdfs(namenodes)
-    return _role_cmd('hdfsFormat', namenodes)
-  end
-  
-  #######################################################################
-  # Initialize HDFS failover controller metadata.
-  # Only one controller per nameservice needs to be initialized.
-  # @param controllers: Name of failover controller instances to initialize.
-  # @return: List of submitted commands.
-  #######################################################################
-  def init_hdfs_auto_failover(*controllers)
-    return _role_cmd('hdfsInitializeAutoFailover', controllers)
-  end
-  
-  #######################################################################
-  # Initialize a NameNode's shared edits directory.
-  # @param namenodes Name of NameNode instances.
-  # @return List of submitted commands.
-  #######################################################################
-  def init_hdfs_shared_dir(*namenodes)
-    return _role_cmd('hdfsInitializeSharedDir', namenodes)
-  end
-  
-  #######################################################################
-  # Cleanup a ZooKeeper service or roles.
-  # If no server role names are provided, the command applies to the whole
-  # service, and cleans up all the server roles that are currently running.
-  # @param servers: ZK server role names(optional).
-  # @return: Command reference(for service command) or list of command
-  # references(for role commands).
-  #######################################################################
-  def cleanup_zookeeper(*servers)
-    if servers
-      return _role_cmd('zooKeeperCleanup', servers)
-    end
-    return _cmd('zooKeeperCleanup')
-  end
-  
-  #######################################################################
-  # Initialize a ZooKeeper service or roles.
-  # If no server role names are provided, the command applies to the whole
-  # service, and initializes all the configured server roles.
-  # @param servers: ZK server role names(optional).
-  # @return: Command reference(for service command) or list of command
-  # references(for role commands).
-  #######################################################################
-  def init_zookeeper(*servers)
-    if servers
-      return _role_cmd('zooKeeperInit', servers)
-    end
-    return _cmd('zooKeeperInit')
-  end
-  
-  #######################################################################
-  # Synchronize the Hue server's database.
-  # @param: servers Name of Hue Server roles to synchronize.
-  # @return: List of submitted commands.
-  #######################################################################
-  def sync_hue_db(*servers)
-    return _role_cmd('hueSyncDb', servers)
-  end
-  
-  #######################################################################
-  # Put the service in maintenance mode.
-  # @return: Reference to the completed command.
-  # @since: API v2
-  #######################################################################
-  def enter_maintenance_mode
-    cmd = _cmd('enterMaintenanceMode')
-    if cmd.success
-      _update(_get_service(_get_resource_root(), _path()))
-    end
-    return cmd
-  end
-  
-  #######################################################################
-  # Take the service out of maintenance mode.
-  # @return: Reference to the completed command.
-  # @since: API v2
-  #######################################################################
-  def exit_maintenance_mode
-    cmd = _cmd('exitMaintenanceMode')
-    if cmd.success
-      _update(_get_service(_get_resource_root(), _path()))
-    end
-    return cmd
-  end
 end
 
 #######################################################################
