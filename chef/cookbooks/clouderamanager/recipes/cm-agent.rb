@@ -47,31 +47,54 @@ service "cloudera-scm-agent" do
   action :enable 
 end
 
-# Create the agent config file. Do not update after after initial deployment
-# of the hadoop cluster (CM will manage this file).
-# If we are programmatically configuring the cluster, we need to set the
-# cm server FQDN. Otherwise, let CM configure this parameter setting.
-agent_config_file = "/etc/cloudera-scm-agent/config.ini"
+# Create the agent configuration file. Do not update after after initial deployment
+# of the hadoop cluster (CM will manage this file). If we are programmatically
+# configuring the cluster, we need to set the cm server FQDN. Otherwise, let
+# CM configure this parameter setting on initial cluster deployment.
 cm_server = 'not_configured'
-cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
-if cmservernodes and cmservernodes.length > 0 
-  rec = cmservernodes[0]
-  cm_server = rec[:fqdn]
-end
-
-#######################################################################
-# Update the cm-agent config file.
-#######################################################################
-if !File.exists?(agent_config_file) or cm_server != 'not_configured' 
-  Chef::Log.info("CM - Configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
-  vars = { :cm_server => cm_server } 
-  template agent_config_file do
-    source "cm-agent-config.erb" 
-    variables( :vars => vars )
-    notifies :restart, "service[cloudera-scm-agent]"
+agent_config_file = "/etc/cloudera-scm-agent/config.ini"
+if node[:clouderamanager][:cmapi][:deployment_type] == 'manual'
+  # We need to let CM configure and start the cm-agent
+  # processes or the Hadoop base packages will not be installed. CM makes the 
+  # general assumption that all the Hadoop base packages are installed if it
+  # already see's the agents heartbeating on the network.
+  # Only update the file the first time around.
+  if !File.exists?(agent_config_file) 
+    Chef::Log.info("CM - Configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
+    vars = { :cm_server => cm_server } 
+    template agent_config_file do
+      source "cm-agent-config.erb" 
+      variables( :vars => vars )
+      notifies :restart, "service[cloudera-scm-agent]"
+    end
+  else
+    Chef::Log.info("CM - cm-agent already configured - skipping [#{agent_config_file}]") if debug
   end
 else
-  Chef::Log.info("CM - cm-agent already configured - skipping [#{agent_config_file}]") if debug
+  # deployment_type == 'auto'. Ok to start the cm-agents pre-configured because we
+  # have already have the Hadoop base packages installed in this mode.
+  cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
+  if cmservernodes and cmservernodes.length > 0 
+    rec = cmservernodes[0]
+    cm_server = rec[:fqdn]
+  end
+  # Only if we have a valid IP address for the cm-server node.
+  if cm_server != 'not_configured'
+    # Only update the file the first time around.
+    if !File.exists?(agent_config_file) 
+      Chef::Log.info("CM - Configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
+      vars = { :cm_server => cm_server } 
+      template agent_config_file do
+        source "cm-agent-config.erb" 
+        variables( :vars => vars )
+        notifies :restart, "service[cloudera-scm-agent]"
+      end
+    else
+      Chef::Log.info("CM - cm-agent already configured - skipping [#{agent_config_file}]") if debug
+    end
+  else
+    Chef::Log.info("CM - waiting for a valid cm-server address - skipping [#{agent_config_file}]") if debug
+  end
 end
 
 # Start the cloudera agent service.
