@@ -145,21 +145,28 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Check the license key adn update if needed.
+  # Check the license key and update if needed.
   # Note: get_license will report nil until the cm-server has been restarted.
   #####################################################################
-  def check_license_key(debug, api, license_key)
-    license_check  = api.get_license()
-    Chef::Log.info("CM - license_check") if debug
+  def check_license_key(debug, api, cb_license_key)
+    cm_license_key = api.get_license()
+    if cm_license_key and not cm_license_key.empty? 
+      Chef::Log.info("CM - existing license key found") if debug
+    else
+      Chef::Log.info("CM - no existing license key") if debug
+    end
     # Only update if not active or key has changed.
-    if license_check.nil? or license_check != license_key 
-      Chef::Log.info("CM - updating license") if debug
-      api_license = api.update_license(license_key)
-      Chef::Log.info("CM - update license returns [#{api_license}]") if debug
-      service "cloudera-scm-server" do
-        action :restart 
+    if cb_license_key and not cb_license_key.empty? 
+      if cm_license_key.nil? or cm_license_key.empty? or cb_license_key != cm_license_key 
+        Chef::Log.info("CM - updating license") if debug
+        api_license = api.update_license(cb_license_key)
+        Chef::Log.info("CM - update license returns [#{api_license}]") if debug
+        # Restart the cm server.
+        service "cloudera-scm-server" do
+          action :restart 
+        end
+        Chef::Log.info("CM - cm-server restarted") if debug
       end
-      Chef::Log.info("CM - cm-server restarted") if debug
     end
   end
   
@@ -272,7 +279,9 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       #--------------------------------------------------------------------
       # Set the license key if present. 
       #--------------------------------------------------------------------
+      Chef::Log.info("CM - checking license key") if debug
       if license_key and not license_key.empty? 
+        Chef::Log.info("CM - crowbar license key found") if debug
         check_license_key(debug, api, license_key)
       end
       

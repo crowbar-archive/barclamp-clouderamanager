@@ -24,7 +24,7 @@
           "cluster_name": "cluster01",
           "cdh_version": "CDH4",
           "license_key": "",
-          "rack_id": "/default"
+		  "rack_id": "/default"
       },
       "ha": {
           "shared_edits_directory": "/dfs/ha",

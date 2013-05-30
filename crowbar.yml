@@ -68,7 +68,7 @@ locale_additions:
           cluster_settings: Cluster
           cluster_name: Cluster Name
           cdh_version: CDH Version
-          license_key: License Key (Optional)
+          license_key: Cloudera Manager License Key (Optional)
           rack_id: Rack ID
           shared_edits_directory: Shared Edits Directory
           shared_edits_export_options: Shared Edits Export Options 
