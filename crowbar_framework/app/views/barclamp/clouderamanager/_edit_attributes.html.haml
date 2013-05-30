@@ -75,7 +75,7 @@
 
     %p
       %label{ :for => :license_key }= t('.license_key')
-      %input#license_key{:type => "text", :name => "license_key", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :onchange => "update_value('cluster', 'license_key', 'string')"}
+      = text_area_tag :license_key, @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :size => "80x5", :onchange => "update_value('cluster/license_key', 'license_key', 'string')"
 
     %p
       %label{ :for => :rack_id }= t('.rack_id')
