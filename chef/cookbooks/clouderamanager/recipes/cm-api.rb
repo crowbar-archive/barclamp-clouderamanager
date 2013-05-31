@@ -53,10 +53,6 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   license_key = node[:clouderamanager][:cluster][:license_key] 
   cluster_name = node[:clouderamanager][:cluster][:cluster_name] 
   cdh_version = node[:clouderamanager][:cluster][:cdh_version] 
-  
-  # TODO: Set the rack ID.
-  # Need to add a CB rack_id parameter on each node.
-  # See DE1174 for details.
   rack_id = node[:clouderamanager][:cluster][:rack_id] 
   
   #--------------------------------------------------------------------
@@ -149,23 +145,42 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   # Note: get_license will report nil until the cm-server has been restarted.
   #####################################################################
   def check_license_key(debug, api, cb_license_key)
+    # cm_license_key = ApiLicense object - owner, uuid, expiration
     cm_license_key = api.get_license()
-    if cm_license_key and not cm_license_key.empty? 
-      Chef::Log.info("CM - existing license key found") if debug
+    cm_uuid = nil
+    if cm_license_key
+      cm_uuid = cm_license_key.getattr('uuid')
+    end
+    if cm_uuid and not cm_uuid.empty?
+      Chef::Log.info("CM - existing license key found [#{cm_uuid}]") if debug
     else
       Chef::Log.info("CM - no existing license key") if debug
     end
-    # Only update if not active or key has changed.
+    # Is there a valid license key specified in the crowbar proposal?
     if cb_license_key and not cb_license_key.empty? 
-      if cm_license_key.nil? or cm_license_key.empty? or cb_license_key != cm_license_key 
-        Chef::Log.info("CM - updating license") if debug
+      # Parse the header key, value pairs.
+      # Example: name=devel-06-02282014]
+      #          expirationDate=2014-02-28
+      #          uuid=aa743538-7b1c-11e2-961a-b499baa7f55b
+      hash = Hash[cb_license_key.scan /^\s*"(.+?)": "(.+?)",\s*$/m]
+      cb_uuid = hash['uuid'] 
+      Chef::Log.info("CM - new license key found [#{cb_uuid}]") if debug
+      # If CM license is not already active or license key has changed.
+      if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid 
+        Chef::Log.info("CM - updating license old_uuid=#{cm_uuid} new_uuid=#{cb_uuid}") if debug
+        # Update the license. 
         api_license = api.update_license(cb_license_key)
-        Chef::Log.info("CM - update license returns [#{api_license}]") if debug
-        # Restart the cm server.
-        service "cloudera-scm-server" do
-          action :restart 
+        # Restart the cm server to activate.
+        Chef::Log.info("CM - restarting cm-server") if debug
+        bash "cm-server-restart" do
+          user "root"
+          code <<-EOH
+          service cloudera-scm-server restart
+          EOH
         end
         Chef::Log.info("CM - cm-server restarted") if debug
+      else
+        Chef::Log.info("CM - license update NOT required old_uuid=#{cm_uuid} new_uuid=#{cb_uuid}") if debug
       end
     end
   end
