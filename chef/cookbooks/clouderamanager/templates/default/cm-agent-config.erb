@@ -1,4 +1,5 @@
 [General]
+# Hostname of Cloudera SCM Server
 <% if @vars[:cm_server] && !@vars[:cm_server].empty? %>
 server_host=<%= @vars[:cm_server] %>
 <% else %>
@@ -18,8 +19,17 @@ server_port=7182
 # Hostname that Agent reports as its hostname
 # listening_hostname=
 
-# Log file
+# Log file.  The supervisord log file will be placed into
+# the same directory.  Note that if the agent is being started
+# via the init.d script, /var/log/cloudera-scm-agent/cloudera-scm-agent.out
+# will also have a small amount of output (from before logging
+# is initialized.)
 # log_file=/var/log/cloudera-scm-agent/cloudera-scm-agent.log
+
+# Parcel directory
+# Unpacked parcels will be stored in this directory
+# Downloaded parcels will be stored in <parcel_dir>/../parcel-cache
+# parcel_dir=/opt/cloudera/parcels
 
 # Heartbeat optimizations.
 # enable_eager_heartbeats=true

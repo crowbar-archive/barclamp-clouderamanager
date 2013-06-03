@@ -294,12 +294,12 @@ class ApiCommand < BaseApiObject
   # setattr(k, v)
   #######################################################################
   def setattr(k, v)
-    if k == 'children' and v.not_equal? nil
+    if k == 'children' and not v.nil?
       v = ApiList.from_json_dict(ApiCommand, v, _get_resource_root())
-    elsif k == 'parent' and v.not_equal? nil
+    elsif k == 'parent' and not v.nil?
       v = ApiCommand.from_json_dict(v, _get_resource_root())
     end
-    BaseApiObject.setclassattr(self, k, v)
+    setclassattr(self, k, v)
   end
   
   #######################################################################
@@ -329,8 +329,7 @@ class ApiCommand < BaseApiObject
     end
     
     sleep_sec = 5
-    
-    if timeout.equal? nil
+    if timeout.nil?
       deadline = nil
     else
       deadline = time.time() + timeout
@@ -434,7 +433,7 @@ class ApiMetric < BaseApiObject
           @data << ApiMetricData.from_json_dict(x, _get_resource_root())
         end
       else
-        BaseApiObject.setclassattr(self, k, v)
+        setclassattr(self, k, v)
       end
     end
   end

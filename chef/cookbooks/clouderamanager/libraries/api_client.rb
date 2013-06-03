@@ -540,6 +540,30 @@ class ApiResource < Resource
     return service_object.exit_maintenance_mode(self)
   end
   
+  #######################################################################
+  # Start a service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def start_service(service_object)
+    return service_object.start(self)
+  end
+  
+  #######################################################################
+  # Stop a service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def stop_service(service_object)
+    return service_object.stop(self)
+  end
+  
+  #######################################################################
+  # Restart a service.
+  # @return Reference to the submitted command.
+  #######################################################################
+  def restart_service(service_object)
+    return service_object.restart(self)
+  end
+  
   #----------------------------------------------------------------------
   # End of service level commands.
   #----------------------------------------------------------------------
