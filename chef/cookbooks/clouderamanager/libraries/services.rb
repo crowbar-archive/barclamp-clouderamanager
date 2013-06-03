@@ -153,7 +153,7 @@ class ApiService < BaseApiObject
   #######################################################################
   def self._get_service(resource_root, path)
     dict = resource_root.get(path)
-    return ApiService.from_json_dict(dict, resource_root)
+    return ApiService.from_json_dict(ApiService, dict, resource_root)
   end
   
   def self.get_service(resource_root, name, cluster_name="default")
@@ -185,7 +185,7 @@ class ApiService < BaseApiObject
   def self.delete_service(resource_root, name, cluster_name="default")
     path = "/clusters/#{cluster_name}/services"
     resp = resource_root.delete("#{path}/#{name}")
-    return ApiService.from_json_dict(resp, resource_root)
+    return ApiService.from_json_dict(ApiService, resp, resource_root)
   end
   
   #----------------------------------------------------------------------
@@ -230,7 +230,7 @@ class ApiService < BaseApiObject
   def _system_cmd(resource_root, cmd, data=nil, params=nil)
     path = _path() + '/commands/' + cmd
     resp = resource_root.post(path, data, params)
-    return ApiCommand.from_json_dict(resp, resource_root)
+    return ApiCommand.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -289,7 +289,7 @@ class ApiService < BaseApiObject
     path = _path() + "/activities/#{job_id}"
     resource_root = _get_resource_root()
     resp = resource_root.get(path)
-    return ApiActivity.from_json_dict(resp, resource_root)
+    return ApiActivity.from_json_dict(ApiActivity, resp, resource_root)
   end
   
   #----------------------------------------------------------------------
@@ -522,10 +522,6 @@ class ApiService < BaseApiObject
     return cmd
   end
   
-  #----------------------------------------------------------------------
-  # End of service control methods.
-  #----------------------------------------------------------------------
-  
   #######################################################################
   # Start a service.
   # @return Reference to the submitted command.
@@ -549,6 +545,10 @@ class ApiService < BaseApiObject
   def restart(resource_root)
     return _system_cmd(resource_root, 'restart')
   end
+  
+  #----------------------------------------------------------------------
+  # End of service control methods.
+  #----------------------------------------------------------------------
   
   #######################################################################
   # Create the Beeswax role's warehouse for a Hue service.

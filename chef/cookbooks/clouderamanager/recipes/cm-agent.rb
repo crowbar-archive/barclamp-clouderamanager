@@ -54,11 +54,10 @@ end
 cm_server = 'not_configured'
 agent_config_file = "/etc/cloudera-scm-agent/config.ini"
 if node[:clouderamanager][:cmapi][:deployment_type] == 'manual'
-  # We need to let CM configure and start the cm-agent
-  # processes or the Hadoop base packages will not be installed. CM makes the 
-  # general assumption that all the Hadoop base packages are installed if it
-  # already see's the agents heartbeating on the network.
-  # Only update the file the first time around.
+  # We need to let CM configure and start the cm-agent processes or the Hadoop
+  # base packages will not be installed. CM makes the general assumption that
+  # all the Hadoop base packages are installed if it already see's the agent
+  # heartbeat on the network. Only update the file the first time around.
   if !File.exists?(agent_config_file) 
     Chef::Log.info("CM - Configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
     vars = { :cm_server => cm_server } 
@@ -72,17 +71,18 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'manual'
   end
 else
   # deployment_type == 'auto'. Ok to start the cm-agents pre-configured because we
-  # have already have the Hadoop base packages installed in this mode.
+  # have already have the Hadoop base packages installed.
+  # Get the cm-server node.
   cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
   if cmservernodes and cmservernodes.length > 0 
     rec = cmservernodes[0]
     cm_server = rec[:fqdn]
   end
+  
   # Only if we have a valid IP address for the cm-server node.
   if cm_server != 'not_configured'
-    # Only update the file the first time around.
     if !File.exists?(agent_config_file) 
-      Chef::Log.info("CM - Configuring cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
+      Chef::Log.info("CM - Initializing cm-agent settings [#{agent_config_file}, #{cm_server}]") if debug
       vars = { :cm_server => cm_server } 
       template agent_config_file do
         source "cm-agent-config.erb" 
@@ -90,7 +90,36 @@ else
         notifies :restart, "service[cloudera-scm-agent]"
       end
     else
-      Chef::Log.info("CM - cm-agent already configured - skipping [#{agent_config_file}]") if debug
+      # Update the cm-server host setting in the cm-agent config file.
+      file agent_config_file do
+        key="server_host"
+        current_content = File.read(agent_config_file)
+        key_idx = current_content.index(key)
+        new_line = "#{key}=#{cm_server}"
+        rewrite_config_file = false
+        if key_idx.nil?        
+          new_content = "#{new_line}\n\n#{current_content}" 
+          rewrite_config_file = true
+        else
+          host_val = current_content.scan /^\s*#{key}=(.+?)\s*$/m
+          hv = host_val[0].to_s
+          Chef::Log.info("CM - cm-agent host id [#{hv}] [#{cm_server}]") if debug
+          if hv != cm_server
+            new_content = current_content.gsub(/^\s*#{key}=(.+?)\s*$/, "#{new_line}\n") 
+            rewrite_config_file = true
+          end
+        end
+        if rewrite_config_file
+          Chef::Log.info("CM - re-writing cm-agent config file [#{agent_config_file}]") if debug
+          owner "root"
+          group "root"
+          mode  "0644"
+          content new_content
+          notifies :restart, "service[cloudera-scm-agent]"
+        else
+          Chef::Log.info("CM - cm-agent config file ok [#{agent_config_file}]") if debug
+        end
+      end
     end
   else
     Chef::Log.info("CM - waiting for a valid cm-server address - skipping [#{agent_config_file}]") if debug

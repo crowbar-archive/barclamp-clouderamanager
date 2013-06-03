@@ -1,6 +1,6 @@
 #
 # Cookbook Name: clouderamanager
-# Recipe: cm-agent.rb
+# Recipe: cm-api.rb
 #
 # Copyright (c) 2011 Dell Inc.
 #
@@ -77,9 +77,9 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   #####################################################################
   # Build the cluster configuration data structure with CM role associations.
   # Role names must be unique across all clusters. 
-  # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY, HTTPFS,
-  # JOURNALNODE, FAILOVERCONTROLLER.
-  # MAPREDUCE : JOBTRACKER, TASKTRACKER, GATEWAY 
+  # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
+  # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER. MAPREDUCE : JOBTRACKER,
+  # TASKTRACKER, GATEWAY 
   #####################################################################
   def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
     
@@ -152,9 +152,9 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       cm_uuid = cm_license_key.getattr('uuid')
     end
     if cm_uuid and not cm_uuid.empty?
-      Chef::Log.info("CM - existing license key found [#{cm_uuid}]") if debug
+      Chef::Log.info("CM - existing CM license key found [#{cm_uuid}]") if debug
     else
-      Chef::Log.info("CM - no existing license key") if debug
+      Chef::Log.info("CM - no existing CM license key") if debug
     end
     # Is there a valid license key specified in the crowbar proposal?
     if cb_license_key and not cb_license_key.empty? 
@@ -164,10 +164,10 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       #          uuid=aa743538-7b1c-11e2-961a-b499baa7f55b
       hash = Hash[cb_license_key.scan /^\s*"(.+?)": "(.+?)",\s*$/m]
       cb_uuid = hash['uuid'] 
-      Chef::Log.info("CM - new license key found [#{cb_uuid}]") if debug
+      Chef::Log.info("CM - CB license is present [#{cb_uuid}]") if debug
       # If CM license is not already active or license key has changed.
       if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid 
-        Chef::Log.info("CM - updating license old_uuid=#{cm_uuid} new_uuid=#{cb_uuid}") if debug
+        Chef::Log.info("CM - updating license cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
         # Update the license. 
         api_license = api.update_license(cb_license_key)
         # Restart the cm server to activate.
@@ -180,7 +180,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
         end
         Chef::Log.info("CM - cm-server restarted") if debug
       else
-        Chef::Log.info("CM - license update NOT required old_uuid=#{cm_uuid} new_uuid=#{cb_uuid}") if debug
+        Chef::Log.info("CM - license update NOT required cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
       end
     end
   end
@@ -201,7 +201,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Configure the cluster hosts.
+  # Configure the hosts.
   #####################################################################
   def configur_host_instances(debug, api, rack_id, cluster_config)
     cluster_config.each do |host_rec|
@@ -220,7 +220,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Configure the cluster services.
+  # Configure the services.
   #####################################################################
   def configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)
     service = api.find_service(service_name, cluster_name)
@@ -235,7 +235,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   end
   
   #####################################################################
-  # Apply the cluster roles.
+  # Apply the roles.
   #####################################################################
   def apply_roles(debug, api, hdfs_service, mapr_service, cluster_name, cluster_config)
     cluster_config.each do |host_rec|
@@ -399,24 +399,29 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       
       #--------------------------------------------------------------------
       # Format HDFS. 
-      # format_hdfs takes a list of NameNodes.
       #--------------------------------------------------------------------
 =begin
-      CMD_TIMEOUT = 180 
-      cmd = api.format_hdfs(hdfs_service, [ 'NAMENODE-cluster01-01' ])
-      if not cmd.wait(CMD_TIMEOUT).success
-        Chef::Log.info("CM - HDFS format failed")
+      cluster_config.each do |r|
+        if r[:role_type] == 'NAMENODE'
+          role_name = r[:role_name] 
+          CMD_TIMEOUT = 180 
+          Chef::Log.info("CM - formatting HDFS #{role_name}") if debug
+          cmd = api.format_hdfs(hdfs_service, [ role_name ])
+          # if not cmd.wait(CMD_TIMEOUT).success
+          #  Chef::Log.info("CM - HDFS format failed")
+          # end
+          Chef::Log.info("CM - format results #{cmd}") if debug
+        end
       end
-=end
       
-=begin      
       #--------------------------------------------------------------------
       # Start HDFS. 
       #--------------------------------------------------------------------
-      cmd = hdfs_service.start()
-      if not cmd.wait(CMD_TIMEOUT).success
-        Chef::Log.info("CM - HDFS start failed")
-      end        
+      cmd = api.start_service(hdfs_service)
+      # if not cmd.wait(CMD_TIMEOUT).success
+      #   Chef::Log.info("CM - HDFS start failed")
+      # end        
+      Chef::Log.info("CM - start service results #{cmd}") if debug
 =end
     end
   end
