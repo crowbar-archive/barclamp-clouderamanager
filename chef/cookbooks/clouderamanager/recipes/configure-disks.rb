@@ -38,15 +38,19 @@ def get_uuid(disk)
   uuid
 end
 
-# Find all the storage type disks.
-to_use_disks = []
-all_disks = node[:crowbar][:disks]
-boot_disk=File.readlink("/dev/#{node[:crowbar_wall][:boot_device]}").split('/')[-1] rescue "sda"
-if !all_disks.nil?
-  all_disks.each { |k,v|
-    to_use_disks << k unless k == boot_disk
-  }
+# Find all the unclaimed disks and claim them.
+BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).each do |disk|
+  if disk.claim("Cloudera")
+    Chef::Log.info("Claiming #{disk.name} for Cloudera")
+  else
+    Chef::Log.info("Failed to claim #{disk.name} for Cloudera")
+  end
 end
+
+# Use all the disks claimed by Cloudera on this node.
+to_use_disks = BarclampLibrary::Barclamp::Inventory::Disk.claimed(node,"Cloudera").map do |d|
+  d.device
+end.sort
 
 Chef::Log.info("CM - found disk: #{to_use_disks.join(':')} fs_type: [#{fs_type}]") if debug  
 
