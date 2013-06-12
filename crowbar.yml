@@ -27,6 +27,7 @@ barclamp:
     - hadoop
     - zookeeper
     - hive
+    - sqoop
 
 crowbar:
   layout: 1
