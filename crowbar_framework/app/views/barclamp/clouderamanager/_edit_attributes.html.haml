@@ -35,6 +35,50 @@
 
     %p
     %br
+    %strong= t('.cmapi_settings')
+
+    %p
+      %label{ :for => :deployment_type }= t('.deployment_type')
+      = select_tag :deployment_type, options_for_select([['manual', 'manual'],['auto', 'auto']], @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["deployment_type"]), :onchange => "update_value('cmapi/deployment_type', 'deployment_type', 'string')"
+
+    %p
+      %label{ :for => :server_port }= t('.server_port')
+      %input#server_port{:type => "text", :name => "server_port", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["server_port"], :onchange => "update_value('cmapi', 'server_port', 'string')"}
+
+    %p
+      %label{ :for => :username }= t('.username')
+      %input#username{:type => "text", :name => "username", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["username"], :onchange => "update_value('cmapi', 'username', 'string')"}
+
+    %p
+      %label{ :for => :password }= t('.password')
+      %input#password{:type => "text", :name => "password", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["password"], :onchange => "update_value('cmapi', 'password', 'string')"}
+
+    %p
+      %label{ :for => :use_tls }= t('.use_tls')
+      = select_tag :use_tls, options_for_select([['false', false],['true', true]], @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["use_tls"]), :onchange => "update_value('cmapi', 'use_tls', 'boolean')"
+
+    %p
+      %label{ :for => :version }= t('.version')
+      %input#version{:type => "text", :name => "version", :readonly => true, :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["version"], :onchange => "update_value('cmapi', 'version', 'string')"}
+
+    %p
+    %br
+    %strong= t('.cluster_settings')
+
+    %p
+      %label{ :for => :cluster_name }= t('.cluster_name')
+      %input#cluster_name{:type => "text", :name => "cluster_name", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cluster_name"], :onchange => "update_value('cluster', 'cluster_name', 'string')"}
+
+    %p
+      %label{ :for => :cdh_version }= t('.cdh_version')
+      %input#cdh_version{:type => "text", :name => "cdh_version", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cdh_version"], :onchange => "update_value('cluster', 'cdh_version', 'string')"}
+
+    %p
+      %label{ :for => :license_key }= t('.license_key')
+      = text_area_tag :license_key, @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :size => "80x5", :onchange => "update_value('cluster/license_key', 'license_key', 'string')"
+
+    %p
+    %br
     %strong= t('.ha_settings')
 
     %p
