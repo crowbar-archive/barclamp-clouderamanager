@@ -119,6 +119,18 @@ else
 end
 
 #######################################################################
+# The CM API automatic configuration feature is current disabled by
+# default. You must enable it in crowbar before queuing the proposal.
+# If this feature is disabled, you must configure the cluster manually
+# using the CM user interface.
+#######################################################################
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+  include_recipe 'clouderamanager::cm-api'
+else
+  Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
+end
+
+#######################################################################
 # End recipe
 #######################################################################
 Chef::Log.info("CM - END clouderamanager:cm-server") if debug

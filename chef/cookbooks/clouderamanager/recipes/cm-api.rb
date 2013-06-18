@@ -26,18 +26,220 @@ Chef::Log.info("CM - BEGIN clouderamanager:cm-api") if debug
 # Configuration filter for the crowbar environment.
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
-#######################################################################
-# The CM API automatic configuration feature is current disabled by
-# default. You must enable it in crowbar before queuing the proposal.
-# If this feature is disabled, you must configure the cluster manually
-# using the CM user interface.
-#######################################################################
-if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+libbase = File.join(File.dirname(__FILE__), '../libraries' )
+require "#{libbase}/api_client.rb"
+require "#{libbase}/utils.rb"
+
+#####################################################################
+# Find the cm_server.
+#####################################################################
+def find_cm_server(debug, env_filter, node_object)
+  cmservernodes = node_object[:clouderamanager][:cluster][:cmservernodes]
+  if cmservernodes and cmservernodes.length > 0 
+    rec = cmservernodes[0]
+    return rec[:ipaddr]
+  end
+  return nil
+end
+
+#####################################################################
+# Build the cluster configuration data structure with CM role associations.
+# Role names must be unique across all clusters. 
+# HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
+# HTTPFS, JOURNALNODE, FAILOVERCONTROLLER. MAPREDUCE : JOBTRACKER,
+# TASKTRACKER, GATEWAY 
+#####################################################################
+def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
   
-  libbase = File.join(File.dirname(__FILE__), '../libraries' )
-  require "#{libbase}/api_client.rb"
-  require "#{libbase}/utils.rb"
+  #####################################################################
+  # Role appender helper method.
+  #####################################################################
+  def role_appender(debug, cluster_config, cluster_name, counter_map, cb_nodes, service_type, role_type)
+    if cb_nodes  
+      cb_nodes.each do |n|
+        counter_map[role_type] = 1 if counter_map[role_type].nil?
+        cnt = sprintf("%2.2d", counter_map[role_type])
+        role_name = "#{role_type}-#{cluster_name}-#{cnt}"
+        rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
+        Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
+        cluster_config << rec
+        counter_map[role_type] += 1
+      end
+    end
+  end    
   
+  #--------------------------------------------------------------------
+  # Add the CM role definitions.
+  #--------------------------------------------------------------------
+  config = []
+  counter_map = { }
+  # primary namenode
+  if namenodes.length > 0
+    primary_namenode = [ namenodes[0] ]
+    role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
+    role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
+  end
+  # secondary namenode
+  if namenodes.length > 1
+    secondary_namenode = [ namenodes[1] ]
+    role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
+  end
+  # datanodes
+  role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
+  role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
+  Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
+  # edgenodes
+=begin    
+    if edgenodes.length > 0
+      role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
+    end
+=end
+  return config
+end
+
+#####################################################################
+# Create the API resource object (establish the RESTful API connection).
+#####################################################################
+def create_api_resource(debug, server_host, server_port, username, password, use_tls, version)
+  Chef::Log.info("CM - Create API resource [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]") if debug
+  api = ApiResource.new(server_host, server_port, username, password, use_tls, version, debug)
+  api_version = api.version()
+  Chef::Log.info("CM - API version [#{api_version}]") if debug
+  return api
+end
+
+#####################################################################
+# Check the license key and update if needed.
+# Note: get_license will report nil until the cm-server has been restarted.
+#####################################################################
+def check_license_key(debug, api, cb_license_key)
+  # cm_license_key = ApiLicense object - owner, uuid, expiration
+  cm_license_key = api.get_license()
+  cm_uuid = nil
+  if cm_license_key
+    cm_uuid = cm_license_key.getattr('uuid')
+  end
+  if cm_uuid and not cm_uuid.empty?
+    Chef::Log.info("CM - existing CM license key found [#{cm_uuid}]") if debug
+  else
+    Chef::Log.info("CM - no existing CM license key") if debug
+  end
+  # Is there a valid license key specified in the crowbar proposal?
+  if cb_license_key and not cb_license_key.empty? 
+    # Parse the header key, value pairs.
+    # Example: name=devel-06-02282014]
+    #          expirationDate=2014-02-28
+    #          uuid=aa743538-7b1c-11e2-961a-b499baa7f55b
+    hash = Hash[cb_license_key.scan /^\s*"(.+?)": "(.+?)",\s*$/m]
+    cb_uuid = hash['uuid'] 
+    Chef::Log.info("CM - CB license is present [#{cb_uuid}]") if debug
+    # If CM license is not already active or license key has changed.
+    if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid 
+      Chef::Log.info("CM - updating license cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
+      # Update the license. 
+      api_license = api.update_license(cb_license_key)
+      # Restart the cm server to activate.
+      Chef::Log.info("CM - restarting cm-server") if debug
+      bash "cm-server-restart" do
+        user "root"
+        code <<-EOH
+          service cloudera-scm-server restart
+          EOH
+      end
+      Chef::Log.info("CM - cm-server restarted") if debug
+    else
+      Chef::Log.info("CM - license update NOT required cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
+    end
+  end
+end
+
+#####################################################################
+# Configure the cluster.
+#####################################################################
+def configure_cluster(debug, api, cluster_name, cdh_version)
+  cluster_object = api.find_cluster(cluster_name)
+  if cluster_object == nil
+    Chef::Log.info("CM - cluster does not exists [#{cluster_name}, #{cdh_version}]") if debug
+    cluster_object = api.create_cluster(cluster_name, cdh_version)
+    Chef::Log.info("CM - api.configure_cluster(#{cluster_name}, #{cdh_version}) results : [#{cluster_object}]") if debug
+  else
+    Chef::Log.info("CM - cluster already exists [#{cluster_name}, #{cdh_version}] results : [#{cluster_object}]") if debug
+  end
+  return cluster_object
+end
+
+#####################################################################
+# Configure the hosts.
+#####################################################################
+def configur_host_instances(debug, api, rack_id, cluster_config)
+  cluster_config.each do |host_rec|
+    host_id = host_rec[:host_id]
+    name = host_rec[:name]
+    ipaddr = host_rec[:ipaddr]
+    host_object = api.find_host(host_id)
+    if host_object == nil
+      Chef::Log.info("CM - host does not exists [#{host_id}]") if debug
+      host_object = api.create_host(host_id, name, ipaddr, rack_id)
+      Chef::Log.info("CM - api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) results : [#{host_object}]") if debug
+    else
+      Chef::Log.info("CM - host already exists [#{host_id}] results : [#{host_object}]") if debug
+    end
+  end
+end
+
+#####################################################################
+# Configure the services.
+#####################################################################
+def configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)
+  service = api.find_service(service_name, cluster_name)
+  if service == nil
+    Chef::Log.info("CM - service does not exists [#{service_name}, #{service_type}, #{cluster_name}]") if debug
+    service = api.create_service(cluster_object, service_name, service_type, cluster_name)
+    Chef::Log.info("CM - api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service}]") if debug
+  else
+    Chef::Log.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service}]") if debug
+  end
+  return service
+end
+
+#####################################################################
+# Apply the roles.
+#####################################################################
+def apply_roles(debug, api, hdfs_service, mapr_service, cluster_name, cluster_config)
+  cluster_config.each do |host_rec|
+    valid_config = true
+    host_id = host_rec[:host_id]
+    host_name = host_rec[:name]
+    host_ip = host_rec[:ipaddr]
+    role_name = host_rec[:role_name]
+    role_type = host_rec[:role_type]
+    service_type = host_rec[:service_type]
+    service_object = nil
+    if service_type == "HDFS"
+      service_object = hdfs_service
+    elsif service_type == "MAPREDUCE"
+      service_object = mapr_service
+    else
+      Chef::Log.info("CM - ERROR : Bad service type [#{service_type}] in apply_roles")
+      valid_config = false
+    end
+    if valid_config
+      role_object = api.find_role(service_object, role_name)
+      if role_object == nil
+        Chef::Log.info("CM - role does not exists [#{host_id}]") if debug
+        role_object = api.create_role(service_object, role_name, role_type, host_id)
+        Chef::Log.info("CM - api.create_role results(#{role_name}, #{role_type}, #{host_id}) results : [#{role_object}]") if debug
+      else
+        Chef::Log.info("CM - role already exists [#{role_name}] results : [#{role_object}]") if debug
+      end
+    end
+  end
+end
+
+#####################################################################
+# cm_api_setup method
+#####################################################################
+def cm_api_setup(debug, env_filter, node)  
   #--------------------------------------------------------------------
   # CM API configuration parameters.
   #--------------------------------------------------------------------
@@ -61,216 +263,6 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   namenodes = node[:clouderamanager][:cluster][:namenodes] 
   datanodes = node[:clouderamanager][:cluster][:datanodes]
   edgenodes = node[:clouderamanager][:cluster][:edgenodes] 
-  
-  #####################################################################
-  # Find the cm_server.
-  #####################################################################
-  def find_cm_server(debug, env_filter, node_object)
-    cmservernodes = node_object[:clouderamanager][:cluster][:cmservernodes]
-    if cmservernodes and cmservernodes.length > 0 
-      rec = cmservernodes[0]
-      return rec[:ipaddr]
-    end
-    return nil
-  end
-  
-  #####################################################################
-  # Build the cluster configuration data structure with CM role associations.
-  # Role names must be unique across all clusters. 
-  # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
-  # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER. MAPREDUCE : JOBTRACKER,
-  # TASKTRACKER, GATEWAY 
-  #####################################################################
-  def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
-    
-    #####################################################################
-    # Role appender helper method.
-    #####################################################################
-    def role_appender(debug, cluster_config, cluster_name, counter_map, cb_nodes, service_type, role_type)
-      if cb_nodes  
-        cb_nodes.each do |n|
-          counter_map[role_type] = 1 if counter_map[role_type].nil?
-          cnt = sprintf("%2.2d", counter_map[role_type])
-          role_name = "#{role_type}-#{cluster_name}-#{cnt}"
-          rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
-          Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
-          cluster_config << rec
-          counter_map[role_type] += 1
-        end
-      end
-    end    
-    
-    #--------------------------------------------------------------------
-    # Add the CM role definitions.
-    #--------------------------------------------------------------------
-    config = []
-    counter_map = { }
-    # primary namenode
-    if namenodes.length > 0
-      primary_namenode = [ namenodes[0] ]
-      role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
-      role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
-    end
-    # secondary namenode
-    if namenodes.length > 1
-      secondary_namenode = [ namenodes[1] ]
-      role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
-    end
-    # datanodes
-    role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
-    role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
-    Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
-    # edgenodes
-=begin    
-    if edgenodes.length > 0
-      role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
-    end
-=end
-    return config
-  end
-  
-  #####################################################################
-  # Create the API resource object (establish the RESTful API connection).
-  #####################################################################
-  def create_api_resource(debug, server_host, server_port, username, password, use_tls, version)
-    Chef::Log.info("CM - Create API resource [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]") if debug
-    api = ApiResource.new(server_host, server_port, username, password, use_tls, version, debug)
-    api_version = api.version()
-    Chef::Log.info("CM - API version [#{api_version}]") if debug
-    return api
-  end
-  
-  #####################################################################
-  # Check the license key and update if needed.
-  # Note: get_license will report nil until the cm-server has been restarted.
-  #####################################################################
-  def check_license_key(debug, api, cb_license_key)
-    # cm_license_key = ApiLicense object - owner, uuid, expiration
-    cm_license_key = api.get_license()
-    cm_uuid = nil
-    if cm_license_key
-      cm_uuid = cm_license_key.getattr('uuid')
-    end
-    if cm_uuid and not cm_uuid.empty?
-      Chef::Log.info("CM - existing CM license key found [#{cm_uuid}]") if debug
-    else
-      Chef::Log.info("CM - no existing CM license key") if debug
-    end
-    # Is there a valid license key specified in the crowbar proposal?
-    if cb_license_key and not cb_license_key.empty? 
-      # Parse the header key, value pairs.
-      # Example: name=devel-06-02282014]
-      #          expirationDate=2014-02-28
-      #          uuid=aa743538-7b1c-11e2-961a-b499baa7f55b
-      hash = Hash[cb_license_key.scan /^\s*"(.+?)": "(.+?)",\s*$/m]
-      cb_uuid = hash['uuid'] 
-      Chef::Log.info("CM - CB license is present [#{cb_uuid}]") if debug
-      # If CM license is not already active or license key has changed.
-      if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid 
-        Chef::Log.info("CM - updating license cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
-        # Update the license. 
-        api_license = api.update_license(cb_license_key)
-        # Restart the cm server to activate.
-        Chef::Log.info("CM - restarting cm-server") if debug
-        bash "cm-server-restart" do
-          user "root"
-          code <<-EOH
-          service cloudera-scm-server restart
-          EOH
-        end
-        Chef::Log.info("CM - cm-server restarted") if debug
-      else
-        Chef::Log.info("CM - license update NOT required cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
-      end
-    end
-  end
-  
-  #####################################################################
-  # Configure the cluster.
-  #####################################################################
-  def configure_cluster(debug, api, cluster_name, cdh_version)
-    cluster_object = api.find_cluster(cluster_name)
-    if cluster_object == nil
-      Chef::Log.info("CM - cluster does not exists [#{cluster_name}, #{cdh_version}]") if debug
-      cluster_object = api.create_cluster(cluster_name, cdh_version)
-      Chef::Log.info("CM - api.configure_cluster(#{cluster_name}, #{cdh_version}) results : [#{cluster_object}]") if debug
-    else
-      Chef::Log.info("CM - cluster already exists [#{cluster_name}, #{cdh_version}] results : [#{cluster_object}]") if debug
-    end
-    return cluster_object
-  end
-  
-  #####################################################################
-  # Configure the hosts.
-  #####################################################################
-  def configur_host_instances(debug, api, rack_id, cluster_config)
-    cluster_config.each do |host_rec|
-      host_id = host_rec[:host_id]
-      name = host_rec[:name]
-      ipaddr = host_rec[:ipaddr]
-      host_object = api.find_host(host_id)
-      if host_object == nil
-        Chef::Log.info("CM - host does not exists [#{host_id}]") if debug
-        host_object = api.create_host(host_id, name, ipaddr, rack_id)
-        Chef::Log.info("CM - api.create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) results : [#{host_object}]") if debug
-      else
-        Chef::Log.info("CM - host already exists [#{host_id}] results : [#{host_object}]") if debug
-      end
-    end
-  end
-  
-  #####################################################################
-  # Configure the services.
-  #####################################################################
-  def configure_service(debug, api, service_name, service_type, cluster_name, cluster_object)
-    service = api.find_service(service_name, cluster_name)
-    if service == nil
-      Chef::Log.info("CM - service does not exists [#{service_name}, #{service_type}, #{cluster_name}]") if debug
-      service = api.create_service(cluster_object, service_name, service_type, cluster_name)
-      Chef::Log.info("CM - api.create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service}]") if debug
-    else
-      Chef::Log.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service}]") if debug
-    end
-    return service
-  end
-  
-  #####################################################################
-  # Apply the roles.
-  #####################################################################
-  def apply_roles(debug, api, hdfs_service, mapr_service, cluster_name, cluster_config)
-    cluster_config.each do |host_rec|
-      valid_config = true
-      host_id = host_rec[:host_id]
-      host_name = host_rec[:name]
-      host_ip = host_rec[:ipaddr]
-      role_name = host_rec[:role_name]
-      role_type = host_rec[:role_type]
-      service_type = host_rec[:service_type]
-      service_object = nil
-      if service_type == "HDFS"
-        service_object = hdfs_service
-      elsif service_type == "MAPREDUCE"
-        service_object = mapr_service
-      else
-        Chef::Log.info("CM - ERROR : Bad service type [#{service_type}] in apply_roles")
-        valid_config = false
-      end
-      if valid_config
-        role_object = api.find_role(service_object, role_name)
-        if role_object == nil
-          Chef::Log.info("CM - role does not exists [#{host_id}]") if debug
-          role_object = api.create_role(service_object, role_name, role_type, host_id)
-          Chef::Log.info("CM - api.create_role results(#{role_name}, #{role_type}, #{host_id}) results : [#{role_object}]") if debug
-        else
-          Chef::Log.info("CM - role already exists [#{role_name}] results : [#{role_object}]") if debug
-        end
-      end
-    end
-  end
-  
-  #####################################################################
-  # CM API MAIN
-  #####################################################################
   
   #--------------------------------------------------------------------
   # Find the cm server. 
@@ -425,12 +417,32 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
 =end
     end
   end
-  
-  #####################################################################
-  # End of automatic cluster deployment.
-  #####################################################################
-else
-  Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
+end
+
+#####################################################################
+# CM API MAIN
+#####################################################################
+connection_ok = false
+retry_count = 1
+sleep_time = 10
+while (not connection_ok and retry_count < 4)
+  connection_ok = true
+  Chef::Log.info("CM - Executing cm-api code") if debug
+  begin
+    cm_api_setup(debug, env_filter, node)
+  rescue Errno::ECONNREFUSED => e
+    connection_ok = false
+    Chef::Log.info("CM - Can't connect to the cm-server - retrying #{retry_count}")
+    # puts e.message   
+    # puts e.backtrace.inspect
+    sleep(sleep_time)
+    sleep_time *= 2
+  end
+  retry_count += 1 
+end
+
+if (retry_count >= 4)
+  Chef::Log.info("CM - giving up on cm-server connection - will try again later")
 end
 
 #######################################################################
