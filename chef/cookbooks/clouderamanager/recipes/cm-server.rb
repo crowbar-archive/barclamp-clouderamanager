@@ -215,7 +215,7 @@ ruby_block "cm-api-deferred" do
       # Check the license key and update if needed.
       # Note: get_license will report nil until the cm-server has been restarted.
       #####################################################################
-      def check_license_key(debug, api, cb_license_key)
+      def check_license_key(debug, api, cb_license_key, config_state)
         # cm_license_key = ApiLicense object - owner, uuid, expiration
         cm_license_key = api.get_license()
         cm_uuid = nil
@@ -237,19 +237,21 @@ ruby_block "cm-api-deferred" do
           cb_uuid = hash['uuid'] 
           Chef::Log.info("CM - CB license is present [#{cb_uuid}]") if debug
           # If CM license is not already active or license key has changed.
-          if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid 
+          if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid
             Chef::Log.info("CM - updating license cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
             # Update the license. 
             api_license = api.update_license(cb_license_key)
-            # Restart the cm server to activate.
-            Chef::Log.info("CM - restarting cm-server") if debug
-            bash "cm-server-restart" do
-              user "root"
-              code <<-EOH
-          service cloudera-scm-server restart
-          EOH
+            if not config_state[:cm_server_restarted]
+              # Restart the cm server to activate.
+              Chef::Log.info("CM - restarting cm-server") if debug
+              output = %x{service cloudera-scm-server restart}
+              if $?.exitstatus != 0
+                Chef::Log.error("cloudera-scm-server restart failed #{output}")
+              else
+                Chef::Log.info("CM - cm-server restarted #{output}") if debug
+                config_state[:cm_server_restarted] = true
+              end
             end
-            Chef::Log.info("CM - cm-server restarted") if debug
           else
             Chef::Log.info("CM - license update NOT required cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
           end
@@ -342,7 +344,7 @@ ruby_block "cm-api-deferred" do
       #####################################################################
       # cm_api_setup method
       #####################################################################
-      def cm_api_setup(debug, env_filter, node)  
+      def cm_api_setup(debug, env_filter, node, retry_count, config_state)  
         #--------------------------------------------------------------------
         # CM API configuration parameters.
         #--------------------------------------------------------------------
@@ -390,9 +392,9 @@ ruby_block "cm-api-deferred" do
             # Set the license key if present. 
             #--------------------------------------------------------------------
             Chef::Log.info("CM - checking license key") if debug
-            if license_key and not license_key.empty? 
+            if license_key and not license_key.empty?
               Chef::Log.info("CM - crowbar license key found") if debug
-              check_license_key(debug, api, license_key)
+              check_license_key(debug, api, license_key, config_state)
             end
             
             #--------------------------------------------------------------------
@@ -532,14 +534,15 @@ ruby_block "cm-api-deferred" do
       connection_ok = false
       retry_count = 1
       sleep_time = 10
+      config_state = { :cm_server_restarted => false}
       while (not connection_ok and retry_count < 4)
         connection_ok = true
         Chef::Log.info("CM - Executing cm-api code") if debug
         begin
-          cm_api_setup(debug, env_filter, node)
+          cm_api_setup(debug, env_filter, node, retry_count, config_state)
         rescue Errno::ECONNREFUSED => e
           connection_ok = false
-          Chef::Log.info("CM - Can't connect to the cm-server - sleep and retrying #{retry_count}")
+          Chef::Log.info("CM - Can't connect to the cm-server - sleep and retrying #{retry_count} #{config_state[:cm_server_restarted]}")
           # puts e.message   
           # puts e.backtrace.inspect
           sleep(sleep_time)
