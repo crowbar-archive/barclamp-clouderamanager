@@ -32,7 +32,7 @@ default[:clouderamanager][:config][:environment] = 'clouderamanager-config-defau
 # Operating system configuration parameters.
 #----------------------------------------------------------------------
 
-# File system type (ext3/ext4/xfs). Must be a valid mkfs type (See man mkfs).
+# File system type (ext3/ext4). Must be a valid mkfs type (See man mkfs).
 default[:clouderamanager][:os][:fs_type] = 'ext4'
 
 # Hadoop open file limits - /etc/security/limits.conf.
