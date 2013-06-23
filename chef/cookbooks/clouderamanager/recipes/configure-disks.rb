@@ -26,8 +26,7 @@ Chef::Log.info("CM - BEGIN clouderamanager:configure-disks") if debug
 fs_type = node[:clouderamanager][:os][:fs_type]
 
 node[:clouderamanager][:devices] = []
-node[:clouderamanager][:hdfs][:dfs_data_dir] = []
-node[:clouderamanager][:mapred][:mapred_local_dir] = []
+node[:clouderamanager][:hdfs][:hdfs_mounts] = []
 
 # Get the disk UUID.
 def get_uuid(disk)
@@ -180,8 +179,7 @@ found_disks.each { |disk|
     
     # Update the crowbar data for this node.
     node[:clouderamanager][:devices] << disk
-    node[:clouderamanager][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
-    node[:clouderamanager][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
+    node[:clouderamanager][:hdfs][:hdfs_mounts] << disk[:mount_point]
   end
   
   cnt += 1
