@@ -266,7 +266,7 @@ class ApiResource < Resource
     end
     return nil
   end
- 
+  
   #----------------------------------------------------------------------
   # Cluster related methods.
   #----------------------------------------------------------------------
@@ -546,6 +546,17 @@ class ApiResource < Resource
   #######################################################################
   def start_service(service_object)
     return service_object.start(self)
+  end
+  
+  #######################################################################
+  # Wait for command to finish.
+  # @param timeout:(Optional) Max amount of time(in seconds) to wait. Wait
+  # forever by default.
+  # @return: The final ApiCommand object, containing the last known state.
+  # The command may still be running in case of timeout.
+  #######################################################################
+  def wait_for_cmd(cmd_object, timeout=nil)
+    return cmd_object.wait(self, timeout)
   end
   
   #######################################################################
