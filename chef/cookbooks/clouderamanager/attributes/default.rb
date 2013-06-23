@@ -70,17 +70,12 @@ default[:clouderamanager][:cluster][:rack_id] = '/default'
 # HDFS configuration parameters.
 #----------------------------------------------------------------------
 default[:clouderamanager][:hdfs][:dfs_base_dir] = '/data'
-default[:clouderamanager][:hdfs][:dfs_data_dir] = []
+default[:clouderamanager][:hdfs][:hdfs_mounts] = []
 
 #----------------------------------------------------------------------
 # Device configuration parameters.
 #----------------------------------------------------------------------
 default[:clouderamanager][:devices] = []
-
-#----------------------------------------------------------------------
-# Map Reduce configuration parameters.
-#----------------------------------------------------------------------
-default[:clouderamanager][:mapred][:mapred_local_dir] = []
 
 #----------------------------------------------------------------------
 # Hadoop high availability (HA) configuration (CDH4/CM4).

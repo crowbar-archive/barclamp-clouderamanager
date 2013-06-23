@@ -307,13 +307,13 @@ class ApiCommand < BaseApiObject
   # @param resource_root: The root Resource object.
   # @return: A new ApiCommand object.
   #######################################################################
-  def fetch
-    if @id == ApiCommand.SYNCHRONOUS_COMMAND_ID
+  def fetch(resource_root)
+    if @id == ApiCommand::SYNCHRONOUS_COMMAND_ID
       return self
     end
-    resource_root = _get_resource_root()
-    resp = resource_root.get(_path())
-    return ApiCommand.from_json_dict(resp, resource_root)
+    path = _path()
+    resp = resource_root.get(path)
+    return ApiCommand.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
@@ -323,8 +323,8 @@ class ApiCommand < BaseApiObject
   # @return: The final ApiCommand object, containing the last known state.
   # The command may still be running in case of timeout.
   #######################################################################
-  def wait(timeout=nil)
-    if @id == ApiCommand.SYNCHRONOUS_COMMAND_ID
+  def wait(resource_root, timeout=nil)
+    if @id == ApiCommand::SYNCHRONOUS_COMMAND_ID
       return self
     end
     
@@ -332,24 +332,30 @@ class ApiCommand < BaseApiObject
     if timeout.nil?
       deadline = nil
     else
-      deadline = time.time() + timeout
+      t = Time.now
+      epoch_sec = t.to_i
+      deadline = epoch_sec + timeout
     end
     
     while true
-      cmd = fetch()
-      if not cmd.active
+      cmd = fetch(resource_root)
+      active = cmd.getattr('active')
+      
+      if not active
         return cmd
       end
       
-      if deadline.not_equal? nil
-        now = time.time()
-        if deadline < now
+      if not deadline.nil?
+        t = Time.now
+        epoch_sec = t.to_i
+        if deadline < epoch_sec
           return cmd
         else
-          time.sleep(min(sleep_sec, deadline - now))
+          wait_time = [sleep_sec, deadline - epoch_sec].min
+          sleep(wait_time)
         end
       else
-        time.sleep(sleep_sec)
+        sleep(sleep_sec)
       end
     end
   end
@@ -359,14 +365,13 @@ class ApiCommand < BaseApiObject
   # @param resource_root: The root Resource object.
   # @return: A new ApiCommand object with the updated information.
   #######################################################################
-  def abort
-    if @id == ApiCommand.SYNCHRONOUS_COMMAND_ID
+  def abort(resource_root)
+    if @id == ApiCommand::SYNCHRONOUS_COMMAND_ID
       return self
     end
     path = _path() + '/abort'
-    resource_root = _get_resource_root()
     resp = resource_root.post(path)
-    return ApiCommand.from_json_dict(resp, resource_root)
+    return ApiCommand.from_json_dict(ApiCommand, resp, resource_root)
   end
   
   #######################################################################
