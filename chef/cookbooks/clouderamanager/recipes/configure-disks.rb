@@ -38,6 +38,9 @@ def get_uuid(disk)
   uuid
 end
 
+#first lets try to disable all unwanted non-raid disks
+BarclampLibrary::Barclamp::Inventory::Disk.disable_non_raid_disks(node)
+
 # Find all the unclaimed disks and claim them.
 BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).each do |disk|
   if disk.claim("Cloudera")
