@@ -560,6 +560,15 @@ class ApiResource < Resource
   end
   
   #######################################################################
+  # Deploys client configuration to the hosts where roles are running.
+  # @param: role_names Names of the roles to commit.
+  # @return: Reference to the submitted command.
+  #######################################################################
+  def deploy_client_config(cmd_object, role_names)
+    return cmd_object.deploy_client_config(self, role_names)
+  end
+  
+  #######################################################################
   # Stop a service.
   # @return Reference to the submitted command.
   #######################################################################
