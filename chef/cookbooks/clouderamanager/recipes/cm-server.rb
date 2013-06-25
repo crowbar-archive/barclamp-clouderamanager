@@ -118,23 +118,6 @@ else
   node[:crowbar][:links].delete("Cloudera Manager")
 end
 
-=begin
-#######################################################################
-# Code block to locate the hdfs mount points on the datanodes.
-#######################################################################        
-search(:node, "roles:clouderamanager-datanode#{env_filter}") do |n|
-  if n[:fqdn] and not n[:fqdn].empty?
-    hdfs_mounts = n[:clouderamanager][:hdfs][:hdfs_mounts]    
-    Chef::Log.info("CM - HDFS mount points for #{n[:fqdn]}") if debug 
-    if hdfs_mount_points
-      hdfs_mount_points.each do |hdfs_mount_point|
-        Chef::Log.info("CM - #{hdfs_mount_point}") if debug  
-      end
-    end
-  end
-end
-=end
-
 #######################################################################
 # The CM API automatic configuration feature is current disabled by
 # default. You must enable it in crowbar before queuing the proposal.
@@ -522,13 +505,6 @@ ruby_block "cm-api-deferred" do
             # Chef::Log.info("CM - HDFS service configuration results #{result}") if debug
             
             #--------------------------------------------------------------------
-            # Code block to locate the hdfs mount points.
-            #--------------------------------------------------------------------         
-            datanodes.each do |n|
-              
-            end
-            
-            #--------------------------------------------------------------------
             # Configure the MAPREDUCE service. 
             #--------------------------------------------------------------------
             mapr_service_name = "mapr-#{cluster_name}"
@@ -604,6 +580,30 @@ ruby_block "cm-api-deferred" do
             Chef::Log.info("CM - HDFS service startup results [id:#{id}, active:#{active}, success:#{success}]") if debug
             
             #--------------------------------------------------------------------
+            # Deploy HDFS client config. 
+            #--------------------------------------------------------------------
+            role_list = [] 
+            cluster_config.each do |r|
+              if r[:service_type] == 'HDFS'
+                role_list << r[:role_name] 
+              end
+            end 
+            if role_list and not role_list.empty?
+              Chef::Log.info("CM - Attempting HDFS config deployment #{role_list.join(",")}") if debug
+              cmd = api.deploy_client_config(hdfs_service, role_list)
+              id = cmd.getattr('id')
+              active = cmd.getattr('active')
+              success = cmd.getattr('success')
+              Chef::Log.info("CM - Waiting for HDFS config deployemnt [id:#{id}, active:#{active}, success:#{success}]") if debug
+              cmd_timeout = 180 
+              cmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = cmd.getattr('id')
+              active = cmd.getattr('active')
+              success = cmd.getattr('success')
+              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            end
+            
+            #--------------------------------------------------------------------
             # Initialize HDFS. 
             #--------------------------------------------------------------------
             hdfs_init(debug, node)
@@ -623,6 +623,30 @@ ruby_block "cm-api-deferred" do
             active = cmd.getattr('active')
             success = cmd.getattr('success')
             Chef::Log.info("CM - MAPR service startup results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            
+            #--------------------------------------------------------------------
+            # Deploy MAPR client config. 
+            #--------------------------------------------------------------------
+            role_list = [] 
+            cluster_config.each do |r|
+              if r[:service_type] == 'MAPREDUCE'
+                role_list << r[:role_name] 
+              end
+            end 
+            if role_list and not role_list.empty?
+              Chef::Log.info("CM - Attempting MAPR config deployment #{role_list.join(",")}") if debug
+              cmd = api.deploy_client_config(mapr_service, role_list)
+              id = cmd.getattr('id')
+              active = cmd.getattr('active')
+              success = cmd.getattr('success')
+              Chef::Log.info("CM - Waiting for MAPR config deployemnt [id:#{id}, active:#{active}, success:#{success}]") if debug
+              cmd_timeout = 180 
+              cmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = cmd.getattr('id')
+              active = cmd.getattr('active')
+              success = cmd.getattr('success')
+              Chef::Log.info("CM - MAPR config deployment results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            end
           end
         end
       end
