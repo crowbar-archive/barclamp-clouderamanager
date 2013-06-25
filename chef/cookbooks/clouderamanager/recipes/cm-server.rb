@@ -372,14 +372,14 @@ ruby_block "cm-api-deferred" do
         host_fqdn = master[:fqdn]
         return if host_fqdn.nil? or host_fqdn.empty? 
         hadoop_cmds = [
-          "sudo -u hdfs hadoop fs -mkdir -p hdfs://#{host_fqdn}/tmp/mapred",
-          "sudo -u hdfs hadoop fs -chown mapred hdfs://#{host_fqdn}/tmp/mapred",
-          "sudo -u hdfs hadoop fs -chmod 755 hdfs://#{host_fqdn}/tmp/mapred",
-          "sudo -u hdfs hadoop fs -mkdir -p hdfs://#{host_fqdn}/tmp/mapred/system",
-          "sudo -u hdfs hadoop fs -chown mapred hdfs://#{host_fqdn}/tmp/mapred/system",
-          "sudo -u hdfs hadoop fs -chmod 755 hdfs://#{host_fqdn}/tmp/mapred/system"
+          "hadoop fs -mkdir -p hdfs://#{host_fqdn}/tmp/mapred",
+          "hadoop fs -chown mapred hdfs://#{host_fqdn}/tmp/mapred",
+          "hadoop fs -chmod 755 hdfs://#{host_fqdn}/tmp/mapred",
+          "hadoop fs -mkdir -p hdfs://#{host_fqdn}/tmp/mapred/system",
+          "hadoop fs -chown mapred hdfs://#{host_fqdn}/tmp/mapred/system",
+          "hadoop fs -chmod 755 hdfs://#{host_fqdn}/tmp/mapred/system"
         ]
-        # Issue the commands and chack status.
+        # Issue the commands and check status.
         hadoop_cmds.each do |cmd|
           Chef::Log.info("CM - execute #{cmd}") if debug
           output = %x{#{cmd}}
