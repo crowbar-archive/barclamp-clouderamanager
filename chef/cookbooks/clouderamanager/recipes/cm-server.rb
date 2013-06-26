@@ -364,13 +364,12 @@ ruby_block "cm-api-deferred" do
         ]
         # Issue the commands and check status.
         hadoop_cmds.each do |cmd|
-          Chef::Log.info("CM - execute #{cmd}") if debug
-          output = %x{#{cmd}}
-          ret = $?.exitstatus
-          if ret != 0
-            Chef::Log.error("CM - ERROR [#{ret}] #{output}")
+          sucmd = "su - -c '#{cmd}' hdfs"
+          Chef::Log.info("CM - execute #{sucmd}") if debug
+          if system(sucmd)
+            Chef::Log.info("CM - SUCCESS [#{$?}]") if debug
           else
-            Chef::Log.info("CM - SUCCESS [#{ret}] #{output}") if debug
+            Chef::Log.error("CM - ERROR [#{$?}]")
           end
         end
       end
@@ -594,7 +593,7 @@ ruby_block "cm-api-deferred" do
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
-              Chef::Log.info("CM - Waiting for HDFS config deployemnt [id:#{id}, active:#{active}, success:#{success}]") if debug
+              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}]") if debug
               cmd_timeout = 180 
               cmd = api.wait_for_cmd(cmd, cmd_timeout)
               id = cmd.getattr('id')
@@ -639,7 +638,7 @@ ruby_block "cm-api-deferred" do
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
-              Chef::Log.info("CM - Waiting for MAPR config deployemnt [id:#{id}, active:#{active}, success:#{success}]") if debug
+              Chef::Log.info("CM - Waiting for MAPR config deployment [id:#{id}, active:#{active}, success:#{success}]") if debug
               cmd_timeout = 180 
               cmd = api.wait_for_cmd(cmd, cmd_timeout)
               id = cmd.getattr('id')
