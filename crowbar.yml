@@ -27,6 +27,7 @@ barclamp:
     - hadoop
     - zookeeper
     - hive
+    - sqoop
 
 crowbar:
   layout: 1
@@ -103,26 +104,31 @@ rpms:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
-      - bare cloudera-impala 10 http://beta.cloudera.com/impala/redhat/6/x86_64/impala/0/
+      - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
   centos-6.4:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
-      - bare cloudera-impala 10 http://beta.cloudera.com/impala/redhat/6/x86_64/impala/0/
+      - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
+
   pkgs:
-    # CDH 4.2.x noarch
+    # xfs file system support
+    - xfsprogs
+    # CDH noarch
     - bigtop-tomcat
     - bigtop-utils
     - flume-ng
     - flume-ng-agent
     - flume-ng-doc
-    - hadoop-0.20-mapreduce-jobtracker   
+    - hadoop-0.20-mapreduce-jobtracker
     - hadoop-0.20-mapreduce-jobtrackerha
     - hadoop-0.20-mapreduce-tasktracker
     - hadoop-0.20-mapreduce-zkfc
     - hcatalog
     - hcatalog-server
     - hive
+    - hive-hbase
+    - hive-jdbc
     - hive-metastore
     - hive-server
     - hive-server2
@@ -142,11 +148,11 @@ rpms:
     - whirr
     - zookeeper
     - zookeeper-server
-    # CDH 4.2.x X86_64
+    # CDH X86_64
+    - bigtop-jsvc
     - bigtop-jsvc-debuginfo
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
-    - hadoop-0.20-mapreduce-debuginfo
     - hadoop
     - hadoop-client
     - hadoop-conf-pseudo
@@ -182,16 +188,18 @@ rpms:
     - hue-impala
     - hue-jobbrowser
     - hue-jobsub
+    - hue-metastore
     - hue-oozie
+    - hue-pig
     - hue-plugins
     - hue-proxy
     - hue-server
     - hue-shell
     - hue-useradmin
     # Cloudera Manager packages
-    - cloudera-manager-parcel-4.5.2
     - cloudera-manager-agent
     - cloudera-manager-daemons
+    - cloudera-manager-parcel-4.6.0
     - cloudera-manager-server
     - cloudera-manager-server-db
     - enterprise-debuginfo

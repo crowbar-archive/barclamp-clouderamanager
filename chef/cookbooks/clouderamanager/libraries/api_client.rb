@@ -549,6 +549,26 @@ class ApiResource < Resource
   end
   
   #######################################################################
+  # Wait for command to finish.
+  # @param timeout:(Optional) Max amount of time(in seconds) to wait. Wait
+  # forever by default.
+  # @return: The final ApiCommand object, containing the last known state.
+  # The command may still be running in case of timeout.
+  #######################################################################
+  def wait_for_cmd(cmd_object, timeout=nil)
+    return cmd_object.wait(self, timeout)
+  end
+  
+  #######################################################################
+  # Deploys client configuration to the hosts where roles are running.
+  # @param: role_names Names of the roles to commit.
+  # @return: Reference to the submitted command.
+  #######################################################################
+  def deploy_client_config(cmd_object, role_names)
+    return cmd_object.deploy_client_config(self, role_names)
+  end
+  
+  #######################################################################
   # Stop a service.
   # @return Reference to the submitted command.
   #######################################################################
