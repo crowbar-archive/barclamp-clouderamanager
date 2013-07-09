@@ -589,7 +589,7 @@ class ApiService < BaseApiObject
   
   #######################################################################
   # Deploys client configuration to the hosts where roles are running.
-  # @param: role_names Names of the roles to decommission.
+  # @param: role_names Names of the roles to commit.
   # @return: Reference to the submitted command.
   #######################################################################
   def deploy_client_config(resource_root, role_names)
