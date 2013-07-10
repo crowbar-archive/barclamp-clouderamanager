@@ -105,11 +105,17 @@ rpms:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
+    raw_pkgs:
+      - http://centos.tcpdiag.net/centos/6/os/x86_64/Packages/xfsprogs-3.1.1-10.el6.x86_64.rpm
   centos-6.4:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
+    raw_pkgs:
+      - http://centos.tcpdiag.net/centos/6/os/x86_64/Packages/xfsprogs-3.1.1-10.el6.x86_64.rpm
+  required_pkgs:
+    - xfsprogs
 
   pkgs:
     # CDH noarch
@@ -212,9 +218,6 @@ rpms:
     - impala-server
     - impala-shell
     - impala-state-store
-
-  raw_pkgs:
-    - http://centos.tcpdiag.net/centos/6/os/x86_64/Packages/xfsprogs-3.1.1-10.el6.x86_64.rpm
 
 smoketest:
   timeout: 900
