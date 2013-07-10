@@ -112,8 +112,6 @@ rpms:
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
 
   pkgs:
-    # xfs file system support
-    - xfsprogs
     # CDH noarch
     - bigtop-tomcat
     - bigtop-utils
@@ -215,5 +213,9 @@ rpms:
     - impala-shell
     - impala-state-store
 
+  raw_pkgs:
+    - http://centos.tcpdiag.net/centos/6/os/x86_64/Packages/xfsprogs-3.1.1-10.el6.x86_64.rpm
+
 smoketest:
   timeout: 900
+
