@@ -102,19 +102,17 @@ locale_additions:
 rpms:
   redhat-6.4:
     repos:
-      - bare os-extras 10 http://centos.tcpdiag.net/centos/6/os/x86_64/
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
   centos-6.4:
     repos:
-      - bare os-extras 10 http://centos.tcpdiag.net/centos/6/os/x86_64/
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
 
   pkgs:
-    # os-extras - xfs file system support
+    # xfs file system support
     - xfsprogs
     # CDH noarch
     - bigtop-tomcat
