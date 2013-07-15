@@ -27,6 +27,22 @@ Chef::Log.info("CM - BEGIN clouderamanager:node-setup") if debug
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 #######################################################################
+# Install the xfs file system support packages.
+#######################################################################
+fs_type = node[:clouderamanager][:os][:fs_type]
+if fs_type == 'xfs'
+  xfs_packages=%w{
+    xfsprogs
+  }
+  
+  xfs_packages.each do |pkg|
+    package pkg do
+      action :install
+    end
+  end
+end
+
+#######################################################################
 # Ensure localtime is set consistently across the cluster (UTC).
 #######################################################################
 file "/etc/localtime" do
