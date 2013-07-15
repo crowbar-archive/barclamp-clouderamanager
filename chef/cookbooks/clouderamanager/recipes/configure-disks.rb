@@ -37,7 +37,6 @@ def get_uuid(disk)
   uuid
 end
 
-
 # Find all the unclaimed disks and claim them.
 BarclampLibrary::Barclamp::Inventory::Disk.unclaimed(node).each do |disk|
   if disk.claim("Cloudera")
