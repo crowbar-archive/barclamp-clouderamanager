@@ -86,7 +86,7 @@ locale_additions:
           name: Name
           cb_role: Crowbar Role
           cm_role: Cloudera Manager Role
-          ip_addr: IP Address
+           ip_addr: IP Address
           alias: Alias
           cpu: CPU
           ram: RAM
@@ -114,9 +114,6 @@ rpms:
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
     raw_pkgs:
       - http://centos.tcpdiag.net/centos/6/os/x86_64/Packages/xfsprogs-3.1.1-10.el6.x86_64.rpm
-  required_pkgs:
-    - xfsprogs
-
   pkgs:
     # CDH noarch
     - bigtop-tomcat
