@@ -54,6 +54,39 @@ link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
 end
 
+
+
+
+#######################################################################
+# Ensure THP compaction is disabled/enabled based on user input.
+#######################################################################
+
+# For future reboots, change rc.local file on the node.
+debug = node[:clouderamanager][:debug]
+Chef::Log.info("CM - Change thp settings") if debug
+
+defrag_file_pathname = node[:clouderamanager][:os][:defrag_file_pathname]
+rc_local_path = node[:clouderamanager][:os][:rc_local_path]
+disable = node[:clouderamanager][:os][:thp_compaction]
+
+if File.exists?(rc_local_path)
+  File.open(rc_local_path, "w+") do |f|
+    f.write("\n" + "echo '#{disable}' > " + defrag_file_pathname)
+    f.close()
+    Chef::Log.info("Changed rc.local file to reflect thp option") if debug
+  end
+end
+
+#Change it at run_time
+Chef::Log.info("OS - Changing THP value") if debug
+output = %x{sudo sh -c "echo #{disable} > #{defrag_file_pathname}"}
+
+if $?.exitstatus != 0
+ Chef::Log.error("OS - Failed to change thp_compaction value")
+else
+ Chef::Log.info("OS - Successfully changed thp_compaction value") if debug
+end
+
 #----------------------------------------------------------------------
 # Find the name nodes. 
 #----------------------------------------------------------------------
