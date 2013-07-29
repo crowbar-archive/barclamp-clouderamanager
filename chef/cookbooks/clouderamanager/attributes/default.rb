@@ -40,8 +40,6 @@ default[:clouderamanager][:os][:mapred_openfiles] = '32768'
 default[:clouderamanager][:os][:hdfs_openfiles] = '32768'
 default[:clouderamanager][:os][:hbase_openfiles] = '32768'
 default[:clouderamanager][:os][:thp_compaction] = 'never'
-default[:clouderamanager][:os][:defrag_file_pathname] = '/sys/kernel/mm/redhat_transparent_hugepage/defrag'
-default[:clouderamanager][:os][:rc_local_path] = '/etc/rc.local'
 
 #----------------------------------------------------------------------
 # CM API configuration parameters.
