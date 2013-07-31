@@ -67,17 +67,27 @@ defrag_file_pathname = "/sys/kernel/mm/redhat_transparent_hugepage/defrag"
 rc_local_path = "/etc/rc.local"
 
 # For future reboots, change rc.local file on the node.
+
 if File.exists?(rc_local_path)
-  output =  %x{sudo "echo '#{disable} > #{defrag_file_pathname}' > #{rc_local_path}"}
-  if $?.exitstatus != 0
-    Chef::Log.error("OS - Failed to write thp value to rc.local")
+  text = File.read(rc_local_path)
+  if (text =~ /[a-z]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag/)
+    
+     replace = text.gsub(/[a-z ]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag/, "echo #{disable} > #{defrag_file_pathname}")
+
+     File.open(rc_local_path, "w") { |file| file.puts replace }
+     Chef::Log.info("OS - Successfully changed thp_compaction value for rc.local file.")
   else
-    Chef::Log.info("OS - Successfully wrote thp value to rc.local") if debug
+    Chef::Log.info("OS - Append to end of file")
+    %x{"echo '#{disable} > #{defrag_file_pathname}' >> #{rc_local_path}"}
   end
+else
+  Chef::Log.info("OS - Changing thp_compaction value for rc.local file failed.")
 end
 
+
+Chef::Log.info("Executing thp change for current session")
 #Change it for current session
-output = %x{sudo sh -c "echo #{disable} > #{defrag_file_pathname}"}
+output = %x{"echo #{disable} > #{defrag_file_pathname}"}
 if $?.exitstatus != 0
  Chef::Log.error("OS - Failed to change thp_compaction value for current session") if debug
 else
