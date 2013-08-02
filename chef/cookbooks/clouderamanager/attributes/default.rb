@@ -39,6 +39,7 @@ default[:clouderamanager][:os][:fs_type] = 'ext4'
 default[:clouderamanager][:os][:mapred_openfiles] = '32768'
 default[:clouderamanager][:os][:hdfs_openfiles] = '32768'
 default[:clouderamanager][:os][:hbase_openfiles] = '32768'
+default[:clouderamanager][:os][:thp_compaction] = 'never'
 
 #----------------------------------------------------------------------
 # CM API configuration parameters.

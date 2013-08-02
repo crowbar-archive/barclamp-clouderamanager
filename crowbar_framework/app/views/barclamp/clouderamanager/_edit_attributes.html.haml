@@ -22,6 +22,10 @@
       = select_tag :fs_type, options_for_select([['ext3','ext3'],['ext4', 'ext4']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["fs_type"]), :onchange => "update_value('os/fs_type', 'fs_type', 'string')"
 
     %p
+      %label{ :for => :thp_compaction }= t('.thp_compaction')
+      = select_tag :thp_compaction, options_for_select([['never','never'],['always', 'always']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["thp_compaction"]), :onchange => "update_value('os/thp_compaction', 'thp_compaction', 'string')"
+
+    %p
       %label{ :for => :mapred_openfiles }= t('.mapred_openfiles')
       %input#mapred_openfiles{:type => "text", :name => "mapred_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["mapred_openfiles"], :onchange => "update_value('os', 'mapred_openfiles', 'string')"}
 
