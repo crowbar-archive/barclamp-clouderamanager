@@ -70,15 +70,15 @@ rc_local_path = "/etc/rc.local"
 
 if File.exists?(rc_local_path)
   text = File.read(rc_local_path)
-  if (text =~ /[a-z]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag/)
+  if (text =~ /\s*[a-z]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag\s*/)
     
-     replace = text.gsub(/[a-z ]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag/, "echo #{disable} > #{defrag_file_pathname}")
+     replace = text.gsub(/\s*[a-z ]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag\s*/, "echo #{disable} > #{defrag_file_pathname}\n")
 
      File.open(rc_local_path, "w") { |file| file.puts replace }
      Chef::Log.info("OS - Successfully changed thp_compaction value for rc.local file.")
   else
     Chef::Log.info("OS - Append to end of file")
-    %x{"echo '#{disable} > #{defrag_file_pathname}' >> #{rc_local_path}"}
+    %x{sudo sh -c "echo '#{disable} > #{defrag_file_pathname}' >> #{rc_local_path}"}
   end
 else
   Chef::Log.info("OS - Changing thp_compaction value for rc.local file failed.")
@@ -87,7 +87,7 @@ end
 
 Chef::Log.info("Executing thp change for current session")
 #Change it for current session
-output = %x{"echo #{disable} > #{defrag_file_pathname}"}
+output = %x{echo #{disable} > #{defrag_file_pathname}}
 if $?.exitstatus != 0
  Chef::Log.error("OS - Failed to change thp_compaction value for current session") if debug
 else
