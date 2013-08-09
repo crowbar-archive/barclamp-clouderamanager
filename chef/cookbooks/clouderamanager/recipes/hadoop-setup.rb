@@ -120,7 +120,7 @@ end
 #######################################################################
 if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   ext_packages=%w{
-    cloudera-manager-agent
+  cloudera-manager-agent
     cloudera-manager-daemons
     bigtop-jsvc
     bigtop-tomcat
@@ -131,6 +131,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     hadoop-hdfs-fuse
     hbase
     hive
+    oozie-client
     oozie
     pig
     hue-common
@@ -148,6 +149,10 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     flume-ng
     impala
     impala-shell
+    sqoop2-client
+    sqoop2
+    hcatalog
+    webhcat
   }
   
   ext_packages.each do |pkg|
