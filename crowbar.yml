@@ -103,16 +103,22 @@ locale_additions:
 rpms:
   redhat-6.4:
     repos:
-      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
-      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
-      - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1/
+      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
+      - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
+      - bare cloudera-search 10 http://beta.cloudera.com/search/redhat/6/x86_64/search/0
+      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4
   centos-6.4:
     repos:
-      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4/
-      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4/
-      - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1/
+      - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
+      - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
+      - bare cloudera-search 10 http://beta.cloudera.com/search/redhat/6/x86_64/search/0
+      - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4
 
   pkgs:
+    # SQL
+    - mysql-server
+    - postgresql
+    - postgresql-server
     # CDH noarch
     - bigtop-tomcat
     - bigtop-utils
@@ -195,24 +201,34 @@ rpms:
     - hue-server
     - hue-shell
     - hue-useradmin
-    # Cloudera Manager packages
-    - cloudera-manager-agent
-    - cloudera-manager-daemons
-    - cloudera-manager-parcel-4.6.1
-    - cloudera-manager-server
-    - cloudera-manager-server-db
-    - enterprise-debuginfo
-    - jdk
-    # SQL packages
-    - mysql-server
-    - postgresql
-    - postgresql-server
-    # Impala packages
+    # IMPALA noarch
+    - bigtop-utils
+    # IMPALA x86_64
     - impala
     - impala-debuginfo
     - impala-server
     - impala-shell
     - impala-state-store
+    # CLOUDERA SEARCH (Beta) noarch
+    - flume-ng-solr
+    - hbase-solr
+    - hbase-solr-doc
+    - hbase-solr-indexer
+    - search
+    - solr
+    - solr-doc
+    - solr-mapreduce
+    - solr-server
+    # CLOUDERA SEARCH (Beta) x86_64
+    - hue
+    - hue-search
+    # CLOUDERA MANAGER
+    - cloudera-manager-agent
+    - cloudera-manager-daemons
+    - cloudera-manager-server
+    - cloudera-manager-server-db
+    - enterprise-debuginfo
+    - jdk
 
 smoketest:
   timeout: 900
