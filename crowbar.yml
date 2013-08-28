@@ -224,7 +224,6 @@ rpms:
     # CLOUDERA MANAGER
     - cloudera-manager-agent
     - cloudera-manager-daemons
-    - cloudera-manager-parcel-4.6.2
     - cloudera-manager-server
     - cloudera-manager-server-db
     - enterprise-debuginfo
