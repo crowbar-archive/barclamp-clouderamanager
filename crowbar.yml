@@ -104,13 +104,13 @@ rpms:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
-      - bare cloudera-search 10 http://beta.cloudera.com/search/redhat/6/x86_64/search/0
+      - bare cloudera-search 10 http://archive.cloudera.com/search/redhat/6/x86_64/search/1
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4
   centos-6.4:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
-      - bare cloudera-search 10 http://beta.cloudera.com/search/redhat/6/x86_64/search/0
+      - bare cloudera-search 10 http://archive.cloudera.com/search/redhat/6/x86_64/search/1
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4
 
   pkgs:
@@ -219,7 +219,6 @@ rpms:
     - solr-mapreduce   
     - solr-server   
     # CLOUDERA SEARCH (Beta) x86_64
-    - hue   
     - hue-search   
     # CLOUDERA MANAGER
     - cloudera-manager-agent
