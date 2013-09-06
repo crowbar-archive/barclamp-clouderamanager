@@ -55,6 +55,7 @@ locale_additions:
           debug: Log Debug Messages
           os_settings: Operating System
           fs_type: File System Type
+          thp_compaction: THP Compaction
           mapred_openfiles: Map/Reduce File Handles
           hdfs_openfiles: HDFS File Handles
           hbase_openfiles: HBASE File Handles

@@ -20,6 +20,7 @@
               "required": true,
               "mapping": {
                 "fs_type": { "type": "str", "required": true},
+                "thp_compaction": { "type": "str", "required": true},
                 "mapred_openfiles": { "type": "str", "required": true},
                 "hdfs_openfiles": { "type": "str", "required": true},
                 "hbase_openfiles": { "type": "str", "required": true}
