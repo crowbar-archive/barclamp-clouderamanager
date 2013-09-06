@@ -27,6 +27,22 @@ Chef::Log.info("CM - BEGIN clouderamanager:node-setup") if debug
 env_filter = " AND environment:#{node[:clouderamanager][:config][:environment]}"
 
 #######################################################################
+# Install the xfs file system support packages.
+#######################################################################
+fs_type = node[:clouderamanager][:os][:fs_type]
+if fs_type == 'xfs'
+  xfs_packages=%w{
+    xfsprogs
+  }
+  
+  xfs_packages.each do |pkg|
+    package pkg do
+      action :install
+    end
+  end
+end
+
+#######################################################################
 # Ensure localtime is set consistently across the cluster (UTC).
 #######################################################################
 file "/etc/localtime" do
@@ -36,6 +52,43 @@ end
 
 link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
+end
+
+#######################################################################
+# Ensure THP compaction is disabled/enabled based on user input.
+#######################################################################
+
+Chef::Log.info("OS - Change thp settings") if debug
+disable = node[:clouderamanager][:os][:thp_compaction]
+defrag_file_pathname = "/sys/kernel/mm/redhat_transparent_hugepage/defrag"
+rc_local_path = "/etc/rc.local"
+
+# For future reboots, change rc.local file on the node.
+
+if File.exists?(rc_local_path)
+  text = File.read(rc_local_path)
+  if (text =~ /\s*[a-z]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag\s*/)
+    
+     replace = text.gsub(/\s*[a-z ]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag\s*/, "echo #{disable} > #{defrag_file_pathname}\n")
+
+     File.open(rc_local_path, "w") { |file| file.puts replace }
+     Chef::Log.info("OS - Successfully changed thp_compaction value for rc.local file.")
+  else
+    Chef::Log.info("OS - Append to end of file")
+    %x{sudo sh -c "echo '#{disable} > #{defrag_file_pathname}' >> #{rc_local_path}"}
+  end
+else
+  Chef::Log.info("OS - Changing thp_compaction value for rc.local file failed.")
+end
+
+
+Chef::Log.info("Executing thp change for current session")
+#Change it for current session
+output = %x{echo #{disable} > #{defrag_file_pathname}}
+if $?.exitstatus != 0
+ Chef::Log.error("OS - Failed to change thp_compaction value for current session") if debug
+else
+ Chef::Log.info("OS - Successfully changed thp_compaction value for current session") if debug
 end
 
 #----------------------------------------------------------------------
