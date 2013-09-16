@@ -120,7 +120,7 @@ end
 #######################################################################
 if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
   ext_packages=%w{
-  cloudera-manager-agent
+    cloudera-manager-agent
     cloudera-manager-daemons
     bigtop-jsvc
     bigtop-tomcat
@@ -149,6 +149,13 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     flume-ng
     impala
     impala-shell
+    solr
+    solr-doc
+    search
+    solr-mapreduce
+    flume-ng-solr
+    hbase-solr
+    hbase-solr-doc
     sqoop2-client
     sqoop2
     hcatalog
