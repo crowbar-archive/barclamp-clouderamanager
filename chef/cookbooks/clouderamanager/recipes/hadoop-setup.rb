@@ -118,7 +118,7 @@ end
 # the agents heartbeating, it assumes that the packages are installed
 # and that's why we need to install them here in-line.
 #######################################################################
-if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:auto_pkgs_installed]
   ext_packages=%w{
     cloudera-manager-agent
     cloudera-manager-daemons
@@ -167,6 +167,18 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       action :install
     end
   end
+  
+  # Disable extraneous init scripts. 
+  # We will reply on CM to start the services. 
+  init_disable=%w{
+   oozie
+   hadoop-httpfs
+  }
+  init_disable.each do |init_script|
+    %x{chkconfig --del #{init_script}}
+  end
+  
+  node[:clouderamanager][:cluster][:auto_pkgs_installed] = true
 end
 
 #######################################################################
