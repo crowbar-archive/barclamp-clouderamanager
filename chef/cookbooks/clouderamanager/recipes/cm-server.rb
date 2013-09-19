@@ -127,9 +127,10 @@ end
 # a ruby_block) because it requires the cm-server to be installed and
 # running at the point of execution.
 #######################################################################
-ruby_block "cm-api-deferred" do
-  block do
-    if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:cm_api_configured]
+  ruby_block "cm-api-deferred" do
+    block do
       libbase = File.join(File.dirname(__FILE__), '../libraries' )
       require "#{libbase}/api_client.rb"
       require "#{libbase}/utils.rb"
@@ -168,9 +169,9 @@ ruby_block "cm-api-deferred" do
       # Role names must be unique across all clusters. 
       # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
       # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER. MAPREDUCE : JOBTRACKER,
-      # TASKTRACKER, GATEWAY 
+      # TASKTRACKER
       #####################################################################
-      def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
+      def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
         #--------------------------------------------------------------------
         # Add the CM role definitions.
         #--------------------------------------------------------------------
@@ -181,6 +182,8 @@ ruby_block "cm-api-deferred" do
           primary_namenode = [ namenodes[0] ]
           role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
           role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
+          # Add the GATEWAY role to both namenodes.
+          role_appender(debug, config, cluster_name, counter_map, namenodes, "HDFS", 'GATEWAY')
         end
         # secondary namenode
         if namenodes.length > 1
@@ -190,13 +193,22 @@ ruby_block "cm-api-deferred" do
         # datanodes
         role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
         role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
+        # Add the GATEWAY role to all datanodes.
+        role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'GATEWAY')
         Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
         # edgenodes
-=begin    
-    if edgenodes.length > 0
-      role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
-    end
-=end
+        if edgenodes.length > 0
+          # Add the GATEWAY role to all edgenodes.
+          role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
+        end
+        if hafilernodes.length > 0
+          # Add the GATEWAY role to all edgenodes.
+          role_appender(debug, config, cluster_name, counter_map, hafilernodes, "HDFS", 'GATEWAY')
+        end
+        if hajournalingnodes.length > 0
+          # Add the GATEWAY role to all edgenodes.
+          role_appender(debug, config, cluster_name, counter_map, hajournalingnodes, "HDFS", 'GATEWAY')
+        end
         return config
       end
       
@@ -401,6 +413,9 @@ ruby_block "cm-api-deferred" do
         namenodes = node[:clouderamanager][:cluster][:namenodes] 
         datanodes = node[:clouderamanager][:cluster][:datanodes]
         edgenodes = node[:clouderamanager][:cluster][:edgenodes] 
+        cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
+        hafilernodes = node[:clouderamanager][:cluster][:hafilernodes] 
+        hajournalingnodes = node[:clouderamanager][:cluster][:hajournalingnodes] 
         
         #--------------------------------------------------------------------
         # Find the cm server. 
@@ -419,7 +434,7 @@ ruby_block "cm-api-deferred" do
             #--------------------------------------------------------------------
             # Build the cluster configuration data structure with CM role associations.
             #--------------------------------------------------------------------
-            cluster_config = build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
+            cluster_config = build_roles(debug, cluster_name, namenodes, datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
             
             #--------------------------------------------------------------------
             # Set the license key if present. 
@@ -678,10 +693,12 @@ ruby_block "cm-api-deferred" do
       if (not connection_ok)
         Chef::Log.info("CM - Giving up on cm-server connection - will try again later")
       end
-    else
-      Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
     end
   end
+  node[:clouderamanager][:cluster][:cm_api_configured] = true
+  node.save 
+else
+  Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
 end
 
 #######################################################################
