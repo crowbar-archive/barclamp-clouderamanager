@@ -422,14 +422,16 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
         #--------------------------------------------------------------------
         server_host = find_cm_server(debug, env_filter, node) 
         if not server_host or server_host.empty?
-          Chef::Log.info("CM - ERROR: Cannot locate CM server - skipping CM_API setup")
+          Chef::Log.info("CM - ERROR: Cannot locate CM server - deferring CM_API setup")
+          raise Errno::ECONNREFUSED, "CM - ERROR: Cannot locate CM server"
         else
           #--------------------------------------------------------------------
           # Establish the RESTful API connection. 
           #--------------------------------------------------------------------
           api = create_api_resource(debug, server_host, server_port, username, password, use_tls, version) 
           if not api
-            Chef::Log.info("CM - ERROR: Cannot create CM API resource - skipping CM_API setup")
+            Chef::Log.info("CM - ERROR: Cannot create CM API resource - deferring CM_API setup")
+            raise Errno::ECONNREFUSED, "CM - ERROR: Cannot create CM API resource"
           else
             #--------------------------------------------------------------------
             # Build the cluster configuration data structure with CM role associations.
@@ -692,11 +694,14 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
       
       if (not connection_ok)
         Chef::Log.info("CM - Giving up on cm-server connection - will try again later")
+        node[:clouderamanager][:cluster][:cm_api_configured] = false
+        node.save 
+      else
+        node[:clouderamanager][:cluster][:cm_api_configured] = true
+        node.save 
       end
     end
   end
-  node[:clouderamanager][:cluster][:cm_api_configured] = true
-  node.save 
 else
   Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
 end
