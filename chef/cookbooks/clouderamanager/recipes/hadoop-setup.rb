@@ -168,17 +168,18 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
     end
   end
   
-  # Disable extraneous init scripts. 
-  # We will reply on CM to start the services. 
-  init_disable=%w{
+  node[:clouderamanager][:cluster][:auto_pkgs_installed] = true
+end
+
+# We will rely on CM to configure startup for these services.
+# The CM Host inspector will complain if these rc.d services
+# are enabled by default. 
+init_disable=%w{
    oozie
    hadoop-httpfs
   }
-  init_disable.each do |init_script|
-    %x{chkconfig --del #{init_script}}
-  end
-  
-  node[:clouderamanager][:cluster][:auto_pkgs_installed] = true
+init_disable.each do |init_script|
+    %x{chkconfig #{init_script} off}
 end
 
 #######################################################################

@@ -156,10 +156,22 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
             counter_map[role_type] = 1 if counter_map[role_type].nil?
             cnt = sprintf("%2.2d", counter_map[role_type])
             role_name = "#{role_type}-#{cluster_name}-#{cnt}"
-            rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
-            Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
-            cluster_config << rec
-            counter_map[role_type] += 1
+            # Check for role duplication on this node and skip if the role is already there.
+            skip_role_insertion = false
+            cluster_config.each do |r|
+              if r[:host_id] == n[:fqdn] and r[:role_type] == role_type
+                skip_role_insertion = true
+                break
+              end
+            end
+            if skip_role_insertion
+              Chef::Log.info("CM - #{role_type} role duplicated on node #{n[:fqdn]}, skipping role insertion") if debug
+            else
+              rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
+              Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
+              cluster_config << rec
+              counter_map[role_type] += 1
+            end
           end
         end
       end    
@@ -182,33 +194,31 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
           primary_namenode = [ namenodes[0] ]
           role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
           role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
-          # Add the GATEWAY role to both namenodes.
-          role_appender(debug, config, cluster_name, counter_map, namenodes, "HDFS", 'GATEWAY')
+          role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'GATEWAY')
         end
         # secondary namenode
         if namenodes.length > 1
           secondary_namenode = [ namenodes[1] ]
           role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
+          role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'GATEWAY')
         end
         # datanodes
         role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
         role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
-        # Add the GATEWAY role to all datanodes.
         role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'GATEWAY')
-        Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
         # edgenodes
         if edgenodes.length > 0
-          # Add the GATEWAY role to all edgenodes.
           role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
         end
+        # hafilernodes
         if hafilernodes.length > 0
-          # Add the GATEWAY role to all edgenodes.
           role_appender(debug, config, cluster_name, counter_map, hafilernodes, "HDFS", 'GATEWAY')
         end
+        # hajournalingnodes
         if hajournalingnodes.length > 0
-          # Add the GATEWAY role to all edgenodes.
           role_appender(debug, config, cluster_name, counter_map, hajournalingnodes, "HDFS", 'GATEWAY')
         end
+        Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
         return config
       end
       
