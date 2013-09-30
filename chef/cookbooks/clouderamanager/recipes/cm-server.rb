@@ -129,7 +129,7 @@ end
 #######################################################################
 
 if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:cm_api_configured]
-  ruby_block "cm-api-deferred" do
+  ruby_block "cm-api-deferred-execution" do
     block do
       libbase = File.join(File.dirname(__FILE__), '../libraries' )
       require "#{libbase}/api_client.rb"
@@ -579,13 +579,21 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
                 id = cmd.getattr('id')
                 active = cmd.getattr('active')
                 success = cmd.getattr('success')
-                Chef::Log.info("CM - Waiting for HDFS format [id:#{id}, active:#{active}, success:#{success}]") if debug
-                cmd_timeout = 180 
-                cmd = api.wait_for_cmd(cmd, cmd_timeout)
-                id = cmd.getattr('id')
-                active = cmd.getattr('active')
-                success = cmd.getattr('success')
-                Chef::Log.info("CM - HDFS format results [id:#{id}, active:#{active}, success:#{success}]") if debug
+                msg = cmd.getattr('resultMessage')
+                Chef::Log.info("CM - Waiting for HDFS format [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+                cmd_timeout = 300 
+                wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+                id = wcmd.getattr('id')
+                active = wcmd.getattr('active')
+                success = wcmd.getattr('success')
+                msg = wcmd.getattr('resultMessage')
+                Chef::Log.info("CM - HDFS format results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+                # If we timeout and the command is still running, try again later
+                if active
+                  msg = "CM - HDFS format is running asynchronously in the background, trying again later"
+                  Chef::Log.info(msg) if debug
+                  raise Errno::ECONNREFUSED, msg
+                end
               end
             end
             
@@ -597,13 +605,21 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
             id = cmd.getattr('id')
             active = cmd.getattr('active')
             success = cmd.getattr('success')
-            Chef::Log.info("CM - Waiting for HDFS service startup [id:#{id}, active:#{active}, success:#{success}]") if debug
-            cmd_timeout = 180 
-            cmd = api.wait_for_cmd(cmd, cmd_timeout)
-            id = cmd.getattr('id')
-            active = cmd.getattr('active')
-            success = cmd.getattr('success')
-            Chef::Log.info("CM - HDFS service startup results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            msg = cmd.getattr('resultMessage')
+            Chef::Log.info("CM - Waiting for HDFS service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            cmd_timeout = 300
+            wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+            id = wcmd.getattr('id')
+            active = wcmd.getattr('active')
+            success = wcmd.getattr('success')
+            msg = wcmd.getattr('resultMessage')
+            Chef::Log.info("CM - HDFS service startup results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            # If we timeout and the command is still running, try again later
+            if active
+              msg = "CM - HDFS service startup is running asynchronously in the background, trying again later"
+              Chef::Log.info(msg) if debug
+              raise Errno::ECONNREFUSED, msg
+            end
             
             #--------------------------------------------------------------------
             # Deploy HDFS client config. 
@@ -620,13 +636,21 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
-              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}]") if debug
-              cmd_timeout = 180 
-              cmd = api.wait_for_cmd(cmd, cmd_timeout)
-              id = cmd.getattr('id')
-              active = cmd.getattr('active')
-              success = cmd.getattr('success')
-              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}]") if debug
+              msg = cmd.getattr('resultMessage')
+              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              cmd_timeout = 300
+              wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = wcmd.getattr('id')
+              active = wcmd.getattr('active')
+              success = wcmd.getattr('success')
+              msg = wcmd.getattr('resultMessage')
+              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              # If we timeout and the command is still running, try again later
+              if active
+                msg = "CM - HDFS configuration deployment is running asynchronously in the background, trying again later"
+                Chef::Log.info(msg) if debug
+                raise Errno::ECONNREFUSED, msg
+              end
             end
             
             #--------------------------------------------------------------------
@@ -642,13 +666,21 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
             id = cmd.getattr('id')
             active = cmd.getattr('active')
             success = cmd.getattr('success')
-            Chef::Log.info("CM - Waiting for MAPR service startup [id:#{id}, active:#{active}, success:#{success}]") if debug
-            cmd_timeout = 180 
-            cmd = api.wait_for_cmd(cmd, cmd_timeout)
-            id = cmd.getattr('id')
-            active = cmd.getattr('active')
-            success = cmd.getattr('success')
-            Chef::Log.info("CM - MAPR service startup results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            msg = cmd.getattr('resultMessage')
+            Chef::Log.info("CM - Waiting for MAPR service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            cmd_timeout = 300
+            wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+            id = wcmd.getattr('id')
+            active = wcmd.getattr('active')
+            success = wcmd.getattr('success')
+            msg = wcmd.getattr('resultMessage')
+            Chef::Log.info("CM - MAPR service startup results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            # If we timeout and the command is still running, try again later
+            if active
+              msg = "CM - MAPR service startup is running asynchronously in the background, trying again later"
+              Chef::Log.info(msg) if debug
+              raise Errno::ECONNREFUSED, msg
+            end
             
             #--------------------------------------------------------------------
             # Deploy MAPR client config. 
@@ -665,13 +697,21 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
-              Chef::Log.info("CM - Waiting for MAPR config deployment [id:#{id}, active:#{active}, success:#{success}]") if debug
-              cmd_timeout = 180 
-              cmd = api.wait_for_cmd(cmd, cmd_timeout)
-              id = cmd.getattr('id')
-              active = cmd.getattr('active')
-              success = cmd.getattr('success')
-              Chef::Log.info("CM - MAPR config deployment results [id:#{id}, active:#{active}, success:#{success}]") if debug
+              msg = cmd.getattr('resultMessage')
+              Chef::Log.info("CM - Waiting for MAPR config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              cmd_timeout = 300 
+              wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = wcmd.getattr('id')
+              active = wcmd.getattr('active')
+              success = wcmd.getattr('success')
+              msg = wcmd.getattr('resultMessage')
+              Chef::Log.info("CM - MAPR config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              # If we timeout and the command is still running, try again later
+              if active
+                msg = "CM - MAPR configuration deployment is running asynchronously in the background, trying again later"
+                Chef::Log.info(msg) if debug
+                raise Errno::ECONNREFUSED, msg
+              end
             end
           end
         end
@@ -687,7 +727,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
       retry_count = 1
       connection_ok = false
       config_state = { :cm_server_restarted => false}
-      while (not connection_ok and retry_count <= 5)
+      while (not connection_ok and retry_count <= 10)
         connection_ok = true
         Chef::Log.info("CM - Executing cm-api code") if debug
         begin
@@ -697,7 +737,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
           Chef::Log.info("CM - Can't connect to the cm-server - sleep and retrying #{retry_count} #{config_state[:cm_server_restarted]}")
           # puts e.message   
           # puts e.backtrace.inspect
-          sleep(20)
+          sleep(60)
         end
         retry_count += 1 
       end
