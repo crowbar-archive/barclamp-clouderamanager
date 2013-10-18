@@ -118,7 +118,7 @@ end
 # the agents heartbeating, it assumes that the packages are installed
 # and that's why we need to install them here in-line.
 #######################################################################
-if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:auto_pkgs_installed]
   ext_packages=%w{
     cloudera-manager-agent
     cloudera-manager-daemons
@@ -149,6 +149,13 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
     flume-ng
     impala
     impala-shell
+    solr
+    solr-doc
+    search
+    solr-mapreduce
+    flume-ng-solr
+    hbase-solr
+    hbase-solr-doc
     sqoop2-client
     sqoop2
     hcatalog
@@ -160,6 +167,19 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
       action :install
     end
   end
+  
+  node[:clouderamanager][:cluster][:auto_pkgs_installed] = true
+end
+
+# We will rely on CM to configure startup for these services.
+# The CM Host inspector will complain if these rc.d services
+# are enabled by default. 
+init_disable=%w{
+   oozie
+   hadoop-httpfs
+  }
+init_disable.each do |init_script|
+    %x{chkconfig #{init_script} off}
 end
 
 #######################################################################

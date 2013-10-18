@@ -61,6 +61,8 @@ default[:clouderamanager][:cluster][:edgenodes] = []
 default[:clouderamanager][:cluster][:cmservernodes] = []
 default[:clouderamanager][:cluster][:hafilernodes] = []
 default[:clouderamanager][:cluster][:hajournalingnodes] = []
+default[:clouderamanager][:cluster][:auto_pkgs_installed] = false
+default[:clouderamanager][:cluster][:cm_api_configured] = false
 
 default[:clouderamanager][:cluster][:cluster_name] = 'cluster01'
 default[:clouderamanager][:cluster][:cdh_version] = 'CDH4'

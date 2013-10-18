@@ -328,7 +328,7 @@ class ApiCommand < BaseApiObject
       return self
     end
     
-    sleep_sec = 5
+    sleep_sec = 15
     if timeout.nil?
       deadline = nil
     else

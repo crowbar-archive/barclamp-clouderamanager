@@ -43,8 +43,8 @@ nav:
 locale_additions:
   en:
     nav:
-      clouderamanager_ug: Apache Hadoop Users
-      clouderamanager_dg: Apache Hadoop Deployment
+      clouderamanager_ug: Dell | Cloudera Solution Users Guide
+      clouderamanager_dg: Dell | Cloudera Solution Deployment
     barclamp:
       clouderamanager:
         edit_deployment: 
@@ -105,13 +105,13 @@ rpms:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
-      - bare cloudera-search 10 http://beta.cloudera.com/search/redhat/6/x86_64/search/0
+      - bare cloudera-search 10 http://archive.cloudera.com/search/redhat/6/x86_64/search/1
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4
   centos-6.4:
     repos:
       - bare cloudera-cdh4 10 http://archive.cloudera.com/cdh4/redhat/6/x86_64/cdh/4
       - bare cloudera-impala 10 http://archive.cloudera.com/impala/redhat/6/x86_64/impala/1
-      - bare cloudera-search 10 http://beta.cloudera.com/search/redhat/6/x86_64/search/0
+      - bare cloudera-search 10 http://archive.cloudera.com/search/redhat/6/x86_64/search/1
       - bare cloudera-manager 10 http://archive.cloudera.com/cm4/redhat/6/x86_64/cm/4
 
   pkgs:
@@ -210,18 +210,17 @@ rpms:
     - impala-shell
     - impala-state-store
     # CLOUDERA SEARCH (Beta) noarch
-    - flume-ng-solr
-    - hbase-solr
-    - hbase-solr-doc
-    - hbase-solr-indexer
-    - search
-    - solr
-    - solr-doc
-    - solr-mapreduce
-    - solr-server
+    - flume-ng-solr   
+    - hbase-solr   
+    - hbase-solr-doc   
+    - hbase-solr-indexer   
+    - search   
+    - solr   
+    - solr-doc   
+    - solr-mapreduce   
+    - solr-server   
     # CLOUDERA SEARCH (Beta) x86_64
-    - hue
-    - hue-search
+    - hue-search   
     # CLOUDERA MANAGER
     - cloudera-manager-agent
     - cloudera-manager-daemons
