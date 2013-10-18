@@ -19,7 +19,7 @@
 
     %p
       %label{ :for => :fs_type }= t('.fs_type')
-      = select_tag :fs_type, options_for_select([['ext3','ext3'],['ext4', 'ext4'],['xfs', 'xfs']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["fs_type"]), :onchange => "update_value('os/fs_type', 'fs_type', 'string')"
+      = select_tag :fs_type, options_for_select([['ext3','ext3'],['ext4', 'ext4']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["fs_type"]), :onchange => "update_value('os/fs_type', 'fs_type', 'string')"
 
     %p
       %label{ :for => :thp_compaction }= t('.thp_compaction')
@@ -36,7 +36,7 @@
     %p
       %label{ :for => :hbase_openfiles }= t('.hbase_openfiles')
       %input#hbase_openfiles{:type => "text", :name => "hbase_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["hbase_openfiles"], :onchange => "update_value('os', 'hbase_openfiles', 'string')"}
-      
+
     %p
     %br
     %strong= t('.cmapi_settings')

@@ -127,9 +127,10 @@ end
 # a ruby_block) because it requires the cm-server to be installed and
 # running at the point of execution.
 #######################################################################
-ruby_block "cm-api-deferred" do
-  block do
-    if node[:clouderamanager][:cmapi][:deployment_type] == 'auto'
+
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:cm_api_configured]
+  ruby_block "cm-api-deferred-execution" do
+    block do
       libbase = File.join(File.dirname(__FILE__), '../libraries' )
       require "#{libbase}/api_client.rb"
       require "#{libbase}/utils.rb"
@@ -155,10 +156,22 @@ ruby_block "cm-api-deferred" do
             counter_map[role_type] = 1 if counter_map[role_type].nil?
             cnt = sprintf("%2.2d", counter_map[role_type])
             role_name = "#{role_type}-#{cluster_name}-#{cnt}"
-            rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
-            Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
-            cluster_config << rec
-            counter_map[role_type] += 1
+            # Check for role duplication on this node and skip if the role is already there.
+            skip_role_insertion = false
+            cluster_config.each do |r|
+              if r[:host_id] == n[:fqdn] and r[:role_type] == role_type
+                skip_role_insertion = true
+                break
+              end
+            end
+            if skip_role_insertion
+              Chef::Log.info("CM - #{role_type} role duplicated on node #{n[:fqdn]}, skipping role insertion") if debug
+            else
+              rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
+              Chef::Log.info("CM - cluster_config add [#{rec.inspect}]") if debug
+              cluster_config << rec
+              counter_map[role_type] += 1
+            end
           end
         end
       end    
@@ -168,9 +181,9 @@ ruby_block "cm-api-deferred" do
       # Role names must be unique across all clusters. 
       # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
       # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER. MAPREDUCE : JOBTRACKER,
-      # TASKTRACKER, GATEWAY 
+      # TASKTRACKER
       #####################################################################
-      def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
+      def build_roles(debug, cluster_name, namenodes, datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
         #--------------------------------------------------------------------
         # Add the CM role definitions.
         #--------------------------------------------------------------------
@@ -181,22 +194,31 @@ ruby_block "cm-api-deferred" do
           primary_namenode = [ namenodes[0] ]
           role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
           role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
+          role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'GATEWAY')
         end
         # secondary namenode
         if namenodes.length > 1
           secondary_namenode = [ namenodes[1] ]
           role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
+          role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'GATEWAY')
         end
         # datanodes
         role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
         role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
-        Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
+        role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'GATEWAY')
         # edgenodes
-=begin    
-    if edgenodes.length > 0
-      role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
-    end
-=end
+        if edgenodes.length > 0
+          role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
+        end
+        # hafilernodes
+        if hafilernodes.length > 0
+          role_appender(debug, config, cluster_name, counter_map, hafilernodes, "HDFS", 'GATEWAY')
+        end
+        # hajournalingnodes
+        if hajournalingnodes.length > 0
+          role_appender(debug, config, cluster_name, counter_map, hajournalingnodes, "HDFS", 'GATEWAY')
+        end
+        Chef::Log.info("CM - cluster configuration [#{config.inspect}]") if debug
         return config
       end
       
@@ -401,25 +423,30 @@ ruby_block "cm-api-deferred" do
         namenodes = node[:clouderamanager][:cluster][:namenodes] 
         datanodes = node[:clouderamanager][:cluster][:datanodes]
         edgenodes = node[:clouderamanager][:cluster][:edgenodes] 
+        cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
+        hafilernodes = node[:clouderamanager][:cluster][:hafilernodes] 
+        hajournalingnodes = node[:clouderamanager][:cluster][:hajournalingnodes] 
         
         #--------------------------------------------------------------------
         # Find the cm server. 
         #--------------------------------------------------------------------
         server_host = find_cm_server(debug, env_filter, node) 
         if not server_host or server_host.empty?
-          Chef::Log.info("CM - ERROR: Cannot locate CM server - skipping CM_API setup")
+          Chef::Log.info("CM - ERROR: Cannot locate CM server - deferring CM_API setup")
+          raise Errno::ECONNREFUSED, "CM - ERROR: Cannot locate CM server"
         else
           #--------------------------------------------------------------------
           # Establish the RESTful API connection. 
           #--------------------------------------------------------------------
           api = create_api_resource(debug, server_host, server_port, username, password, use_tls, version) 
           if not api
-            Chef::Log.info("CM - ERROR: Cannot create CM API resource - skipping CM_API setup")
+            Chef::Log.info("CM - ERROR: Cannot create CM API resource - deferring CM_API setup")
+            raise Errno::ECONNREFUSED, "CM - ERROR: Cannot create CM API resource"
           else
             #--------------------------------------------------------------------
             # Build the cluster configuration data structure with CM role associations.
             #--------------------------------------------------------------------
-            cluster_config = build_roles(debug, cluster_name, namenodes, datanodes, edgenodes)
+            cluster_config = build_roles(debug, cluster_name, namenodes, datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
             
             #--------------------------------------------------------------------
             # Set the license key if present. 
@@ -552,13 +579,21 @@ ruby_block "cm-api-deferred" do
                 id = cmd.getattr('id')
                 active = cmd.getattr('active')
                 success = cmd.getattr('success')
-                Chef::Log.info("CM - Waiting for HDFS format [id:#{id}, active:#{active}, success:#{success}]") if debug
-                cmd_timeout = 180 
-                cmd = api.wait_for_cmd(cmd, cmd_timeout)
-                id = cmd.getattr('id')
-                active = cmd.getattr('active')
-                success = cmd.getattr('success')
-                Chef::Log.info("CM - HDFS format results [id:#{id}, active:#{active}, success:#{success}]") if debug
+                msg = cmd.getattr('resultMessage')
+                Chef::Log.info("CM - Waiting for HDFS format [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+                cmd_timeout = 300 
+                wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+                id = wcmd.getattr('id')
+                active = wcmd.getattr('active')
+                success = wcmd.getattr('success')
+                msg = wcmd.getattr('resultMessage')
+                Chef::Log.info("CM - HDFS format results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+                # If we timeout and the command is still running, try again later
+                if active
+                  msg = "CM - HDFS format is running asynchronously in the background, trying again later"
+                  Chef::Log.info(msg) if debug
+                  raise Errno::ECONNREFUSED, msg
+                end
               end
             end
             
@@ -570,13 +605,21 @@ ruby_block "cm-api-deferred" do
             id = cmd.getattr('id')
             active = cmd.getattr('active')
             success = cmd.getattr('success')
-            Chef::Log.info("CM - Waiting for HDFS service startup [id:#{id}, active:#{active}, success:#{success}]") if debug
-            cmd_timeout = 180 
-            cmd = api.wait_for_cmd(cmd, cmd_timeout)
-            id = cmd.getattr('id')
-            active = cmd.getattr('active')
-            success = cmd.getattr('success')
-            Chef::Log.info("CM - HDFS service startup results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            msg = cmd.getattr('resultMessage')
+            Chef::Log.info("CM - Waiting for HDFS service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            cmd_timeout = 300
+            wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+            id = wcmd.getattr('id')
+            active = wcmd.getattr('active')
+            success = wcmd.getattr('success')
+            msg = wcmd.getattr('resultMessage')
+            Chef::Log.info("CM - HDFS service startup results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            # If we timeout and the command is still running, try again later
+            if active
+              msg = "CM - HDFS service startup is running asynchronously in the background, trying again later"
+              Chef::Log.info(msg) if debug
+              raise Errno::ECONNREFUSED, msg
+            end
             
             #--------------------------------------------------------------------
             # Deploy HDFS client config. 
@@ -593,13 +636,21 @@ ruby_block "cm-api-deferred" do
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
-              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}]") if debug
-              cmd_timeout = 180 
-              cmd = api.wait_for_cmd(cmd, cmd_timeout)
-              id = cmd.getattr('id')
-              active = cmd.getattr('active')
-              success = cmd.getattr('success')
-              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}]") if debug
+              msg = cmd.getattr('resultMessage')
+              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              cmd_timeout = 300
+              wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = wcmd.getattr('id')
+              active = wcmd.getattr('active')
+              success = wcmd.getattr('success')
+              msg = wcmd.getattr('resultMessage')
+              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              # If we timeout and the command is still running, try again later
+              if active
+                msg = "CM - HDFS configuration deployment is running asynchronously in the background, trying again later"
+                Chef::Log.info(msg) if debug
+                raise Errno::ECONNREFUSED, msg
+              end
             end
             
             #--------------------------------------------------------------------
@@ -615,13 +666,21 @@ ruby_block "cm-api-deferred" do
             id = cmd.getattr('id')
             active = cmd.getattr('active')
             success = cmd.getattr('success')
-            Chef::Log.info("CM - Waiting for MAPR service startup [id:#{id}, active:#{active}, success:#{success}]") if debug
-            cmd_timeout = 180 
-            cmd = api.wait_for_cmd(cmd, cmd_timeout)
-            id = cmd.getattr('id')
-            active = cmd.getattr('active')
-            success = cmd.getattr('success')
-            Chef::Log.info("CM - MAPR service startup results [id:#{id}, active:#{active}, success:#{success}]") if debug
+            msg = cmd.getattr('resultMessage')
+            Chef::Log.info("CM - Waiting for MAPR service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            cmd_timeout = 300
+            wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+            id = wcmd.getattr('id')
+            active = wcmd.getattr('active')
+            success = wcmd.getattr('success')
+            msg = wcmd.getattr('resultMessage')
+            Chef::Log.info("CM - MAPR service startup results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+            # If we timeout and the command is still running, try again later
+            if active
+              msg = "CM - MAPR service startup is running asynchronously in the background, trying again later"
+              Chef::Log.info(msg) if debug
+              raise Errno::ECONNREFUSED, msg
+            end
             
             #--------------------------------------------------------------------
             # Deploy MAPR client config. 
@@ -638,13 +697,21 @@ ruby_block "cm-api-deferred" do
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
-              Chef::Log.info("CM - Waiting for MAPR config deployment [id:#{id}, active:#{active}, success:#{success}]") if debug
-              cmd_timeout = 180 
-              cmd = api.wait_for_cmd(cmd, cmd_timeout)
-              id = cmd.getattr('id')
-              active = cmd.getattr('active')
-              success = cmd.getattr('success')
-              Chef::Log.info("CM - MAPR config deployment results [id:#{id}, active:#{active}, success:#{success}]") if debug
+              msg = cmd.getattr('resultMessage')
+              Chef::Log.info("CM - Waiting for MAPR config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              cmd_timeout = 300 
+              wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = wcmd.getattr('id')
+              active = wcmd.getattr('active')
+              success = wcmd.getattr('success')
+              msg = wcmd.getattr('resultMessage')
+              Chef::Log.info("CM - MAPR config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              # If we timeout and the command is still running, try again later
+              if active
+                msg = "CM - MAPR configuration deployment is running asynchronously in the background, trying again later"
+                Chef::Log.info(msg) if debug
+                raise Errno::ECONNREFUSED, msg
+              end
             end
           end
         end
@@ -660,7 +727,7 @@ ruby_block "cm-api-deferred" do
       retry_count = 1
       connection_ok = false
       config_state = { :cm_server_restarted => false}
-      while (not connection_ok and retry_count <= 5)
+      while (not connection_ok and retry_count <= 10)
         connection_ok = true
         Chef::Log.info("CM - Executing cm-api code") if debug
         begin
@@ -670,18 +737,23 @@ ruby_block "cm-api-deferred" do
           Chef::Log.info("CM - Can't connect to the cm-server - sleep and retrying #{retry_count} #{config_state[:cm_server_restarted]}")
           # puts e.message   
           # puts e.backtrace.inspect
-          sleep(20)
+          sleep(60)
         end
         retry_count += 1 
       end
       
       if (not connection_ok)
         Chef::Log.info("CM - Giving up on cm-server connection - will try again later")
+        node[:clouderamanager][:cluster][:cm_api_configured] = false
+        node.save 
+      else
+        node[:clouderamanager][:cluster][:cm_api_configured] = true
+        node.save 
       end
-    else
-      Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
     end
   end
+else
+  Chef::Log.info("CM - Automatic CM API feature is disabled") if debug
 end
 
 #######################################################################

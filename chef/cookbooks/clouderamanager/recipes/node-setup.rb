@@ -54,45 +54,80 @@ link "/etc/localtime" do
   to "/usr/share/zoneinfo/Etc/UTC"
 end
 
-
-
-
 #######################################################################
-# Ensure THP compaction is disabled/enabled based on user input.
+# Ensure THP compaction is disabled/enabled based on the proposal setting.
 #######################################################################
+cur_thpval = node[:clouderamanager][:os][:thp_compaction]
+Chef::Log.info("CM - Checking THP setting [#{cur_thpval}]") if debug
 
-Chef::Log.info("OS - Change thp settings") if debug
-disable = node[:clouderamanager][:os][:thp_compaction]
+#----------------------------------------------------------------------
+# Change it for current session.
+#----------------------------------------------------------------------
 defrag_file_pathname = "/sys/kernel/mm/redhat_transparent_hugepage/defrag"
-rc_local_path = "/etc/rc.local"
+Chef::Log.info("CM - Checking the THP setting in #{defrag_file_pathname} [#{cur_thpval}]") if debug
 
+#----------------------------------------------------------------------
+# Change it for current session
+#----------------------------------------------------------------------
+cur_buff = ''
+if File.exists?(defrag_file_pathname)
+  cur_buff = File.read(defrag_file_pathname)
+  cur_buff = cur_buff.strip
+end
+Chef::Log.info("CM - Current setting [#{cur_buff}]") if debug
+# Only rewrite the file if needed.
+if (cur_thpval == 'never' and cur_buff != 'always [never]') or (cur_thpval == 'always' and cur_buff != '[always] never')
+  # Need to create or re-write the file.
+  Chef::Log.info("CM - Updating #{defrag_file_pathname} with the new THP setting [#{cur_thpval}]") if debug
+  File.open(defrag_file_pathname, "w") { |file| file.puts "#{cur_thpval}\n" }
+else
+  # THP setting is correct. No updates required.
+  Chef::Log.info("CM - No updates to #{defrag_file_pathname} required") if debug
+end
+
+#----------------------------------------------------------------------
 # For future reboots, change rc.local file on the node.
-
+#----------------------------------------------------------------------
+rc_local_path = "/etc/rc.local"
+Chef::Log.info("CM - Checking the THP setting in #{rc_local_path} [#{cur_thpval}]") if debug
+# Read the rc.local file is it currently exists.
+cur_buff = ''
 if File.exists?(rc_local_path)
-  text = File.read(rc_local_path)
-  if (text =~ /\s*[a-z]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag\s*/)
-    
-     replace = text.gsub(/\s*[a-z ]+ > \/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag\s*/, "echo #{disable} > #{defrag_file_pathname}\n")
-
-     File.open(rc_local_path, "w") { |file| file.puts replace }
-     Chef::Log.info("OS - Successfully changed thp_compaction value for rc.local file.")
-  else
-    Chef::Log.info("OS - Append to end of file")
-    %x{sudo sh -c "echo '#{disable} > #{defrag_file_pathname}' >> #{rc_local_path}"}
+  cur_buff = File.read(rc_local_path)
+end
+# Parse the rc.local file for THP settings.
+new_buff = nil
+thp_array = cur_buff.scan /^[\t ]*echo\s*(.+?)\s*>\s*\/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag[\t ]*$/m
+rep_str = "echo #{cur_thpval} > /sys/kernel/mm/redhat_transparent_hugepage/defrag" 
+if thp_array.length <= 0  
+  # No current thp entry, append to the end of the file.
+  if cur_buff.length == 0 or cur_buff[cur_buff.length - 1] == 10 
+    # Last line already has a line ender.
+    new_buff = cur_buff + rep_str
+  else 
+    # Last line does not already have a line ender.
+    new_buff = cur_buff + "\n#{rep_str}"
   end
 else
-  Chef::Log.info("OS - Changing thp_compaction value for rc.local file failed.")
-end
-
-
-Chef::Log.info("Executing thp change for current session")
-#Change it for current session
-output = %x{echo #{disable} > #{defrag_file_pathname}}
-if $?.exitstatus != 0
- Chef::Log.error("OS - Failed to change thp_compaction value for current session") if debug
+  # THP stanza already exists. Check the state and update if needed.
+  reg_thpval = thp_array[thp_array.length - 1]
+  if reg_thpval.to_s != cur_thpval
+    Chef::Log.info("CM - THP setting needs updating [#{reg_thpval},#{cur_thpval}]") if debug
+    new_buff = cur_buff.gsub(/^[\t ]*echo\s*(.+?)\s*>\s*\/sys\/kernel\/mm\/redhat_transparent_hugepage\/defrag[\t ]*$/, rep_str) 
+  else
+    Chef::Log.info("CM - Current THP setting is correct [#{reg_thpval},#{cur_thpval}]") if debug
+  end
+end  
+# Only rewrite the file if needed.
+if not new_buff.nil?
+  # Need to create or re-write the file.
+  Chef::Log.info("CM - Updating #{rc_local_path} with the new THP setting [#{cur_thpval}]") if debug
+  File.open(rc_local_path, "w") { |file| file.puts new_buff }
 else
- Chef::Log.info("OS - Successfully changed thp_compaction value for current session") if debug
+  # THP setting is correct. No updates required.
+  Chef::Log.info("CM - No THP updates to #{rc_local_path} required") if debug
 end
+Chef::Log.info("CM - THP setting check complete") if debug
 
 #----------------------------------------------------------------------
 # Find the name nodes. 
