@@ -125,10 +125,6 @@ rpms:
     - flume-ng
     - flume-ng-agent
     - flume-ng-doc
-    - hadoop-0.20-mapreduce-jobtracker
-    - hadoop-0.20-mapreduce-jobtrackerha
-    - hadoop-0.20-mapreduce-tasktracker
-    - hadoop-0.20-mapreduce-zkfc
     - hcatalog
     - hcatalog-server
     - hive
@@ -143,6 +139,7 @@ rpms:
     - oozie-client
     - pig
     - pig-udf-datafu
+    - sentry
     - sqoop
     - sqoop-metastore
     - sqoop2
@@ -158,6 +155,10 @@ rpms:
     - bigtop-jsvc-debuginfo
     - hadoop-0.20-conf-pseudo
     - hadoop-0.20-mapreduce
+    - hadoop-0.20-mapreduce-jobtracker
+    - hadoop-0.20-mapreduce-jobtrackerha
+    - hadoop-0.20-mapreduce-tasktracker
+    - hadoop-0.20-mapreduce-zkfc
     - hadoop
     - hadoop-client
     - hadoop-conf-pseudo
@@ -168,7 +169,7 @@ rpms:
     - hadoop-hdfs-fuse
     - hadoop-hdfs-journalnode
     - hadoop-hdfs-namenode
-    - hadoop-hdfs-secondarynamenode
+    - hadoop-hdfs-secondarynamenode  
     - hadoop-hdfs-zkfc
     - hadoop-httpfs
     - hadoop-libhdfs
@@ -177,7 +178,7 @@ rpms:
     - hadoop-yarn
     - hadoop-yarn-nodemanager
     - hadoop-yarn-proxyserver
-    - hadoop-yarn-resourcemanager
+    - hadoop-yarn-resourcemanager  
     - hbase
     - hbase-doc
     - hbase-master
@@ -189,6 +190,7 @@ rpms:
     - hue-beeswax
     - hue-common
     - hue-filebrowser
+    - hue-hbase
     - hue-help
     - hue-impala
     - hue-jobbrowser
@@ -198,8 +200,10 @@ rpms:
     - hue-pig
     - hue-plugins
     - hue-proxy
+    - hue-search
     - hue-server
     - hue-shell
+    - hue-sqoop
     - hue-useradmin
     # IMPALA noarch
     - bigtop-utils
