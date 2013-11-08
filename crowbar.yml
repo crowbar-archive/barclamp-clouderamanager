@@ -31,9 +31,9 @@ barclamp:
 
 crowbar:
   layout: 1
-  order: 200
-  run_order: 200
-  chef_order: 200
+  order: 400
+  run_order: 400
+  chef_order: 400
 
 nav:
   help:
@@ -53,13 +53,6 @@ locale_additions:
           attributes: Proposal Attributes
           barclamp_settings: Barclamp
           debug: Log Debug Messages
-          os_settings: Operating System
-          fs_type: File System Type
-          thp_compaction: THP Compaction
-          mapred_openfiles: Map/Reduce File Handles
-          hdfs_openfiles: HDFS File Handles
-          hbase_openfiles: HBASE File Handles
-          ha_settings: Hadoop High Availability
           cmapi_settings: Cloudera Manager API
           deployment_type: Deployment Type
           server_port: Server Port
@@ -67,38 +60,19 @@ locale_additions:
           password: Password
           use_tls: Use TLS (https)
           version: API Version
+          server_settings: CM Server
+          db_type: Database Type
           cluster_settings: Cluster
           cluster_name: Cluster Name
           cdh_version: CDH Version
           license_key: Cloudera Manager License Key (Optional)
           rack_id: Rack ID
-          shared_edits_directory: Shared Edits Directory
-          shared_edits_export_options: Shared Edits Export Options 
-          shared_edits_mount_options: Shared Edits Mount Options 
         index:
           barclamp: Project
           state: Status
           proposal: Proposal
           description: Provides end-to-end management for Apache Hadoop CDH4 with the ability to deploy and centrally operate a complete Hadoop stack. Gives you a cluster wide, real time view of nodes and services running and provides a single central place to enact configuration changes across your cluster. Cloudera Manager incorporates a full range of reporting and diagnostic tools to help you optimize cluster performance and utilization.
           instructions: Apply proposals in order from top to bottom. Allow each proposal to enter ready state before applying the next one.
-        nodes:
-          export: Export to CSV
-          title: Node Inventory
-          name: Name
-          cb_role: Crowbar Role
-          cm_role: Cloudera Manager Role
-          ip_addr: IP Address
-          alias: Alias
-          cpu: CPU
-          ram: RAM
-          drives: Drives
-          adminnodes: Crowbar Admin Node
-          servernodes: Cloudera Manager Server Node
-          namenodes: Name Nodes
-          datanodes: Data Nodes
-          edgenodes: Edge Nodes
-          hafilernodes: High Availability Filer Nodes
-          hajournalingnodes: High Availability Journaling Nodes
 
 rpms:
   redhat-6.4:

@@ -20,44 +20,49 @@
 class ClouderamanagerController < BarclampController
   def initialize
     @service_object = ClouderamanagerService.new logger
+    @hadoop_config = {
+      :adminnodes => [],
+      :servernodes => [],
+      :namenodes => [],
+      :edgenodes => [],
+      :datanodes => [],
+      :hajournalingnodes => [],
+      :hafilernodes => []
+    }
   end
   
+  #######################################################################
+  # nodes - render the nodes template.
+  #######################################################################
   def nodes
-    nodeswithroles       = NodeObject.all.find_all { |n| n.roles != nil }
-    @cbadminnodes        = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-cb-adminnode" ) }
-    @cmservernodes       = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-server" ) }
-    @cmnamenodes         = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-namenode" ) }
-    @cmdatanodes         = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-datanode" ) }
-    @cmedgenodes         = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-edgenode" ) }
-    @cmhajournalingnodes = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-ha-journalingnode" ) }
-    @cmhafilernodes      = nodeswithroles.find_all { |n| n.roles.include?("clouderamanager-ha-filernode" ) }
+    @hadoop_config = @service_object.get_hadoop_config
     
     respond_to do |format|
-      format.html { render :template => 'barclamp/clouderamanager/nodes' }
+      format.html { render :template => 'barclamp/hadoop_infrastructure/nodes' }
       format.text {
         export = ["role, ip, name, cpu, ram, drives"]
-        @cbadminnodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.adminnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:adminnodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.adminnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        @cmservernodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.servernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:servernodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.servernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        @cmnamenodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.namenodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:namenodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.namenodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        @cmdatanodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.datanodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:edgenodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.edgenodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        @cmedgenodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.edgenodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:datanodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.datanodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        @cmhajournalingnodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.hajournalingnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:hajournalingnodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.hajournalingnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        @cmhafilernodes.sort_by{|n| n.name }.each do |node|
-          export << I18n.t('.barclamp.clouderamanager.nodes.hafilernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+        @hadoop_config[:hafilernodes].each do |node|
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.hafilernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
-        headers["Content-Disposition"] = "attachment; filename=\"#{I18n.t('nodes.dell.nodes.filename', :default=>'cloudera_inventory.txt')}\""
+        headers["Content-Disposition"] = "attachment; filename=\"#{I18n.t('nodes.dell.nodes.filename', :default=>'hadoop_infrastructure_inventory.txt')}\""
         render :text => export.join("\n"), :content_type => 'application/text'
       }
     end

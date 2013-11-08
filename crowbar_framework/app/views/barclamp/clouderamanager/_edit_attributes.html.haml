@@ -15,30 +15,6 @@
 
     %p
     %br
-    %strong= t('.os_settings')
-
-    %p
-      %label{ :for => :fs_type }= t('.fs_type')
-      = select_tag :fs_type, options_for_select([['ext3','ext3'],['ext4', 'ext4'],['xfs', 'xfs']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["fs_type"]), :onchange => "update_value('os/fs_type', 'fs_type', 'string')"
-
-    %p
-      %label{ :for => :thp_compaction }= t('.thp_compaction')
-      = select_tag :thp_compaction, options_for_select([['never','never'],['always', 'always']], @proposal.raw_data['attributes'][@proposal.barclamp][:os]["thp_compaction"]), :onchange => "update_value('os/thp_compaction', 'thp_compaction', 'string')"
-
-    %p
-      %label{ :for => :mapred_openfiles }= t('.mapred_openfiles')
-      %input#mapred_openfiles{:type => "text", :name => "mapred_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["mapred_openfiles"], :onchange => "update_value('os', 'mapred_openfiles', 'string')"}
-
-    %p
-      %label{ :for => :hdfs_openfiles }= t('.hdfs_openfiles')
-      %input#hdfs_openfiles{:type => "text", :name => "hdfs_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["hdfs_openfiles"], :onchange => "update_value('os', 'hdfs_openfiles', 'string')"}
-
-    %p
-      %label{ :for => :hbase_openfiles }= t('.hbase_openfiles')
-      %input#hbase_openfiles{:type => "text", :name => "hbase_openfiles", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:os]["hbase_openfiles"], :onchange => "update_value('os', 'hbase_openfiles', 'string')"}
-
-    %p
-    %br
     %strong= t('.cmapi_settings')
 
     %p
@@ -67,6 +43,14 @@
 
     %p
     %br
+    %strong= t('.server_settings')
+
+    %p
+      %label{ :for => :db_type }= t('.db_type')
+      = select_tag :db_type, options_for_select([['postgresql','postgresql'],['mysql', 'mysql']], @proposal.raw_data['attributes'][@proposal.barclamp][:server]["db_type"]), :onchange => "update_value('server/db_type', 'db_type', 'string')"
+
+    %p
+    %br
     %strong= t('.cluster_settings')
 
     %p
@@ -80,20 +64,3 @@
     %p
       %label{ :for => :license_key }= t('.license_key')
       = text_area_tag :license_key, @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :size => "64x5", :onchange => "update_value('cluster/license_key', 'license_key', 'string')"
-
-    %p
-    %br
-    %strong= t('.ha_settings')
-
-    %p
-      %label{ :for => :shared_edits_directory }= t('.shared_edits_directory')
-      %input#shared_edits_directory{:type => "text", :name => "shared_edits_directory", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_directory"], :onchange => "update_value('ha', 'shared_edits_directory', 'string')"}
-
-    %p
-      %label{ :for => :shared_edits_export_options }= t('.shared_edits_export_options')
-      %input#shared_edits_export_options{:type => "text", :name => "shared_edits_export_options", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_export_options"], :onchange => "update_value('ha', 'shared_edits_export_options', 'string')"}
-
-    %p
-      %label{ :for => :shared_edits_mount_options }= t('.shared_edits_mount_options')
-      %input#shared_edits_mount_options{:type => "text", :name => "shared_edits_mount_options", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:ha]["shared_edits_mount_options"], :onchange => "update_value('ha', 'shared_edits_mount_options', 'string')"}
-
