@@ -15,17 +15,6 @@
             "debug":  { "type": "bool", "required": true},
             "admin_ip_eval": { "type": "str", "required": true },
             "admin_interface_eval": { "type": "str", "required": true },
-            "os": {
-              "type": "map",
-              "required": true,
-              "mapping": {
-                "fs_type": { "type": "str", "required": true},
-                "thp_compaction": { "type": "str", "required": true},
-                "mapred_openfiles": { "type": "str", "required": true},
-                "hdfs_openfiles": { "type": "str", "required": true},
-                "hbase_openfiles": { "type": "str", "required": true}
-              }  
-            },
             "cmapi": {
               "type": "map",
               "required": true,
@@ -38,6 +27,13 @@
                 "version": { "type": "str", "required": true}
               }  
             },
+            "server": {
+              "type": "map",
+              "required": true,
+              "mapping": {
+                "db_type": { "type": "str", "required": true}
+              }  
+            },
             "cluster": {
               "type": "map",
               "required": true,
@@ -46,15 +42,6 @@
                 "cdh_version": { "type": "str", "required": true},
                 "license_key": { "type": "str", "required": false},
                 "rack_id": { "type": "str", "required": false}
-              }  
-            },
-            "ha": {
-              "type": "map",
-              "required": true,
-              "mapping": {
-                "shared_edits_directory": { "type": "str", "required": true},
-                "shared_edits_export_options": { "type": "str", "required": true},
-                "shared_edits_mount_options": { "type": "str", "required": true}
               }  
             }
           } 

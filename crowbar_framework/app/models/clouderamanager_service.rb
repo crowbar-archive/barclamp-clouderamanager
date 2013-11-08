@@ -25,6 +25,50 @@ class ClouderamanagerService < ServiceObject
   def initialize(thelogger)
     @bc_name = "clouderamanager"
     @logger = thelogger
+    @hadoop_config = {
+      :adminnodes => [],
+      :servernodes => [],
+      :namenodes => [],
+      :edgenodes => [],
+      :datanodes => [],
+      :hajournalingnodes => [],
+      :hafilernodes => [] 
+    }
+  end
+  
+  #######################################################################
+  # get_hadoop_config - Get the hadoop related configuration.
+  #######################################################################
+  def get_hadoop_config
+    nodeswithroles    = NodeObject.all.find_all { |n| n.roles != nil }
+    adminnodes        = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-cb-adminnode" ) }
+    servernodes       = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-server" ) }
+    namenodes         = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-namenode" ) }
+    edgenodes         = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-edgenode" ) }
+    datanodes         = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-datanode" ) }
+    hajournalingnodes = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-ha-journalingnode" ) }
+    hafilernodes      = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-ha-filernode" ) }
+    @hadoop_config[:adminnodes] = adminnodes 
+    @hadoop_config[:servernodes] = servernodes 
+    @hadoop_config[:namenodes] = namenodes 
+    @hadoop_config[:edgenodes] = edgenodes 
+    @hadoop_config[:datanodes] = datanodes 
+    @hadoop_config[:hajournalingnodes] = hajournalingnodes 
+    @hadoop_config[:hafilernodes] = hafilernodes
+    return @hadoop_config
+  end
+  
+  #######################################################################
+  # to_fqdn_array - Convert a node array to a fqdn array.
+  #######################################################################
+  def to_fqdn_array(nodes)
+    fqdn_array = []
+    nodes.each do |n|
+      if n[:fqdn] and not n[:fqdn].empty?
+        fqdn_array << n[:fqdn]
+      end
+    end
+    return fqdn_array
   end
   
   #######################################################################
@@ -33,109 +77,61 @@ class ClouderamanagerService < ServiceObject
   def create_proposal
     @logger.debug("clouderamanager create_proposal: entering")
     base = super
-    
-    adminnodes = [] # Crowbar admin node (size=1).
-    namenodes = []  # Hadoop name nodes (active/standby).
-    datanodes = []  # Hadoop data nodes (1..N, min=3).
-    edgenodes = []  # Hadoop edge nodes (1..N)
+    hadoop_config = get_hadoop_config
     
     #--------------------------------------------------------------------
-    # Make a temporary copy of all system nodes.
-    # Find the admin node and delete it from the data set.
+    # Convert to an array of fqdn strings. 
     #--------------------------------------------------------------------
-    nodes = NodeObject.all.dup
-    nodes.each do |n|
-      if n.nil?
-        nodes.delete(n)
-        next
-      end
-      if n.admin?
-        if n[:fqdn] and !n[:fqdn].empty?
-          adminnodes << n[:fqdn]
-        end
-        nodes.delete(n)
-      end
-    end
-    
-    #--------------------------------------------------------------------
-    # Configure the name nodes, edge nodes and data nodes.
-    # We don't select any HA nodes by default because the end user needs to
-    # make a decision if that want to deploy HA and the method to use
-    # (NFS filer/Quorum based storage). These options can be selected in the 
-    # the default proposal UI screen after the initial cluster topology has
-    # been suggested.  
-    #--------------------------------------------------------------------
-    if nodes.size == 1
-      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
-    elsif nodes.size == 2
-      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
-      namenodes << nodes[1][:fqdn] if nodes[1][:fqdn]
-    elsif nodes.size == 3
-      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
-      namenodes << nodes[1][:fqdn] if nodes[1][:fqdn]
-      edgenodes << nodes[2][:fqdn] if nodes[2][:fqdn]
-    elsif nodes.size > 3
-      namenodes << nodes[0][:fqdn] if nodes[0][:fqdn]
-      namenodes << nodes[1][:fqdn] if nodes[1][:fqdn]
-      edgenodes << nodes[2][:fqdn] if nodes[2][:fqdn]
-      nodes[3 .. nodes.size].each { |n|
-        datanodes << n[:fqdn] if n[:fqdn]
-      }
-    end
+    adminnodes        = to_fqdn_array(hadoop_config[:adminnodes])
+    servernodes       = to_fqdn_array(hadoop_config[:servernodes])
+    namenodes         = to_fqdn_array(hadoop_config[:namenodes])
+    edgenodes         = to_fqdn_array(hadoop_config[:edgenodes])
+    datanodes         = to_fqdn_array(hadoop_config[:datanodes])
+    hajournalingnodes = to_fqdn_array(hadoop_config[:hajournalingnodes])
+    hafilernodes      = to_fqdn_array(hadoop_config[:hafilernodes])
     
     #--------------------------------------------------------------------
     # proposal deployment elements. 
     #--------------------------------------------------------------------
     base["deployment"]["clouderamanager"]["elements"] = {} 
     
-    # Crowbar admin node setup. CM API code gets executed from here by default.
-    if adminnodes and !adminnodes.empty?    
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-cb-adminnode"] = [ adminnodes[0] ] 
+    # Crowbar admin node.
+    if not adminnodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-cb-adminnode"] = adminnodes 
     end    
     
-    # Name node setup (active/standby).
-    if namenodes and !namenodes.empty?    
+    # Hadoop cm server nodes.  
+    if not servernodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-server"] = servernodes 
+    end
+    
+    # Hadoop name nodes.
+    if not namenodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-namenode"] = namenodes 
     end    
     
-    # Edge node setup. CM server on the first edge node by default. 
-    if edgenodes and !edgenodes.empty?    
+    # Hadoop edge nodes. 
+    if not edgenodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-edgenode"] = edgenodes
-      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-server"] = [ edgenodes[0] ] 
     end
     
-    # Data node setup.
-    if datanodes and !datanodes.empty?    
+    # Hadoop data nodes.
+    if not datanodes.empty?    
       base["deployment"]["clouderamanager"]["elements"]["clouderamanager-datanode"] = datanodes   
+    end
+    
+    # Hadoop ha filer nodes.
+    if not hafilernodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-ha-filernode"] = hafilernodes 
+    end
+    
+    # Hadoop ha journaling nodes. 
+    if not hajournalingnodes.empty?    
+      base["deployment"]["clouderamanager"]["elements"]["clouderamanager-ha-journalingnode"] = hajournalingnodes 
     end
     
     # @logger.debug("clouderamanager create_proposal: #{base.to_json}")
     @logger.debug("clouderamanager create_proposal: exiting")
     base
-  end
-  
-  #######################################################################
-  # apply_role_pre_chef_call - Called before a chef role is applied.
-  # This code block is setting up for public IP addresses on the Hadoop
-  # edge node.
-  #######################################################################
-  def apply_role_pre_chef_call(old_role, role, all_nodes)
-    @logger.debug("clouderamanager apply_role_pre_chef_call: entering #{all_nodes.inspect}")
-    return if all_nodes.empty? 
-    
-    # Assign a public IP address to the edge node for external access.
-    net_svc = NetworkService.new @logger
-    [ "clouderamanager-edgenode" ].each do |element|
-      tnodes = role.override_attributes["clouderamanager"]["elements"][element]
-      next if tnodes.nil? or tnodes.empty?
-      
-      # Allocate the IP addresses for default, public, host.
-      tnodes.each do |n|
-        next if n.nil?
-        net_svc.allocate_ip "default", "public", "host", n
-      end
-    end
-    
-    @logger.debug("clouderamanager apply_role_pre_chef_call: leaving")
   end
 end

@@ -73,7 +73,7 @@ else
   # deployment_type == 'auto'. Ok to start the cm-agents pre-configured because we
   # have already have the Hadoop base packages installed.
   # Get the cm-server node.
-  cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
+  cmservernodes = node[:hadoop_infrastructure][:cluster][:cmservernodes]
   if cmservernodes and cmservernodes.length > 0 
     rec = cmservernodes[0]
     cm_server = rec[:fqdn]

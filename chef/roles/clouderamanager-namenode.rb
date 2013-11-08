@@ -22,8 +22,7 @@ description "Hadoop Name Node Role"
 run_list(
   "recipe[clouderamanager::node-setup]",
   "recipe[clouderamanager::hadoop-setup]",
-  "recipe[clouderamanager::cm-agent]",
-  "recipe[clouderamanager::cm-namenode]"
+  "recipe[clouderamanager::cm-agent]"
 )
 default_attributes()
 override_attributes()

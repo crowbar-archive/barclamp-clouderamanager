@@ -42,9 +42,16 @@ server_packages.each do |pkg|
 end
 
 #######################################################################
-# Setup the postgresql server for CM management functions.
+# Setup the postgresql or mysql server for CM management.
 #######################################################################
-include_recipe 'clouderamanager::postgresql'
+db_type = node[:clouderamanager][:server][:db_type]
+if db_type == 'postgresql'
+  include_recipe 'clouderamanager::postgresql'
+elsif db_type == 'mysql'
+  include_recipe 'clouderamanager::mysql'
+else
+  Chef::Log.error("CM - Invalid server db_type #{db_type}")
+end
 
 #######################################################################
 # Cloudera Manager needs to have this directory present. Without it,
@@ -103,7 +110,7 @@ end
 # Add the cloudera manager link to the crowbar UI.
 #######################################################################
 server_ip = nil
-cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
+cmservernodes = node[:hadoop_infrastructure][:cluster][:cmservernodes]
 if cmservernodes and cmservernodes.length > 0 
   rec = cmservernodes[0]
   server_ip = rec[:ipaddr]
@@ -139,7 +146,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
       # Find the cm_server.
       #####################################################################
       def find_cm_server(debug, env_filter, node_object)
-        cmservernodes = node_object[:clouderamanager][:cluster][:cmservernodes]
+        cmservernodes = node_object[:hadoop_infrastructure][:cluster][:cmservernodes]
         if cmservernodes and cmservernodes.length > 0 
           rec = cmservernodes[0]
           return rec[:ipaddr]
@@ -370,7 +377,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
       # HDFS format does not cover all the initialization cases.
       #--------------------------------------------------------------------
       def hdfs_init(debug, node)
-        namenodes = node[:clouderamanager][:cluster][:namenodes]
+        namenodes = node[:hadoop_infrastructure][:cluster][:namenodes]
         return if namenodes.nil? or namenodes.empty? 
         master = namenodes[0]
         return if master.nil? or master.empty? 
@@ -420,12 +427,12 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
         #--------------------------------------------------------------------
         # CB node information (each item is an array of records).
         #--------------------------------------------------------------------
-        namenodes = node[:clouderamanager][:cluster][:namenodes] 
-        datanodes = node[:clouderamanager][:cluster][:datanodes]
-        edgenodes = node[:clouderamanager][:cluster][:edgenodes] 
-        cmservernodes = node[:clouderamanager][:cluster][:cmservernodes]
-        hafilernodes = node[:clouderamanager][:cluster][:hafilernodes] 
-        hajournalingnodes = node[:clouderamanager][:cluster][:hajournalingnodes] 
+        namenodes = node[:hadoop_infrastructure][:cluster][:namenodes] 
+        datanodes = node[:hadoop_infrastructure][:cluster][:datanodes]
+        edgenodes = node[:hadoop_infrastructure][:cluster][:edgenodes] 
+        cmservernodes = node[:hadoop_infrastructure][:cluster][:cmservernodes]
+        hafilernodes = node[:hadoop_infrastructure][:cluster][:hafilernodes] 
+        hajournalingnodes = node[:hadoop_infrastructure][:cluster][:hajournalingnodes] 
         
         #--------------------------------------------------------------------
         # Find the cm server. 

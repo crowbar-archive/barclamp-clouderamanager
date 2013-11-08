@@ -6,13 +6,6 @@
       "debug": false,
 	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
       "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
-      "os": {
-          "fs_type": "ext4",
-          "thp_compaction": "never",
-		  "mapred_openfiles": "32768",
-          "hdfs_openfiles": "32768",
-          "hbase_openfiles": "32768"
-      },
       "cmapi": {
           "deployment_type": "manual",
           "server_port": "7180",
@@ -21,16 +14,14 @@
           "use_tls": false,
           "version": "2"
       },
+      "server": {
+          "db_type": "postgresql"
+      },
       "cluster": {
           "cluster_name": "cluster01",
           "cdh_version": "CDH4",
           "license_key": "",
 		  "rack_id": "/default"
-      },
-      "ha": {
-          "shared_edits_directory": "/dfs/ha",
-          "shared_edits_export_options": "rw,async,no_root_squash,no_subtree_check",
-          "shared_edits_mount_options": "rsize=65536,wsize=65536,intr,soft,bg"
       }
     }
   },
