@@ -14,11 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Note : This code is in development mode and is not full debugged yet.
-# It is being exercised through the use of the cm API test harness script 
-# and is not currently part of crowbar/clouderamanager barclamp cluster
-# deployments. 
-# 
 
 require 'json'
 
