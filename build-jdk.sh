@@ -15,7 +15,7 @@ bc_build() {
     local pkg
     for pkg in "${ORACLE_JAVA_RPMS[@]}"; do
 	[[ -f $BC_CACHE/$OS_TOKEN/pkgs/$pkg ]] || \
-	    die "Hadoop_clouderamanager build process did not build $pkg!"
+	    die "clouderamanager JDK build process failed [$pkg]"
 	if [[ $CURRENT_CACHE_BRANCH ]]; then
 	    (cd "$BC_CACHE/$OS_TOKEN/pkgs"; git add "$pkg")
 	fi
