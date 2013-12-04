@@ -111,6 +111,8 @@ rpms:
     - mahout-doc
     - oozie
     - oozie-client
+    - parquet
+    - parquet-format
     - pig
     - pig-udf-datafu
     - sentry
@@ -143,7 +145,7 @@ rpms:
     - hadoop-hdfs-fuse
     - hadoop-hdfs-journalnode
     - hadoop-hdfs-namenode
-    - hadoop-hdfs-secondarynamenode  
+    - hadoop-hdfs-secondarynamenode
     - hadoop-hdfs-zkfc
     - hadoop-httpfs
     - hadoop-libhdfs
@@ -152,7 +154,7 @@ rpms:
     - hadoop-yarn
     - hadoop-yarn-nodemanager
     - hadoop-yarn-proxyserver
-    - hadoop-yarn-resourcemanager  
+    - hadoop-yarn-resourcemanager
     - hbase
     - hbase-doc
     - hbase-master
@@ -163,6 +165,7 @@ rpms:
     - hue-about
     - hue-beeswax
     - hue-common
+    - hue-doc
     - hue-filebrowser
     - hue-hbase
     - hue-help
@@ -183,22 +186,23 @@ rpms:
     - bigtop-utils
     # IMPALA x86_64
     - impala
+    - impala-catalog
     - impala-debuginfo
     - impala-server
     - impala-shell
     - impala-state-store
-    # CLOUDERA SEARCH (Beta) noarch
-    - flume-ng-solr   
-    - hbase-solr   
-    - hbase-solr-doc   
-    - hbase-solr-indexer   
-    - search   
-    - solr   
-    - solr-doc   
-    - solr-mapreduce   
-    - solr-server   
-    # CLOUDERA SEARCH (Beta) x86_64
-    - hue-search   
+    - impala-udf-devel
+    # CLOUDERA SEARCH noarch
+    - hbase-solr
+    - hbase-solr-doc
+    - hbase-solr-indexer
+    - search
+    - solr
+    - solr-doc
+    - solr-mapreduce
+    - solr-server
+    # CLOUDERA SEARCH x86_64
+    - hue-search
     # CLOUDERA MANAGER
     - cloudera-manager-agent
     - cloudera-manager-daemons
