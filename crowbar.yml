@@ -39,40 +39,6 @@ nav:
   help:
     clouderamanager_ug: '"/dell_cloudera_apache_hadoop_users_guide.pdf", { :link => { :target => "_blank" } }'
     clouderamanager_dg: '"/dell_cloudera_apache_hadoop_deployment_guide.pdf", { :link => { :target => "_blank" } }'
-    
-locale_additions:
-  en:
-    nav:
-      clouderamanager_ug: Dell | Cloudera Solution Users Guide
-      clouderamanager_dg: Dell | Cloudera Solution Deployment
-    barclamp:
-      clouderamanager:
-        edit_deployment: 
-          deployment: Deployment        
-        edit_attributes:
-          attributes: Proposal Attributes
-          barclamp_settings: Barclamp
-          debug: Log Debug Messages
-          cmapi_settings: Cloudera Manager API
-          deployment_type: Deployment Type
-          server_port: Server Port
-          username: User Name
-          password: Password
-          use_tls: Use TLS (https)
-          version: API Version
-          server_settings: CM Server
-          db_type: Database Type
-          cluster_settings: Cluster
-          cluster_name: Cluster Name
-          cdh_version: CDH Version
-          license_key: Cloudera Manager License Key (Optional)
-          rack_id: Rack ID
-        index:
-          barclamp: Project
-          state: Status
-          proposal: Proposal
-          description: Provides end-to-end management for Hadoop CDH4 with the ability to deploy and centrally operate a complete Hadoop stack. Gives you a cluster wide, real time view of nodes and services running and provides a single central place to enact configuration changes across your cluster. Cloudera Manager incorporates a full range of reporting and diagnostic tools to help you optimize cluster performance and utilization.
-          instructions: Apply proposals in order from top to bottom. Allow each proposal to enter ready state before applying the next one.
 
 rpms:
   redhat-6.4:
