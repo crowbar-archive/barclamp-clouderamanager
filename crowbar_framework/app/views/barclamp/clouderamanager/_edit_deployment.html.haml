@@ -1,18 +1,1 @@
-%h3 Display the Hadoop cluster node information
-= link_to( "Hadoop Cluster Node Information", "nodes") 
-%p
-  = render :partial => "barclamp/node_selector"
-
-:javascript
-  $(document).ready(function(){
-    var constraints = { 
-      "clouderamanager-cb-adminnode": { "unique": false, "count": -1, "admin": true },
-      "clouderamanager-server": { "unique": false, "count": -1 },
-      "clouderamanager-namenode": { "unique": false, "count": -1 },
-      "clouderamanager-datanode": { "unique": false, "count": -1 },
-      "clouderamanager-edgenode": { "unique": false, "count": -1 },
-      "clouderamanager-ha-journalingnode": { "unique": false, "count": -1 },
-      "clouderamanager-ha-filernode": { "unique": false, "count": -1 }
-    };
-    node_selector($('#drag_drop'), constraints)
-  });
+= render :partial => "barclamp/node_selector", :locals => { :constraints => clouderamanager_role_contraints }

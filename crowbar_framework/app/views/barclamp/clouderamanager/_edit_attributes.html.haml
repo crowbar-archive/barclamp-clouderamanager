@@ -1,66 +1,41 @@
+- register_javascripts "barclamps/cinder/form"
 
-%input#proposal_attributes{:type => "hidden", :name => "proposal_attributes", :value => @proposal.raw_data['attributes'][@proposal.barclamp].to_json}
-%p
-  %label{:for => "proposal_attributes"}= t('.attributes')
-  = link_to "Raw", proposal_barclamp_path(:id => @proposal.name, :controller => @proposal.barclamp, :dep_raw => @dep_raw, :attr_raw => true), :style => "float: right;"
-  %div.container
+= attributes_for @proposal do
+  .panel-sub
+    = header @dep_raw, true
 
-    %p
-    %br
-    %strong= t('.barclamp_settings')
+  .panel-body
+    %fieldset
+      %legend
+        = t(".barclamp_settings")
 
-    %p
-      %label{ :for => :debug }= t('.debug')
-      = select_tag :debug, options_for_select([['false', false],['true', true]], @proposal.raw_data['attributes'][@proposal.barclamp]["debug"]), :onchange => "update_value('debug', 'debug', 'boolean')"
+      = boolean_field :debug
 
-    %p
-    %br
-    %strong= t('.cmapi_settings')
+    %fieldset
+      %legend
+        = t(".cmapi_settings")
 
-    %p
-      %label{ :for => :deployment_type }= t('.deployment_type')
-      = select_tag :deployment_type, options_for_select([['manual', 'manual'],['auto', 'auto']], @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["deployment_type"]), :onchange => "update_value('cmapi/deployment_type', 'deployment_type', 'string')"
+      = select_field %w(cmapi deployment_type), :collection => :deployments_for_clouderamanager
+      = string_field %w(cmapi server_port)
+      = string_field %w(cmapi username)
+      = string_field %w(cmapi password)
+      = boolean_field %w(cmapi use_tls)
+      = string_field %w(cmapi version)
 
-    %p
-      %label{ :for => :server_port }= t('.server_port')
-      %input#server_port{:type => "text", :name => "server_port", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["server_port"], :onchange => "update_value('cmapi', 'server_port', 'string')"}
+    %fieldset
+      %legend
+        = t(".server_settings")
 
-    %p
-      %label{ :for => :username }= t('.username')
-      %input#username{:type => "text", :name => "username", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["username"], :onchange => "update_value('cmapi', 'username', 'string')"}
+      = select_field %w(server db_type), :collection => :databases_for_clouderamanager
 
-    %p
-      %label{ :for => :password }= t('.password')
-      %input#password{:type => "text", :name => "password", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["password"], :onchange => "update_value('cmapi', 'password', 'string')"}
+    %fieldset
+      %legend
+        = t(".cluster_settings")
 
-    %p
-      %label{ :for => :use_tls }= t('.use_tls')
-      = select_tag :use_tls, options_for_select([['false', false],['true', true]], @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["use_tls"]), :onchange => "update_value('cmapi', 'use_tls', 'boolean')"
+      = string_field %w(cluster cluster_name)
+      = string_field %w(cluster cdh_version)
+      = text_field %w(cluster license_key), :size => "80x5"
 
-    %p
-      %label{ :for => :version }= t('.version')
-      %input#version{:type => "text", :name => "version", :readonly => true, :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cmapi]["version"], :onchange => "update_value('cmapi', 'version', 'string')"}
-
-    %p
-    %br
-    %strong= t('.server_settings')
-
-    %p
-      %label{ :for => :db_type }= t('.db_type')
-      = select_tag :db_type, options_for_select([['postgresql','postgresql'],['mysql', 'mysql']], @proposal.raw_data['attributes'][@proposal.barclamp][:server]["db_type"]), :onchange => "update_value('server/db_type', 'db_type', 'string')"
-
-    %p
-    %br
-    %strong= t('.cluster_settings')
-
-    %p
-      %label{ :for => :cluster_name }= t('.cluster_name')
-      %input#cluster_name{:type => "text", :name => "cluster_name", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cluster_name"], :onchange => "update_value('cluster', 'cluster_name', 'string')"}
-
-    %p
-      %label{ :for => :cdh_version }= t('.cdh_version')
-      %input#cdh_version{:type => "text", :name => "cdh_version", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["cdh_version"], :onchange => "update_value('cluster', 'cdh_version', 'string')"}
-
-    %p
-      %label{ :for => :license_key }= t('.license_key')
-      = text_area_tag :license_key, @proposal.raw_data['attributes'][@proposal.barclamp][:cluster]["license_key"], :size => "64x5", :onchange => "update_value('cluster/license_key', 'license_key', 'string')"
+    .alert.alert-warning
+      You can find the Hadoop cluster node information
+      = link_to "here", "nodes"
