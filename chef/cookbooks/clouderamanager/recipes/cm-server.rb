@@ -588,7 +588,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
                 success = cmd.getattr('success')
                 msg = cmd.getattr('resultMessage')
                 Chef::Log.info("CM - Waiting for HDFS format [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
-                cmd_timeout = 300 
+                cmd_timeout = 400 
                 wcmd = api.wait_for_cmd(cmd, cmd_timeout)
                 id = wcmd.getattr('id')
                 active = wcmd.getattr('active')
@@ -614,7 +614,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
             success = cmd.getattr('success')
             msg = cmd.getattr('resultMessage')
             Chef::Log.info("CM - Waiting for HDFS service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
-            cmd_timeout = 300
+            cmd_timeout = 400
             wcmd = api.wait_for_cmd(cmd, cmd_timeout)
             id = wcmd.getattr('id')
             active = wcmd.getattr('active')
@@ -626,38 +626,6 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
               msg = "CM - HDFS service startup is running asynchronously in the background, trying again later"
               Chef::Log.info(msg) if debug
               raise Errno::ECONNREFUSED, msg
-            end
-            
-            #--------------------------------------------------------------------
-            # Deploy HDFS client config. 
-            #--------------------------------------------------------------------
-            role_list = [] 
-            cluster_config.each do |r|
-              if r[:service_type] == 'HDFS'
-                role_list << r[:role_name] 
-              end
-            end 
-            if role_list and not role_list.empty?
-              Chef::Log.info("CM - Attempting HDFS config deployment #{role_list.join(",")}") if debug
-              cmd = api.deploy_client_config(hdfs_service, role_list)
-              id = cmd.getattr('id')
-              active = cmd.getattr('active')
-              success = cmd.getattr('success')
-              msg = cmd.getattr('resultMessage')
-              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
-              cmd_timeout = 300
-              wcmd = api.wait_for_cmd(cmd, cmd_timeout)
-              id = wcmd.getattr('id')
-              active = wcmd.getattr('active')
-              success = wcmd.getattr('success')
-              msg = wcmd.getattr('resultMessage')
-              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
-              # If we timeout and the command is still running, try again later
-              if active
-                msg = "CM - HDFS configuration deployment is running asynchronously in the background, trying again later"
-                Chef::Log.info(msg) if debug
-                raise Errno::ECONNREFUSED, msg
-              end
             end
             
             #--------------------------------------------------------------------
@@ -675,7 +643,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
             success = cmd.getattr('success')
             msg = cmd.getattr('resultMessage')
             Chef::Log.info("CM - Waiting for MAPR service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
-            cmd_timeout = 300
+            cmd_timeout = 400
             wcmd = api.wait_for_cmd(cmd, cmd_timeout)
             id = wcmd.getattr('id')
             active = wcmd.getattr('active')
@@ -690,23 +658,59 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
             end
             
             #--------------------------------------------------------------------
-            # Deploy MAPR client config. 
+            # Deploy HDFS client config. 
             #--------------------------------------------------------------------
-            role_list = [] 
+            role_list = []
+            host_list = []
             cluster_config.each do |r|
-              if r[:service_type] == 'MAPREDUCE'
+              if r[:service_type] == 'HDFS'
                 role_list << r[:role_name] 
+                host_list << r[:host_id] 
               end
             end 
             if role_list and not role_list.empty?
-              Chef::Log.info("CM - Attempting MAPR config deployment #{role_list.join(",")}") if debug
+              Chef::Log.info("CM - Attempting HDFS config deployment #{host_list.join(",")}") if debug
+              cmd = api.deploy_client_config(hdfs_service, role_list)
+              id = cmd.getattr('id')
+              active = cmd.getattr('active')
+              success = cmd.getattr('success')
+              msg = cmd.getattr('resultMessage')
+              Chef::Log.info("CM - Waiting for HDFS config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              cmd_timeout = 400
+              wcmd = api.wait_for_cmd(cmd, cmd_timeout)
+              id = wcmd.getattr('id')
+              active = wcmd.getattr('active')
+              success = wcmd.getattr('success')
+              msg = wcmd.getattr('resultMessage')
+              Chef::Log.info("CM - HDFS config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+              # If we timeout and the command is still running, try again later
+              if active and not success 
+                msg = "CM - HDFS configuration deployment is running asynchronously in the background, trying again later"
+                Chef::Log.info(msg) if debug
+                raise Errno::ECONNREFUSED, msg
+              end
+            end
+            
+            #--------------------------------------------------------------------
+            # Deploy MAPR client config. 
+            #--------------------------------------------------------------------
+            role_list = [] 
+            host_list = [] 
+            cluster_config.each do |r|
+              if r[:service_type] == 'MAPREDUCE'
+                role_list << r[:role_name] 
+                host_list << r[:host_id] 
+              end
+            end 
+            if role_list and not role_list.empty?
+              Chef::Log.info("CM - Attempting MAPR config deployment #{host_list.join(",")}") if debug
               cmd = api.deploy_client_config(mapr_service, role_list)
               id = cmd.getattr('id')
               active = cmd.getattr('active')
               success = cmd.getattr('success')
               msg = cmd.getattr('resultMessage')
               Chef::Log.info("CM - Waiting for MAPR config deployment [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
-              cmd_timeout = 300 
+              cmd_timeout = 400 
               wcmd = api.wait_for_cmd(cmd, cmd_timeout)
               id = wcmd.getattr('id')
               active = wcmd.getattr('active')
@@ -714,7 +718,7 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
               msg = wcmd.getattr('resultMessage')
               Chef::Log.info("CM - MAPR config deployment results [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
               # If we timeout and the command is still running, try again later
-              if active
+              if active and not success 
                 msg = "CM - MAPR configuration deployment is running asynchronously in the background, trying again later"
                 Chef::Log.info(msg) if debug
                 raise Errno::ECONNREFUSED, msg
