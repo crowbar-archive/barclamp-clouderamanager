@@ -43,8 +43,8 @@ nav:
 locale_additions:
   en:
     nav:
-      clouderamanager_ug: Dell | Cloudera Solution Users Guide
-      clouderamanager_dg: Dell | Cloudera Solution Deployment
+      clouderamanager_ug: Cloudera Solution Users Guide
+      clouderamanager_dg: Cloudera Solution Deployment
     barclamp:
       clouderamanager:
         edit_deployment: 
