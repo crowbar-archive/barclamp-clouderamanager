@@ -14,15 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Note : This code is in development mode and is not full debugged yet.
-# It is being exercised through the use of the cm API test harness script 
-# and is not currently part of crowbar/clouderamanager barclamp cluster
-# deployments. 
-# 
 
 libbase = File.join(File.dirname(__FILE__), '../chef/cookbooks/clouderamanager/libraries' )
 require "#{libbase}/api_client.rb"
-require "#{libbase}/utils.rb"
+
+#######################################################################
+# API logger class for debug/error logging.
+#######################################################################
+class ApiLogger
+  def info(str)
+    printf "#{str}\n"
+  end
+  
+  def error(str)
+    printf "#{str}\n"
+  end
+end
+logger = ApiLogger.new
 
 #######################################################################
 # Local variables.
@@ -36,10 +44,10 @@ use_tls = false
 version = "2"
 
 #######################################################################
-# Create the API resource object.
+# Create the API client object.
 #######################################################################
-print "create API resource [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]\n" if debug
-api = ApiResource.new(server_host, server_port, username, password, use_tls, version, debug)
+logger.info "create API client [#{server_host}, #{server_port}, #{username}, #{password}, #{use_tls}, #{version}, #{debug}]\n" if debug
+api = CmApiClient.new(logger, server_host, server_port, username, password, use_tls, version, debug)
 
 #----------------------------------------------------------------------
 # API related methods.
