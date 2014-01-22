@@ -19,29 +19,16 @@ require 'rubygems'
 require 'restclient'
 
 libbase = File.dirname(__FILE__)
-require "#{libbase}/resource.rb"
-require "#{libbase}/clusters.rb"
-require "#{libbase}/cms.rb"
-require "#{libbase}/events.rb"
-require "#{libbase}/hosts.rb"
-require "#{libbase}/roles.rb"
-require "#{libbase}/services.rb"
-require "#{libbase}/tools.rb"
-require "#{libbase}/types.rb"
-require "#{libbase}/users.rb"
+require "#{libbase}/api_resource.rb"
 
 #######################################################################
-# ApiResource
-# Resource object that provides methods for managing the top-level API
-# resources.
+# ApiClient
 #######################################################################
-class ApiResource < Resource
-  
-  API_AUTH_REALM = "Cloudera Manager"
-  API_CURRENT_VERSION = 2 # V3 as of CM 4.5.0
+class CmApiClient < ApiResource
   
   #######################################################################
-  # Creates a Resource object that provides API endpoints.
+  # Creates an ApiClient object that provides API endpoints.
+  # @param logger: The Logger interface for messaging.
   # @param server_host: The hostname of the Cloudera Manager server.
   # @param server_port: The port of the server. Defaults to 7180(http) or 7183(https).
   # @param username: Login name.
@@ -49,738 +36,620 @@ class ApiResource < Resource
   # @param version: API version.
   # @return Resource object referring to the root.
   #######################################################################
-  def initialize(server_host, server_port=nil, username="admin", password="admin", use_tls=false, version=API_CURRENT_VERSION, debug=false)
-    @version = version
-    if use_tls
-      protocol = "https"
-    else
-      protocol = "http"
+  def initialize(logger, server_host, server_port=nil, username="admin", password="admin", use_tls=false, version=API_CURRENT_VERSION, debug=false)
+    @logger = logger
+    @server_host=server_host
+    @server_port=server_port
+    @username=username
+    @password=password
+    @use_tls=use_tls
+    @version=version
+    @debug=debug
+    super(server_host, server_port, username, password, use_tls, version, debug)
+  end
+  
+  #####################################################################
+  # Find the cm_server.
+  #####################################################################
+  def _find_cm_server(cmservernodes)
+    if cmservernodes and cmservernodes.length > 0 
+      rec = cmservernodes[0]
+      return rec[:ipaddr]
     end
-    if server_port.nil?
-      if use_tls
-        server_port = 7183
-      else
-        server_port = 7180
+    return nil
+  end
+  
+  #####################################################################
+  # Role appender helper method.
+  #####################################################################
+  def _role_appender(debug, cluster_config, cluster_name, counter_map, cb_nodes, service_type, role_type)
+    if cb_nodes  
+      cb_nodes.each do |n|
+        counter_map[role_type] = 1 if counter_map[role_type].nil?
+        cnt = sprintf("%2.2d", counter_map[role_type])
+        role_name = "#{role_type}-#{cluster_name}-#{cnt}"
+        # Check for role duplication on this node and skip if the role is already there.
+        skip_role_insertion = false
+        cluster_config.each do |r|
+          if r[:host_id] == n[:fqdn] and r[:role_type] == role_type
+            skip_role_insertion = true
+            break
+          end
+        end
+        if skip_role_insertion
+          @logger.info("CM - #{role_type} role duplicated on node #{n[:fqdn]}, skipping role insertion") if debug
+        else
+          rec = { :host_id => n[:fqdn], :name => n[:name], :role_type => role_type, :role_name => role_name, :service_type => service_type, :ipaddr => n[:ipaddr] }
+          @logger.info("CM - cluster_config add [#{rec.inspect}]") if debug
+          cluster_config << rec
+          counter_map[role_type] += 1
+        end
       end
     end
-    base_url = "#{protocol}://#{server_host}:#{server_port}/api/v#{version}"
-    client = RestClient::Resource.new(base_url, username, password)
-    super(client, base_url, debug)
-  end
+  end    
   
-  #######################################################################
-  # Returns the API version being used.
-  #######################################################################
-  def version
-    return @version
-  end
-  
-  #----------------------------------------------------------------------
-  # CMS related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Retrieve a list of running global commands.
-  # @param view: View to materialize('full' or 'summary')
-  # @return: A list of running commands.
-  #######################################################################
-  def get_commands(view=nil)
-    return ClouderaManager.get_commands(self, view)
-  end
-  
-  #######################################################################
-  # Setup the Cloudera Management Service.
-  # @param service_setup_info: ApiServiceSetupInfo object.
-  # @return: The management service instance.
-  #######################################################################
-  def create_mgmt_service(service_setup_info)
-    return ClouderaManager.create_mgmt_service(self, service_setup_info)
-  end
-  
-  #######################################################################
-  # Return the Cloudera Management Services instance.
-  # @return: An ApiService instance.
-  #######################################################################
-  def get_service
-    return ClouderaManager.get_service(self)
-  end
-  
-  #######################################################################
-  # Return information about the currently installed license.
-  # Return nil if no license key found.
-  # @return: License information.
-  #######################################################################
-  def get_license
-    begin
-      return ClouderaManager.get_license(self)
-    rescue RestClient::ResourceNotFound => e
-      return nil
+  #####################################################################
+  # Build the cluster configuration data structure with CM role associations.
+  # Role names must be unique across all clusters. 
+  # HDFS : NAMENODE, SECONDARYNAMENODE, DATANODE, BALANCER, GATEWAY,
+  # HTTPFS, JOURNALNODE, FAILOVERCONTROLLER. MAPREDUCE : JOBTRACKER,
+  # TASKTRACKER
+  #####################################################################
+  def _build_roles(debug, cluster_name, namenodes, datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
+    #--------------------------------------------------------------------
+    # Add the CM role definitions.
+    #--------------------------------------------------------------------
+    config = []
+    counter_map = { }
+    # primary namenode
+    if namenodes.length > 0
+      primary_namenode = [ namenodes[0] ]
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'GATEWAY')
     end
+    # secondary namenode
+    if namenodes.length > 1
+      secondary_namenode = [ namenodes[1] ]
+      _role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
+      _role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'GATEWAY')
+    end
+    # datanodes
+    _role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
+    _role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
+    _role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'GATEWAY')
+    # edgenodes
+    if edgenodes.length > 0
+      _role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
+    end
+    # hafilernodes
+    if hafilernodes.length > 0
+      _role_appender(debug, config, cluster_name, counter_map, hafilernodes, "HDFS", 'GATEWAY')
+    end
+    # hajournalingnodes
+    if hajournalingnodes.length > 0
+      _role_appender(debug, config, cluster_name, counter_map, hajournalingnodes, "HDFS", 'GATEWAY')
+    end
+    @logger.info("CM - cluster configuration [#{config.inspect}]") if debug
+    return config
   end
   
-  #######################################################################
-  # Install or update the Cloudera Manager license.
+  #####################################################################
+  # Check the license key and update if needed.
   # Note: get_license will report nil until the cm-server has been restarted.
-  # @param license_text: the license in text form.
-  #######################################################################
-  def update_license(license_text)
-    return ClouderaManager.update_license(self, license_text)
-  end
-  
-  #######################################################################
-  # Retrieve the Cloudera Manager configuration.
-  # The 'summary' view contains strings as the dictionary values. The full
-  # view contains ApiConfig instances as the values.
-  # @param view: View to materialize('full' or 'summary')
-  # @return: Dictionary with configuration data.
-  #######################################################################
-  def get_config(view = nil)
-    return ClouderaManager.get_config(self, view)
-  end
-  
-  #######################################################################
-  # Update the CM configuration.
-  # @param: config Dictionary with configuration to update.
-  # @return: Dictionary with updated configuration.
-  #######################################################################
-  def update_config(config)
-    return ClouderaManager.update_config(self, config)
-  end
-  
-  #######################################################################
-  # Generate credentials for services configured with Kerberos.
-  # @return: Information about the submitted command.
-  #######################################################################
-  def generate_credentials()
-    return ClouderaManager.generate_credentials(self)
-  end
-  
-  #######################################################################
-  # Runs the host inspector on the configured hosts.
-  # @return: Information about the submitted command.
-  #######################################################################
-  def inspect_hosts()
-    return ClouderaManager.inspect_hosts(self)
-  end
-  
-  #######################################################################
-  # Issue the command to collect diagnostic data.
-  # @param start_datetime: The start of the collection period. Type datetime.
-  # @param end_datetime: The end of the collection period. Type datetime.
-  # @param includeInfoLog: Whether to include INFO level log messages.
-  #######################################################################
-  def collect_diagnostic_data(start_datetime, end_datetime, includeInfoLog=false)
-    return ClouderaManager.collect_diagnostic_data(self, start_datetime, end_datetime, includeInfoLog)
-  end
-  
-  #######################################################################
-  # Decommission the specified hosts by decommissioning the slave roles
-  # and stopping the remaining ones.
-  # @param host_names: List of names of hosts to be decommissioned.
-  # @return: Information about the submitted command.
-  # @since: API v2
-  #######################################################################
-  def hosts_decommission(host_names)
-    return ClouderaManager.hosts_decommission(self, host_names)
-  end
-  
-  #######################################################################
-  # Recommission the specified hosts by recommissioning the slave roles.
-  # This command doesn't start the roles. Use hosts_start_roles for that.
-  # @param host_names: List of names of hosts to be recommissioned.
-  # @return: Information about the submitted command.
-  # @since: API v2
-  #######################################################################
-  def hosts_recommission(host_names)
-    return ClouderaManager.hosts_recommission(self, host_names)
-  end
-  
-  #######################################################################
-  # Start all the roles on the specified hosts.
-  # @param host_names: List of names of hosts on which to start all roles.
-  # @return: Information about the submitted command.
-  # @since: API v2
-  #######################################################################
-  def hosts_start_roles(host_names)
-    return ClouderaManager.hosts_start_roles(self, host_names)
-  end
-  
-  #----------------------------------------------------------------------
-  # Host related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Create a host.
-  # @param host_id  The host id.
-  # @param name     Host name
-  # @param ipaddr   IP address
-  # @param rack_id  Rack id. Default nil.
-  # @return An ApiHost object
-  #######################################################################
-  def create_host(host_id, name, ipaddr, rack_id = nil)
-    return ApiHost.create_host(self, host_id, name, ipaddr, rack_id)
-  end
-  
-  #######################################################################
-  # Delete a host by id.
-  # @param host_id Host id
-  # @return The deleted ApiHost object
-  #######################################################################
-  def delete_host(host_id)
-    return ApiHost.delete_host(self, host_id)
-  end
-  
-  #######################################################################
-  # Get all hosts.
-  # @param view View to materialize('full' or 'summary').
-  # @return A list of ApiHost objects.
-  #######################################################################
-  def get_all_hosts(view = nil)
-    return ApiHost.get_all_hosts(self, view)
-  end
-  
-  #######################################################################
-  # Look up a host by id.
-  # @param host_id Host id
-  # # @return: An ApiHost object
-  #######################################################################
-  def get_host(host_id)
-    return ApiHost.get_host(self, host_id)
-  end
-  
-  #######################################################################
-  # Determine if a host already exists.
-  # @param host_id Host ID.
-  # @return host object or nil.
-  #######################################################################
-  def find_host(host_id)
-    results = self.get_all_hosts()
-    host_list = results.to_array
-    host_list.each do |host_object|
-      return host_object if host_object.getattr('hostId') == host_id
+  #####################################################################
+  def _check_license_key(debug, api, cb_license_key, config_state)
+    # cm_license_key = ApiLicense object - owner, uuid, expiration
+    cm_license_key = get_license()
+    cm_uuid = nil
+    if cm_license_key
+      cm_uuid = cm_license_key.getattr('uuid')
     end
-    return nil
-  end
-  
-  #----------------------------------------------------------------------
-  # Cluster related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Create a new cluster.
-  # @param name Cluster name.
-  # @param version Cluster CDH version.
-  # @return The created cluster.
-  #######################################################################
-  def create_cluster(name, version)
-    return ApiCluster.create_cluster(self, name, version)
-  end
-  
-  #######################################################################
-  # Delete a cluster by name.
-  # @param name: Cluster name
-  # @return The deleted ApiCluster object
-  #######################################################################
-  def delete_cluster(name)
-    return ApiCluster.delete_cluster(self, name)
-  end
-  
-  #######################################################################
-  # Retrieve a list of all clusters.
-  # @param view View to materialize('full' or 'summary').
-  # @return A list of ApiCluster objects.
-  #######################################################################
-  def get_all_clusters(view = nil)
-    return ApiCluster.get_all_clusters(self, view)
-  end
-  
-  #######################################################################
-  # Look up a cluster by name.
-  # @param name Cluster name.
-  # @return An ApiCluster object.
-  #######################################################################
-  def get_cluster(name)
-    return ApiCluster.get_cluster(self, name)
-  end
-  
-  #######################################################################
-  # Determine if a cluster already exists.
-  # @param name Cluster name.
-  # @return cluster object or nil.
-  #######################################################################
-  def find_cluster(name)
-    results = self.get_all_clusters()
-    cluster_list = results.to_array
-    cluster_list.each do |cluster_object|
-      return cluster_object if cluster_object.getattr('name') == name
+    if cm_uuid and not cm_uuid.empty?
+      @logger.info("CM - existing CM license key found [#{cm_uuid}]") if debug
+    else
+      @logger.info("CM - no existing CM license key") if debug
     end
-    return nil
-  end
-  
-  #----------------------------------------------------------------------
-  # User related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Get all users.
-  # @param view: View to materialize('full' or 'summary').
-  # @return: A list of ApiUser objects.
-  #######################################################################
-  def get_all_users(view = nil)
-    return ApiUser.get_all_users(self, view)
-  end
-  
-  #######################################################################
-  # Look up a user by username.
-  # @param username: Username to look up
-  # @return: An ApiUser object
-  #######################################################################
-  def get_user(username)
-    return ApiUser.get_user(self, username)
-  end
-  
-  #######################################################################
-  # Create a user.
-  # @param username: Username
-  # @param password: Password
-  # @param roles: List of roles for the user. This should be [] for a
-  #                   regular user, or ['ROLE_ADMIN'] for an admin.
-  #######################################################################
-  def create_user(username, password, roles)
-    return ApiUser.create_user(self, username, password, roles)
-  end
-  
-  #######################################################################
-  # Delete user by username.
-  # @param: username Username
-  # @return: An ApiUser object
-  #######################################################################
-  def delete_user(username)
-    return ApiUser.delete_user(self, username)
-  end
-  
-  #----------------------------------------------------------------------
-  # Service control methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Create a service
-  # @param name: Service name
-  # @param service_type: Service type
-  # @param cluster_name: Cluster name
-  # @return: An ApiService object
-  #######################################################################
-  def create_service(cluster, name, service_type, cluster_name="default")
-    return ApiService.create_service(self, name, service_type, cluster_name)
-  end
-  
-  #######################################################################
-  # Retrieve the service's configuration.
-  # Retrieves both the service configuration and role type configuration
-  # for each of the service's supported role types. The role type
-  # configurations are returned as a dictionary, whose keys are the
-  # role type name, and values are the respective configuration dictionaries.
-  # The 'summary' view contains strings as the dictionary values. The full
-  # view contains ApiConfig instances as the values.
-  # @param view: View to materialize('full' or 'summary')
-  # @return: { :svc_config => svc_config, :rt_configs => rt_configs }
-  #######################################################################
-  def get_service_config(service_object, view = nil)
-    return service_object.get_config(self, view)
-  end
-  
-  #######################################################################
-  # Update the service's configuration.
-  # Note : Cloudera Manager API v3 (new in 4.5) does not support setting
-  # a service's roletype configuration, since that has been replaced by
-  # role group. Callers should set the configuration on the appropriate
-  # role group instead. Cloudera Manager 4.5 continues to support API v1
-  # and v2. But users who want to upgrade their existing clients to v3
-  # would need to rewrite any roletype configuration calls.  
-  # @param svc_config Dictionary with service configuration to update.
-  # @param rt_configs Dict of role type configurations to update.
-  # @return 2-tuple(service config dictionary, role type configurations)
-  #######################################################################
-  def update_service_config(service_object, svc_config, rt_configs=nil)
-    return service_object.update_config(self, svc_config, rt_configs)
-  end
-  
-  #----------------------------------------------------------------------
-  # Service level control methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Start a list of roles.
-  # @param role_names: names of the roles to start.
-  # @return: List of submitted commands.
-  #######################################################################
-  def start_roles(service_object, role_names)
-    return service_object.start_roles(self, role_names)
-  end
-  
-  #######################################################################
-  # Stop a list of roles.
-  # @param role_names: names of the roles to stop.
-  # @return: List of submitted commands.
-  #######################################################################
-  def stop_roles(service_object, role_names)
-    return service_object.stop_roles(self, role_names)
-  end
-  
-  #######################################################################
-  # Restart a list of roles.
-  # @param role_names: names of the roles to restart.
-  # @return: List of submitted commands.
-  #######################################################################
-  def restart_roles(service_object, role_names)
-    return service_object.restart_roles(self, role_names)
-  end
-  
-  #######################################################################
-  # Bootstrap HDFS stand-by NameNodes.
-  # Initialize their state by syncing it with the respective HA partner.
-  # @param role_names: NameNodes to bootstrap.
-  # @return: List of submitted commands.
-  #######################################################################
-  def bootstrap_hdfs_stand_by(service_object, role_names)
-    return service_object.bootstrap_hdfs_stand_by(self, role_names)
-  end
-  
-  #######################################################################
-  # Execute the "refresh" command on a set of roles.
-  # @param: role_names Names of the roles to refresh.
-  # @return: Reference to the submitted command.
-  #######################################################################
-  def refresh(service_object, role_names)
-    return service_object.refresh(self, role_names)
-  end
-  
-  #######################################################################
-  # Format NameNode instances of an HDFS service.
-  # 
-  # @param namenodes Name of NameNode instances to format.
-  # @return List of submitted commands.
-  #######################################################################
-  def format_hdfs(service_object, namenodes)
-    return service_object.format_hdfs(self, namenodes)
-  end
-  
-  #######################################################################
-  # Initialize HDFS failover controller metadata.
-  # Only one controller per nameservice needs to be initialized.
-  # @param controllers: Name of failover controller instances to initialize.
-  # @return: List of submitted commands.
-  #######################################################################
-  def init_hdfs_auto_failover(service_object, controllers)
-    return service_object.init_hdfs_auto_failover(self, controllers)
-  end
-  
-  #######################################################################
-  # Initialize a NameNode's shared edits directory.
-  # @param namenodes Name of NameNode instances.
-  # @return List of submitted commands.
-  #######################################################################
-  def init_hdfs_shared_dir(service_object, namenodes)
-    return service_object.init_hdfs_shared_dir(self, namenodes)
-  end
-  
-  #######################################################################
-  # Synchronize the Hue server's database.
-  # @param: servers Name of Hue Server roles to synchronize.
-  # @return: List of submitted commands.
-  #######################################################################
-  def sync_hue_db(service_object, servers)
-    return service_object.sync_hue_db(self, servers)
-  end
-  
-  #######################################################################
-  # Cleanup a ZooKeeper service or roles.
-  # If no server role names are provided, the command applies to the whole
-  # service, and cleans up all the server roles that are currently running.
-  # @param servers: ZK server role names(optional).
-  # @return: Command reference(for service command) or list of command
-  # references(for role commands).
-  #######################################################################
-  def cleanup_zookeeper(service_object, servers)
-    return service_object.cleanup_zookeeper(self, servers)
-  end
-  
-  #######################################################################
-  # Initialize a ZooKeeper service or roles.
-  # If no server role names are provided, the command applies to the whole
-  # service, and initializes all the configured server roles.
-  # @param servers: ZK server role names(optional).
-  # @return: Command reference(for service command) or list of command
-  # references(for role commands).
-  #######################################################################
-  def init_zookeeper(service_object, servers)
-    return service_object.init_zookeeper(self, servers)
-  end
-  
-  #######################################################################
-  # Put the service in maintenance mode.
-  # @return: Reference to the completed command.
-  # @since: API v2
-  #######################################################################
-  def enter_maintenance_mode(service_object)
-    return service_object.enter_maintenance_mode(self)
-  end
-  
-  #######################################################################
-  # Take the service out of maintenance mode.
-  # @return: Reference to the completed command.
-  # @since: API v2
-  #######################################################################
-  def exit_maintenance_mode(service_object)
-    return service_object.exit_maintenance_mode(self)
-  end
-  
-  #######################################################################
-  # Start a service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def start_service(service_object)
-    return service_object.start(self)
-  end
-  
-  #######################################################################
-  # Wait for command to finish.
-  # @param timeout:(Optional) Max amount of time(in seconds) to wait. Wait
-  # forever by default.
-  # @return: The final ApiCommand object, containing the last known state.
-  # The command may still be running in case of timeout.
-  #######################################################################
-  def wait_for_cmd(cmd_object, timeout=nil)
-    return cmd_object.wait(self, timeout)
-  end
-  
-  #######################################################################
-  # Deploys client configuration to the hosts where roles are running.
-  # @param: role_names Names of the roles to commit.
-  # @return: Reference to the submitted command.
-  #######################################################################
-  def deploy_client_config(cmd_object, role_names)
-    return cmd_object.deploy_client_config(self, role_names)
-  end
-  
-  #######################################################################
-  # Stop a service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def stop_service(service_object)
-    return service_object.stop(self)
-  end
-  
-  #######################################################################
-  # Restart a service.
-  # @return Reference to the submitted command.
-  #######################################################################
-  def restart_service(service_object)
-    return service_object.restart(self)
-  end
-  
-  #----------------------------------------------------------------------
-  # End of service level commands.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Lookup a service by name
-  # @param name: Service name
-  # @param cluster_name: Cluster name
-  # @return: An ApiService object
-  #######################################################################
-  def get_service(name, cluster_name="default")
-    return ApiService.get_service(self, name, cluster_name)
-  end
-  
-  #######################################################################
-  # Get all services
-  # @param cluster_name: Cluster name
-  # @return: A list of ApiService objects.
-  #######################################################################
-  def get_all_services(cluster_name="default", view=nil)
-    return ApiService.get_all_services(self, cluster_name, view)
-  end
-  
-  #######################################################################
-  # Delete a service by name.
-  # @param name: Service name
-  # @param cluster_name: Cluster name
-  # @return: The deleted ApiService object
-  #######################################################################
-  def delete_service(name, cluster_name="default")
-    return ApiService.delete_service(self, name, cluster_name)
-  end
-  
-  #######################################################################
-  # Determine if a service already exists.
-  # @param name Service name.
-  # @param cluster_name Cluster name.
-  # @return service object or nil.
-  #######################################################################
-  def find_service(name, cluster_name="default")
-    results = self.get_all_services(cluster_name, 'full')
-    service_list = results.to_array
-    service_list.each do |service_object|
-      return service_object if service_object.getattr('name') == name
+    # Is there a valid license key specified in the crowbar proposal?
+    if cb_license_key and not cb_license_key.empty? 
+      #################################################################
+      # Parse the header key, value pairs.
+      # Example: name=devel-06-02282014]
+      #          expirationDate=2014-02-28
+      #          uuid=aa743538-7b1c-11e2-961a-b499baa7f55b
+      #################################################################
+      hash = Hash[cb_license_key.scan /^\s*"(.+?)": "(.+?)",\s*$/m]
+      cb_uuid = hash['uuid'] 
+      @logger.info("CM - CB license is present [#{cb_uuid}]") if debug
+      # If CM license is not already active or license key has changed.
+      if cm_uuid.nil? or cm_uuid.empty? or cb_uuid != cm_uuid
+        @logger.info("CM - updating license cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
+        # Update the license. 
+        api_license = update_license(cb_license_key)
+        if not config_state[:cm_server_restarted]
+          # Restart the cm server to activate.
+          @logger.info("CM - restarting cm-server") if debug
+          output = %x{service cloudera-scm-server restart}
+          if $?.exitstatus != 0
+            @logger.error("cloudera-scm-server restart failed #{output}")
+          else
+            @logger.info("CM - cm-server restarted #{output}") if debug
+            config_state[:cm_server_restarted] = true
+          end
+        end
+      else
+        @logger.info("CM - license update NOT required cm_uuid=#{cm_uuid} cb_uuid=#{cb_uuid}") if debug
+      end
     end
-    return nil
   end
   
-  #----------------------------------------------------------------------
-  # Role related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Create a role
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @param role_name: Role name
-  # @param role_type: Role type
-  # @param host_id: ID of the host to assign the role to
-  # @return: An ApiRole object
-  #######################################################################
-  def create_role(service_parent, role_name, role_type, host_id)
-    return service_parent.create_role(self, role_name, role_type, host_id)
-  end
-  
-  #######################################################################
-  # Lookup a role by name
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @param name: Role name
-  # @return: An ApiRole object
-  #######################################################################
-  def get_role(service_parent, name)
-    return service_parent.get_role(self, name)   
-  end
-  
-  #######################################################################
-  # Get all roles
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @param view: View to materialize('full' or 'summary')
-  # @return: A list of ApiRole objects.
-  #######################################################################
-  def get_all_roles(service_parent, view=nil)
-    return service_parent.get_all_roles(self, view)
-  end
-  
-  #######################################################################
-  # Get all roles of a certain type in a service
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @param role_type: Role type
-  # @param view: View to materialize('full' or 'summary')
-  # @return: A list of ApiRole objects.
-  #######################################################################
-  def get_roles_by_type(service_parent, role_type, view=nil)
-    return service_parent.get_roles_by_type(self, role_type, view)
-  end
-  
-  #######################################################################
-  # Delete a role by name
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @param name Role name
-  # @return The deleted ApiRole object
-  #######################################################################
-  def delete_role(service_parent, name)
-    return service_parent.delete_role(self, name)
-  end
-  
-  #######################################################################
-  # Get a list of role types in a service.
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @return: A list of role types(strings)
-  #######################################################################
-  def get_role_types(service_parent)
-    return service_parent.get_role_types(self)
-  end
-  
-  #######################################################################
-  # Determine if a role already exists.
-  # @param service_parent: Top level service object (i.e. HDFS).
-  # @param role_name Role name.
-  # @return role object or nil.
-  #######################################################################
-  def find_role(service_parent, name)
-    results = self.get_all_roles(service_parent, 'full')
-    role_list = results.to_array
-    role_list.each do |role_object|
-      return role_object if role_object.getattr('name') == name
+  #####################################################################
+  # Configure the cluster.
+  #####################################################################
+  def _configure_cluster(debug, cluster_name, cdh_version)
+    cluster_object = find_cluster(cluster_name)
+    if cluster_object == nil
+      @logger.info("CM - cluster does not exists [#{cluster_name}, #{cdh_version}]") if debug
+      cluster_object = create_cluster(cluster_name, cdh_version)
+      @logger.info("CM - _configure_cluster(#{cluster_name}, #{cdh_version}) results : [#{cluster_object}]") if debug
+    else
+      @logger.info("CM - cluster already exists [#{cluster_name}, #{cdh_version}] results : [#{cluster_object}]") if debug
     end
-    return nil
+    return cluster_object
   end
   
-  #----------------------------------------------------------------------
-  # Event related methods
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Query events.
-  # @param query_str: Query string.
-  # @return: A list of ApiEvent.
-  #######################################################################
-  def query_events(query_str = nil)
-    return ApiEvent.query_events(self, query_str)
-  end
-  
-  #######################################################################
-  # Retrieve a particular event by ID.
-  # @param event_id: The event ID.
-  # @return An ApiEvent.
-  #######################################################################
-  def get_event(event_id)
-    return ApiEvent.get_event(self, event_id)
-  end
-  
-  #----------------------------------------------------------------------
-  # Tool related methods.
-  #----------------------------------------------------------------------
-  
-  #######################################################################
-  # Have the server echo a message back.
-  #######################################################################
-  def echo(message)
-    return Tools.echo(self, message)
-  end
-  
-  #######################################################################
-  # Generate an error, but we get to set the error message.
-  #######################################################################
-  def echo_error(message)
-    return Tools.echo_error(self, message)
-  end
-  
-  #######################################################################
-  # Generic function for querying metrics.
-  # @param from_time: A datetime; start of the period to query(optional).
-  # @param to_time: A datetime; end_ of the period to query(default = now).
-  # @param metrics: List of metrics to query(default = all).
-  # @param view: View to materialize('full' or 'summary')
-  # @param params: Other query parameters.
-  # @return List of metrics and their readings.
-  #######################################################################
-  def get_metrics(path, from_time, to_time, metrics, view, params=nil)
-    if not params
-      params = { }
+  #####################################################################
+  # Configure the hosts.
+  #####################################################################
+  def _configure_host_instances(debug, rack_id, cluster_config)
+    cluster_config.each do |host_rec|
+      host_id = host_rec[:host_id]
+      name = host_rec[:name]
+      ipaddr = host_rec[:ipaddr]
+      host_object = find_host(host_id)
+      if host_object == nil
+        @logger.info("CM - host does not exists [#{host_id}]") if debug
+        host_object = create_host(host_id, name, ipaddr, rack_id)
+        @logger.info("CM - create_host results(#{host_id}, #{name}, #{ipaddr}, #{rack_id}) results : [#{host_object}]") if debug
+      else
+        @logger.info("CM - host already exists [#{host_id}] results : [#{host_object}]") if debug
+      end
     end
-    if from_time
-      params['from'] = from_time.isoformat()
-    end
-    if to_time
-      params['to'] = to_time.isoformat()
-    end
-    if metrics
-      params['metrics'] = metrics
-    end
-    if view
-      params['view'] = view
-    end
-    resp = get(path, params=params)
-    return types.ApiList.from_json_dict(types.ApiMetric, resp, self)
   end
   
-  #######################################################################
-  # Get the root resource objects.
-  #######################################################################
-  def get_root_resource(server_host, server_port=nil, username="admin", password="admin", use_tls=false, version=1)
-    return ApiResource.new(server_host, server_port, username, password, use_tls, version)
+  #####################################################################
+  # Configure the services.
+  #####################################################################
+  def _configure_service(debug, service_name, service_type, cluster_name, cluster_object)
+    service = find_service(service_name, cluster_name)
+    if service == nil
+      @logger.info("CM - service does not exists [#{service_name}, #{service_type}, #{cluster_name}]") if debug
+      service = create_service(cluster_object, service_name, service_type, cluster_name)
+      @logger.info("CM - create_service([#{service_name}, #{service_type}, #{cluster_name}]) results : [#{service}]") if debug
+    else
+      @logger.info("CM - service already exists [#{service_name}, #{service_type}, #{cluster_name}] results : [#{service}]") if debug
+    end
+    return service
+  end
+  
+  #####################################################################
+  # Apply the roles.
+  #####################################################################
+  def _apply_roles(debug, cluster_config, hdfs_service, mapr_service, cluster_name)
+    cluster_config.each do |host_rec|
+      valid_config = true
+      host_id = host_rec[:host_id]
+      host_name = host_rec[:name]
+      host_ip = host_rec[:ipaddr]
+      role_name = host_rec[:role_name]
+      role_type = host_rec[:role_type]
+      service_type = host_rec[:service_type]
+      service_object = nil
+      if service_type == "HDFS"
+        service_object = hdfs_service
+      elsif service_type == "MAPREDUCE"
+        service_object = mapr_service
+      else
+        @logger.info("CM - ERROR : Bad service type [#{service_type}] in _apply_roles")
+        valid_config = false
+      end
+      if valid_config
+        role_object = find_role(service_object, role_name)
+        if role_object == nil
+          @logger.info("CM - role does not exists [#{host_id}]") if debug
+          role_object = create_role(service_object, role_name, role_type, host_id)
+          @logger.info("CM - create_role results(#{role_name}, #{role_type}, #{host_id}) results : [#{role_object}]") if debug
+        else
+          @logger.info("CM - role already exists [#{role_name}] results : [#{role_object}]") if debug
+        end
+      end
+    end
+  end
+  
+  #####################################################################
+  # Format HDFS.
+  #####################################################################
+  def _format_hdfs(debug, cluster_config, service_object)
+    cmd_timeout = 10 * 60
+    service_name = service_object.getattr('name')
+    cluster_config.each do |r|
+      if r[:role_type] == 'NAMENODE'
+        role_name = r[:role_name]
+        @logger.info("CM - Attempting HDFS format [#{service_name}, #{role_name}]") if debug
+        cmd_array = format_hdfs(service_object, [ role_name ])
+        cmd = cmd_array[0]
+        id = cmd.getattr('id')
+        active = cmd.getattr('active')
+        success = cmd.getattr('success')
+        msg = cmd.getattr('resultMessage')
+        # If the command is still running, wait for it (note: success is neither true or false at this point). 
+        if active 
+          @logger.info("CM - Waiting for HDFS format to complete [name:#{service_name}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+          wcmd = wait_for_cmd(cmd, cmd_timeout)
+          id = wcmd.getattr('id')
+          active = wcmd.getattr('active')
+          success = wcmd.getattr('success')
+          msg = wcmd.getattr('resultMessage')
+          # If we timeout and the command is still running, try again later.
+          if active
+            msg = "CM - HDFS format is running asynchronously in the background, trying again later"
+            @logger.info(msg) if debug
+            raise Errno::ECONNREFUSED, msg
+          end
+        end
+        if not success
+          @logger.info("CM - HDFS format returns [name:#{service_name}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+          # Abort the command if it's still running.
+          if active
+            wcmd = abort_cmd(cmd) 
+            id = wcmd.getattr('id')
+            active = wcmd.getattr('active')
+            success = wcmd.getattr('success')
+            msg = wcmd.getattr('resultMessage')
+            @logger.info("CM - HDFS format terminated [name:#{service_name}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+          end
+          return
+        end
+        @logger.info("CM - HDFS format complete [name:#{service_name}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+      end
+    end
+  end
+  
+  #--------------------------------------------------------------------
+  # Startup a service. 
+  #--------------------------------------------------------------------
+  def _start_service(debug, cluster_config, service_object)
+    cmd_timeout = 10 * 60
+    service_name = service_object.getattr('name')
+    @logger.info("CM - Attempting #{service_name} service startup") if debug
+    cmd = start_service(service_object)
+    id = cmd.getattr('id')
+    active = cmd.getattr('active')
+    success = cmd.getattr('success')
+    msg = cmd.getattr('resultMessage')
+    # If the command is still running, wait for it (note: success is neither true or false at this point). 
+    if active 
+      @logger.info("CM - Waiting for #{service_name} service startup [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+      wcmd = wait_for_cmd(cmd, cmd_timeout)
+      id = wcmd.getattr('id')
+      active = wcmd.getattr('active')
+      success = wcmd.getattr('success')
+      msg = wcmd.getattr('resultMessage')
+      # If we timeout and the command is still running, try again later.
+      if active
+        msg = "CM - #{service_name} service startup is running asynchronously in the background, trying again later"
+        @logger.info(msg) if debug
+        raise Errno::ECONNREFUSED, msg
+      end
+    end
+    if not success
+      @logger.info("CM - #{service_name} service startup returns [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+      # Abort the command if it's still running.
+      if active
+        wcmd = abort_cmd(cmd) 
+        id = wcmd.getattr('id')
+        active = wcmd.getattr('active')
+        success = wcmd.getattr('success')
+        msg = wcmd.getattr('resultMessage')
+        @logger.info("CM - #{service_name} service startup terminated [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+      end
+      return
+    end
+    @logger.info("CM - #{service_name} service startup complete [id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+  end
+  
+  #--------------------------------------------------------------------
+  # Initialize HDFS.
+  # HDFS format does not cover all the initialization cases.
+  #--------------------------------------------------------------------
+  def _hdfs_init(debug, cluster_config, namenodes)
+    return if namenodes.nil? or namenodes.empty? 
+    master = namenodes[0]
+    return if master.nil? or master.empty? 
+    host_fqdn = master[:fqdn]
+    return if host_fqdn.nil? or host_fqdn.empty? 
+    hadoop_cmds = [
+          "hadoop fs -mkdir -p hdfs://#{host_fqdn}/tmp/mapred",
+          "hadoop fs -chown mapred hdfs://#{host_fqdn}/tmp/mapred",
+          "hadoop fs -chmod 755 hdfs://#{host_fqdn}/tmp/mapred",
+          "hadoop fs -mkdir -p hdfs://#{host_fqdn}/tmp/mapred/system",
+          "hadoop fs -chown mapred hdfs://#{host_fqdn}/tmp/mapred/system",
+          "hadoop fs -chmod 755 hdfs://#{host_fqdn}/tmp/mapred/system"
+    ]
+    # Issue the commands and check status.
+    hadoop_cmds.each do |cmd|
+      sucmd = "su - -c '#{cmd}' hdfs"
+      @logger.info("CM - execute #{sucmd}") if debug
+      if system(sucmd)
+        @logger.info("CM - SUCCESS [#{$?}]") if debug
+      else
+        @logger.error("CM - ERROR [#{$?}]")
+      end
+    end
+  end
+  
+  #####################################################################
+  # Deploy a client configuration.
+  #####################################################################
+  def _deploy_client_config(debug, cluster_config, service_object, service_type)
+    cmd_timeout = 10 * 60
+    role_list = []
+    host_list = []
+    cluster_config.each do |r|
+      if r[:service_type] == service_type
+        role_list << r[:role_name] 
+        host_list << r[:host_id] 
+      end
+    end 
+    if role_list and not role_list.empty?
+      @logger.info("CM - Attempting #{service_type} configuration deployment #{host_list.join(",")}") if debug
+      cmd = deploy_client_config(service_object, role_list)
+      id = cmd.getattr('id')
+      active = cmd.getattr('active')
+      success = cmd.getattr('success')
+      msg = cmd.getattr('resultMessage')
+      # If the command is still running, wait for it (note: success is neither true or false at this point). 
+      if active 
+        @logger.info("CM - Waiting for #{service_type} configuration deployment [name:#{service_type}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+        wcmd = wait_for_cmd(cmd, cmd_timeout)
+        id = wcmd.getattr('id')
+        active = wcmd.getattr('active')
+        success = wcmd.getattr('success')
+        msg = wcmd.getattr('resultMessage')
+        @logger.info("CM - #{service_type} configuration deployment results [name:#{service_type}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+        # If we timeout and the command is still running, try again later.
+        if active 
+          msg = "CM - #{service_type} configuration deployment is running asynchronously in the background, trying again later"
+          @logger.info(msg) if debug
+          raise Errno::ECONNREFUSED, msg
+        end
+      end
+      if not success
+        @logger.info("CM - Deploy client configuration returns [name:#{service_type}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+        if active
+          wcmd = abort_cmd(cmd) 
+          id = wcmd.getattr('id')
+          active = wcmd.getattr('active')
+          success = wcmd.getattr('success')
+          msg = wcmd.getattr('resultMessage')
+          @logger.info("CM - Deploy client configuration terminated [name:#{service_type}, id:#{id}, active:#{active}, success:#{success}, msg:#{msg}]") if debug
+        end
+        return
+      end
+    end
+  end            
+  
+  #####################################################################
+  # cm_api_setup method
+  #####################################################################
+  def cm_api_setup(license_key, cluster_name, cdh_version, rack_id, namenodes,
+                   datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes, config_state)  
+    
+    debug=@debug
+    server_host=@server_host
+    server_port=@server_port
+    username=@username
+    password=@password
+    use_tls=@use_tls
+    version=@version
+    
+    @logger.info("CM - Executing cm-api code") if debug
+    
+    #--------------------------------------------------------------------
+    # Find the cm server. 
+    #--------------------------------------------------------------------
+    server_host = _find_cm_server(cmservernodes) 
+    if not server_host or server_host.empty?
+      @logger.info("CM - ERROR: Cannot locate CM server - deferring CM_API setup")
+      raise Errno::ECONNREFUSED, "CM - ERROR: Cannot locate CM server"
+    else
+      #--------------------------------------------------------------------
+      # Establish the RESTful API connection. 
+      #--------------------------------------------------------------------
+      
+      api_version = version()
+      @logger.info("CM - API version [#{api_version}]") if debug
+      
+      #--------------------------------------------------------------------
+      # Build the cluster configuration data structure with CM role associations.
+      #--------------------------------------------------------------------
+      cluster_config = _build_roles(debug, cluster_name, namenodes, datanodes, 
+                                    edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
+      
+      #--------------------------------------------------------------------
+      # Set the license key if present. 
+      #--------------------------------------------------------------------
+      @logger.info("CM - checking license key") if debug
+      if license_key and not license_key.empty?
+        @logger.info("CM - crowbar license key found") if debug
+        _check_license_key(debug, api, license_key, config_state)
+      end
+      
+      #--------------------------------------------------------------------
+      # Configure the cluster. 
+      #--------------------------------------------------------------------
+      cluster_object = _configure_cluster(debug, cluster_name, cdh_version)
+      
+      #--------------------------------------------------------------------
+      # Configure the host instances. 
+      #--------------------------------------------------------------------
+      _configure_host_instances(debug, rack_id, cluster_config)
+      
+      #--------------------------------------------------------------------
+      # Configure the HDFS service. 
+      #--------------------------------------------------------------------
+      hdfs_service_name = "hdfs-#{cluster_name}"
+      hdfs_service_type = "HDFS"
+      hdfs_service = _configure_service(debug, hdfs_service_name, hdfs_service_type, cluster_name, cluster_object)  
+      
+=begin
+      # Note: The v3 API does not support rt_configs and you
+      # must use role groups for this case. The v2 API maintains
+      # backward compatibility with this call.
+      if debug
+        result = get_service_config(hdfs_service, 'full')
+        svc_config = result[:svc_config]
+        rt_configs = result[:rt_configs]
+        @logger.info("\n######### svc_config\n#{svc_config}\n")
+        @logger.info("\n######### rt_configs\n#{rt_configs}\n")
+      end
+=end
+      hdfs_mount_str = ''  
+      if datanodes and not datanodes.empty?
+        datanodes.each do |n|
+          if n[:fqdn] and not n[:fqdn].empty?
+            @logger.info("CM - HDFS mount points for #{n[:fqdn]}") if debug 
+            hdfs_mounts = n[:hdfs_mounts]  
+            if hdfs_mounts and not hdfs_mounts.empty? 
+              hdfs_mount_str = hdfs_mounts.join('/dfs/dn,') + '/dfs/dn'
+              @logger.info("CM - [#{hdfs_mount_str}]") if debug  
+            end
+          end
+        end  
+      end
+      
+      #--------------------------------------------------------------------
+      # If we bypass the CM setup wizard, we need to set some required
+      # parameters or HDFS will not start-up correctly. Only set the
+      # bare minimum to get the cluster up and running
+      # (Rely the CM interface for everything else).
+      #--------------------------------------------------------------------          
+      hdfs_service_config = {
+      }
+      nn_config = {
+              'dfs_name_dir_list' => '/dfs/nn',
+      }
+      snn_config = {
+              'fs_checkpoint_dir_list' => '/dfs/snn'
+      }
+      dn_config = {
+              'dfs_data_dir_list' => hdfs_mount_str # '/data/1/dfs/dn,/data/2/dfs/dn'
+      }
+      hdfs_gw_config = {
+              'dfs_client_use_trash' => true
+      }
+      hdfs_rt_configs = {
+              'NAMENODE' => nn_config,
+              'SECONDARYNAMENODE' => snn_config,
+              'DATANODE' => dn_config,
+              'GATEWAY' => hdfs_gw_config
+      }      
+      @logger.info("CM - Updating HDFS service configuration") if debug
+      result = update_service_config(hdfs_service, hdfs_service_config, hdfs_rt_configs)
+      # @logger.info("CM - HDFS service configuration results #{result}") if debug
+      
+      #--------------------------------------------------------------------
+      # Configure the MAPREDUCE service. 
+      #--------------------------------------------------------------------
+      mapr_service_name = "mapr-#{cluster_name}"
+      mapr_service_type = "MAPREDUCE"
+      mapr_service = _configure_service(debug, mapr_service_name, mapr_service_type, cluster_name, cluster_object)  
+      
+      mapr_service_config = {
+              'hdfs_service' =>  hdfs_service_name
+      }
+      jt_config = {
+              'jobtracker_mapred_local_dir_list' => '/mapred/jt',
+              'mapred_job_tracker_handler_count'=> 40
+      }
+      tt_config = {
+              'tasktracker_mapred_local_dir_list' => '/mapred/local',
+              'mapred_tasktracker_map_tasks_maximum' => 10,
+              'mapred_tasktracker_reduce_tasks_maximum' => 6
+      }
+      mapr_gw_config = {
+              'mapred_reduce_tasks' => 10,
+              'mapred_submit_replication' => 2
+      }
+      mapr_rt_configs = {
+              'JOBTRACKER' => jt_config,
+              'TASKTRACKER' => tt_config,
+              'GATEWAY' => mapr_gw_config
+      }      
+      
+      @logger.info("CM - Updating MAPR service configuration") if debug
+      result = update_service_config(mapr_service, mapr_service_config, mapr_rt_configs)
+      # @logger.info("CM - MAPR service configuration results #{result}") if debug
+      
+      #--------------------------------------------------------------------
+      # Apply the cluster roles. 
+      #--------------------------------------------------------------------
+      _apply_roles(debug, cluster_config, hdfs_service, mapr_service, cluster_name)
+      
+      #--------------------------------------------------------------------
+      #  Format HDFS.
+      #--------------------------------------------------------------------
+      _format_hdfs(debug, cluster_config, hdfs_service)
+      
+      #--------------------------------------------------------------------
+      # Startup the HDFS service. 
+      #--------------------------------------------------------------------
+      _start_service(debug, cluster_config, hdfs_service)
+      
+      #--------------------------------------------------------------------
+      # Startup the MAPR service. 
+      #--------------------------------------------------------------------
+      _start_service(debug, cluster_config, mapr_service)
+      
+      #--------------------------------------------------------------------
+      # Initialize HDFS. 
+      #--------------------------------------------------------------------
+      _hdfs_init(debug, cluster_config, namenodes)
+      
+      #--------------------------------------------------------------------
+      # Deploy the HDFS client config. 
+      #--------------------------------------------------------------------
+      _deploy_client_config(debug, cluster_config, hdfs_service, 'HDFS')
+      
+      #--------------------------------------------------------------------
+      # Deploy the MAPREDUCE client config. 
+      #--------------------------------------------------------------------
+      _deploy_client_config(debug, cluster_config, mapr_service, 'MAPREDUCE')
+    end
+  end
+  
+  #####################################################################
+  # Deploy the hadoop cluster.
+  #####################################################################
+  def deploy_cluster(license_key, cluster_name, cdh_version, rack_id, namenodes,
+                     datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes)
+    retry_count = 1
+    deployment_ok = false
+    config_state = { :cm_server_restarted => false}
+    while (not deployment_ok and retry_count <= 10)
+      deployment_ok = true
+      begin
+        cm_api_setup(license_key, cluster_name, cdh_version, rack_id, namenodes,
+                     datanodes, edgenodes, cmservernodes, hafilernodes, hajournalingnodes, config_state)
+      rescue Errno::ECONNREFUSED => e
+        deployment_ok = false
+        @logger.info("CM - Can't connect to the cm-server - sleep and retrying #{retry_count} #{config_state[:cm_server_restarted]}")
+        # puts e.message   
+        # puts e.backtrace.inspect
+        sleep(60)
+      end
+      retry_count += 1 
+    end
+    return deployment_ok
   end
 end
