@@ -107,25 +107,6 @@ service "cloudera-scm-server" do
 end
 
 #######################################################################
-# Add the cloudera manager link to the crowbar UI.
-#######################################################################
-server_ip = nil
-cmservernodes = node[:hadoop_infrastructure][:cluster][:cmservernodes]
-if cmservernodes and cmservernodes.length > 0 
-  rec = cmservernodes[0]
-  server_ip = rec[:ipaddr]
-end
-node[:crowbar] = {} if node[:crowbar].nil? 
-node[:crowbar][:links] = {} if node[:crowbar][:links].nil?
-if server_ip and !server_ip.empty? 
-  url = "http://#{server_ip}:7180/cmf/login" 
-  Chef::Log.info("CM - Cloudera management services URL [#{url}]") if debug 
-  node[:crowbar][:links]["Cloudera Manager"] = url 
-else
-  node[:crowbar][:links].delete("Cloudera Manager")
-end
-
-#######################################################################
 # The CM API automatic configuration feature is current disabled by
 # default. You must enable it in crowbar before queuing the proposal.
 # If this feature is disabled, you must configure the cluster manually

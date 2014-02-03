@@ -20,7 +20,7 @@ barclamp:
   display: Cloudera Manager for Hadoop
   version: 0
   requires:
-    - '@crowbar'
+    - hadoop_infrastructure
   member:
     - apachehadoop
   supercedes:
