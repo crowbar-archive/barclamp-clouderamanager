@@ -22,8 +22,7 @@ description "Cloudera Manager High Availability Filer Role"
 run_list(
   "recipe[clouderamanager::node-setup]",
   "recipe[clouderamanager::hadoop-setup]",
-  "recipe[clouderamanager::cm-agent]",
-  "recipe[clouderamanager::cm-ha-filer-export]"
+  "recipe[clouderamanager::cm-agent]"
 )
 default_attributes()
 override_attributes()
