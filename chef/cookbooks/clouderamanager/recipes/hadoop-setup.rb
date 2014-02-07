@@ -86,7 +86,6 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
      search
      sentry
      solr-mapreduce
-     flume-ng-solr
      hue-search
      hbase-solr
      hbase-solr-doc
