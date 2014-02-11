@@ -138,7 +138,7 @@ class CmApiClient < ApiResource
   # Check the license key and update if needed.
   # Note: get_license will report nil until the cm-server has been restarted.
   #####################################################################
-  def _check_license_key(debug, api, cb_license_key, config_state)
+  def _check_license_key(debug, cb_license_key, config_state)
     # cm_license_key = ApiLicense object - owner, uuid, expiration
     cm_license_key = get_license()
     cm_uuid = nil
@@ -482,7 +482,7 @@ class CmApiClient < ApiResource
       @logger.info("CM - checking license key") if debug
       if license_key and not license_key.empty?
         @logger.info("CM - crowbar license key found") if debug
-        _check_license_key(debug, api, license_key, config_state)
+        _check_license_key(debug, license_key, config_state)
       end
       
       #--------------------------------------------------------------------
