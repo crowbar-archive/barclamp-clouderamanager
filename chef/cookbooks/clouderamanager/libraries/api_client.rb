@@ -117,7 +117,7 @@ class CmApiClient < ApiResource
       _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
     end
     # datanodes
-    if datanodes.length > 1
+    if datanodes.length > 0
     _role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
     _role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
     _role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'GATEWAY')
