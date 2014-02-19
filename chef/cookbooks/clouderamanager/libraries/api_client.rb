@@ -71,7 +71,7 @@ class CmApiClient < ApiResource
         # Check for role duplication on this node and skip if the role is already there.
         skip_role_insertion = false
         cluster_config.each do |r|
-          if r[:host_id] == n[:fqdn] and r[:role_type] == role_type
+          if r[:host_id] == n[:fqdn] and r[:service_type] == service_type and r[:role_type] == role_type
             skip_role_insertion = true
             break
           end
@@ -107,28 +107,36 @@ class CmApiClient < ApiResource
       _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'NAMENODE')
       _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'JOBTRACKER')
       _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "HDFS", 'GATEWAY')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
     end
     # secondary namenode
     if namenodes.length > 1
       secondary_namenode = [ namenodes[1] ]
       _role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'SECONDARYNAMENODE')
       _role_appender(debug, config, cluster_name, counter_map, secondary_namenode, "HDFS", 'GATEWAY')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
     end
     # datanodes
+    if datanodes.length > 1
     _role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'DATANODE')
     _role_appender(debug, config, cluster_name, counter_map, datanodes, "MAPREDUCE", 'TASKTRACKER')
     _role_appender(debug, config, cluster_name, counter_map, datanodes, "HDFS", 'GATEWAY')
+    _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
+    end
     # edgenodes
     if edgenodes.length > 0
       _role_appender(debug, config, cluster_name, counter_map, edgenodes, "HDFS", 'GATEWAY')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
     end
     # hafilernodes
     if hafilernodes.length > 0
       _role_appender(debug, config, cluster_name, counter_map, hafilernodes, "HDFS", 'GATEWAY')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
     end
     # hajournalingnodes
     if hajournalingnodes.length > 0
       _role_appender(debug, config, cluster_name, counter_map, hajournalingnodes, "HDFS", 'GATEWAY')
+      _role_appender(debug, config, cluster_name, counter_map, primary_namenode, "MAPREDUCE", 'GATEWAY')
     end
     @logger.info("CM - cluster configuration [#{config.inspect}]") if debug
     return config
