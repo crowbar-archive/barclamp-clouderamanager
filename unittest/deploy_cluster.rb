@@ -54,22 +54,22 @@ logger = ApiLogger.new
 # Cluster node configuration.
 #######################################################################
 namenodes = [
-{ :fqdn => 'd00-0c-29-38-86-df.pod.openstack.org', :ipaddr => '192.168.124.81', :name => 'd00-0c-29-38-86-df.pod.openstack.org', :ssh_key => '' },
-{ :fqdn => 'd00-0c-29-ba-e5-4f.pod.openstack.org', :ipaddr => '192.168.124.85', :name => 'd00-0c-29-ba-e5-4f.pod.openstack.org', :ssh_key => '' }
+{ :fqdn => 'd00-0c-29-38-86-df.pod.openstack.org', :ipaddr => '192.168.124.85', :name => 'd00-0c-29-38-86-df.pod.openstack.org', :ssh_key => '' },
+{ :fqdn => 'd00-0c-29-bf-b0-fa.pod.openstack.org', :ipaddr => '192.168.124.84', :name => '', :ssh_key => 'd00-0c-29-bf-b0-fa.pod.openstack.org' }
 ] 
 
 datanodes = [
-{ :fqdn => 'd00-0c-29-9e-d0-38.pod.openstack.org', :ipaddr => '192.168.124.86', :name => 'd00-0c-29-9e-d0-38.pod.openstack.org', :ssh_key => '' },
-{ :fqdn => 'd00-0c-29-cd-47-88.pod.openstack.org', :ipaddr => '192.168.124.82', :name => 'd00-0c-29-cd-47-88.pod.openstack.org', :ssh_key => '' },
-{ :fqdn => 'd00-0c-29-cd-47-88.pod.openstack.org', :ipaddr => '192.168.124.84', :name => 'd00-0c-29-cd-47-88.pod.openstack.org', :ssh_key => '' }
+{ :fqdn => 'd00-0c-29-ab-af-1a.pod.openstack.org', :ipaddr => '192.168.124.81', :name => 'd00-0c-29-ab-af-1a.pod.openstack.org', :ssh_key => '' },
+{ :fqdn => 'd00-0c-29-11-5f-c1.pod.openstack.org', :ipaddr => '192.168.124.83', :name => 'd00-0c-29-11-5f-c1.pod.openstack.org', :ssh_key => '' },
+{ :fqdn => 'd00-0c-29-8a-58-e8.pod.openstack.org', :ipaddr => '192.168.124.82', :name => 'd00-0c-29-8a-58-e8.pod.openstack.org', :ssh_key => '' }
 ]
 
 edgenodes = [
-{ :fqdn => 'd00-0c-29-fc-63-22.pod.openstack.org', :ipaddr => '192.168.124.84', :name => 'd00-0c-29-fc-63-22.pod.openstack.org', :ssh_key => '' }
+{ :fqdn => 'd00-0c-29-06-87-7d.pod.openstack.org', :ipaddr => '192.168.124.86', :name => 'd00-0c-29-06-87-7d.pod.openstack.org', :ssh_key => '' }
 ] 
 
 cmservernodes = [
-{ :fqdn => 'd00-0c-29-fc-63-22.pod.openstack.org', :ipaddr => '192.168.124.84', :name => 'd00-0c-29-fc-63-22.pod.openstack.org', :ssh_key => '' }
+{ :fqdn => 'd00-0c-29-06-87-7d.pod.openstack.org', :ipaddr => '192.168.124.86', :name => 'd00-0c-29-06-87-7d.pod.openstack.org', :ssh_key => '' }
 ]
 
 hafilernodes = [] 
