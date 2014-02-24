@@ -615,14 +615,14 @@ class CmApiClient < ApiResource
       _start_service(debug, cluster_config, hdfs_service)
       
       #--------------------------------------------------------------------
-      # Startup the MAPR service. 
-      #--------------------------------------------------------------------
-      _start_service(debug, cluster_config, mapr_service)
-      
-      #--------------------------------------------------------------------
       # Initialize HDFS. 
       #--------------------------------------------------------------------
       _hdfs_init(debug, cluster_config, namenodes)
+      
+      #--------------------------------------------------------------------
+      # Startup the MAPR service. 
+      #--------------------------------------------------------------------
+      _start_service(debug, cluster_config, mapr_service)
       
       #--------------------------------------------------------------------
       # Deploy the HDFS client config. 
