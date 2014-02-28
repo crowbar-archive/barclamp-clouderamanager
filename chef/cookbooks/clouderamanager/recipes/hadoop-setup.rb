@@ -46,7 +46,9 @@ end
 # the agents heartbeating, it assumes that the packages are installed
 # and that's why we need to install them here in-line.
 #######################################################################
-if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:auto_pkgs_installed]
+if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and (not node[:clouderamanager][:cluster][:auto_pkgs_installed] or not node[:clouderamanager][:cluster][:cm_api_configured])
+  Chef::Log.info("CM - Checking Hadoop packages") if debug
+  
   ext_packages=%w{
      bigtop-utils
      bigtop-jsvc
@@ -102,11 +104,16 @@ if node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clou
   end
   
   node[:clouderamanager][:cluster][:auto_pkgs_installed] = true
+  node.save 
+else
+  Chef::Log.info("CM - Skipping Hadoop package check") if debug
 end
 
+#######################################################################
 # We will rely on CM to configure startup for these services.
 # The CM Host inspector will complain if these rc.d services
 # are enabled by default. 
+#######################################################################
 init_disable=%w{
    oozie
    hadoop-httpfs

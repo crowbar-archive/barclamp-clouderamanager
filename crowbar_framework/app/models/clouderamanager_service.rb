@@ -48,13 +48,13 @@ class ClouderamanagerService < ServiceObject
     datanodes         = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-datanode" ) }
     hajournalingnodes = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-ha-journalingnode" ) }
     hafilernodes      = nodeswithroles.find_all { |n| n.roles.include?("hadoop_infrastructure-ha-filernode" ) }
-    @hadoop_config[:adminnodes] = adminnodes 
-    @hadoop_config[:servernodes] = servernodes 
-    @hadoop_config[:namenodes] = namenodes 
-    @hadoop_config[:edgenodes] = edgenodes 
-    @hadoop_config[:datanodes] = datanodes 
-    @hadoop_config[:hajournalingnodes] = hajournalingnodes 
-    @hadoop_config[:hafilernodes] = hafilernodes
+    @hadoop_config[:adminnodes] = adminnodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:servernodes] = servernodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:namenodes] = namenodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:edgenodes] = edgenodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:datanodes] = datanodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:hajournalingnodes] = hajournalingnodes.sort { |a,b| a.license_key <=> b.license_key } 
+    @hadoop_config[:hafilernodes] = hafilernodes.sort { |a,b| a.license_key <=> b.license_key }
     return @hadoop_config
   end
   
