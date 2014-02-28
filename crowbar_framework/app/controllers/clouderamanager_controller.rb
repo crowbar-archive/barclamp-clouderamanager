@@ -35,32 +35,31 @@ class ClouderamanagerController < BarclampController
   # nodes - render the nodes template.
   #######################################################################
   def nodes
-    @hadoop_config = @service_object.get_hadoop_config
-    
+    @hadoop_config = @service_object.get_hadoop_config    
     respond_to do |format|
       format.html { render :template => 'barclamp/hadoop_infrastructure/nodes' }
       format.text {
-        export = ["role, ip, name, cpu, ram, drives"]
+        export = ["id, role, ip, name, cpu, ram, drives"]
         @hadoop_config[:adminnodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.adminnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.adminnodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @hadoop_config[:servernodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.servernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.servernodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @hadoop_config[:namenodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.namenodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.namenodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @hadoop_config[:edgenodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.edgenodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.edgenodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @hadoop_config[:datanodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.datanodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.datanodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @hadoop_config[:hajournalingnodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.hajournalingnodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.hajournalingnodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         @hadoop_config[:hafilernodes].each do |node|
-          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.hafilernodes') + ", #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
+          export << I18n.t('.barclamp.hadoop_infrastructure.nodes.hafilernodes') + ", #{node.license_key}, #{node.ip}, #{node.name}, #{node.cpu}, #{node.memory}, #{node.number_of_drives}"
         end
         headers["Content-Disposition"] = "attachment; filename=\"#{I18n.t('nodes.dell.nodes.filename', :default=>'hadoop_infrastructure_inventory.txt')}\""
         render :text => export.join("\n"), :content_type => 'application/text'

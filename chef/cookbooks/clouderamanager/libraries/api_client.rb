@@ -278,7 +278,7 @@ class CmApiClient < ApiResource
   # Format HDFS.
   #####################################################################
   def _format_hdfs(debug, cluster_config, service_object)
-    cmd_timeout = 10 * 60
+    cmd_timeout = 15 * 60
     service_name = service_object.getattr('name')
     cluster_config.each do |r|
       if r[:role_type] == 'NAMENODE'
@@ -327,7 +327,7 @@ class CmApiClient < ApiResource
   # Startup a service. 
   #--------------------------------------------------------------------
   def _start_service(debug, cluster_config, service_object)
-    cmd_timeout = 10 * 60
+    cmd_timeout = 15 * 60
     service_name = service_object.getattr('name')
     @logger.info("CM - Attempting #{service_name} service startup") if debug
     cmd = start_service(service_object)
@@ -400,7 +400,7 @@ class CmApiClient < ApiResource
   # Deploy a client configuration.
   #####################################################################
   def _deploy_client_config(debug, cluster_config, service_object, service_type)
-    cmd_timeout = 10 * 60
+    cmd_timeout = 15 * 60
     role_list = []
     host_list = []
     cluster_config.each do |r|

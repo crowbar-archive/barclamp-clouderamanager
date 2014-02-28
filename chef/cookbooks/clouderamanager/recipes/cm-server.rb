@@ -116,11 +116,25 @@ end
 # running at the point of execution.
 #######################################################################
 always_run = false
-if always_run or (node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and not node[:clouderamanager][:cluster][:cm_api_configured])
+if always_run or (node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and (not node[:clouderamanager][:cluster][:auto_pkgs_installed] or not node[:clouderamanager][:cluster][:cm_api_configured]))
   ruby_block "cm-api-deferred-execution" do
     block do
       libbase = File.join(File.dirname(__FILE__), '../libraries' )
       require "#{libbase}/api_client.rb"
+      
+      #######################################################################
+      # API logger class for debug/error logging.
+      #######################################################################
+      class ApiLogger
+        def info(str)
+          Chef::Log.info(str)
+        end
+        
+        def error(str)
+          Chef::Log.error(str)
+        end
+      end
+      logger = ApiLogger.new     
       
       #--------------------------------------------------------------------
       # CM API configuration parameters.
@@ -142,30 +156,49 @@ if always_run or (node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and
       #--------------------------------------------------------------------
       # CB node information (each item is an array of records).
       #--------------------------------------------------------------------
-      namenodes = node[:hadoop_infrastructure][:cluster][:namenodes] 
+      namenodes = node[:hadoop_infrastructure][:cluster][:namenodes]
+      if debug
+        namenodes.each do |node_rec|
+          logger.info("CM - NAMENODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
+        end
+      end
       datanodes = node[:hadoop_infrastructure][:cluster][:datanodes]
+      if debug
+        datanodes.each do |node_rec|
+          logger.info("CM - DATANODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
+        end
+      end
       edgenodes = node[:hadoop_infrastructure][:cluster][:edgenodes] 
+      if debug
+        edgenodes.each do |node_rec|
+          logger.info("CM - EDGENODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
+        end
+      end
       cmservernodes = node[:hadoop_infrastructure][:cluster][:cmservernodes]
+      if debug
+        cmservernodes.each do |node_rec|
+          logger.info("CM - CMSERVERNODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
+        end
+      end
       hafilernodes = node[:hadoop_infrastructure][:cluster][:hafilernodes] 
+      if debug
+        hafilernodes.each do |node_rec|
+          logger.info("CM - FILERNODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
+        end
+      end
       hajournalingnodes = node[:hadoop_infrastructure][:cluster][:hajournalingnodes] 
+      if debug
+        hajournalingnodes.each do |node_rec|
+          logger.info("CM - JOURNALINGNODE #{node_rec[:role_idx]} [#{node_rec[:fqdn]}, #{node_rec[:ipaddr]}]")
+        end
+      end
       server_host = ''
       if cmservernodes and cmservernodes.length > 0 
         server_host = cmservernodes[0][:ipaddr]
-      end
-      
-      #######################################################################
-      # API logger class for debug/error logging.
-      #######################################################################
-      class ApiLogger
-        def info(str)
-          Chef::Log.info(str)
-        end
-        
-        def error(str)
-          Chef::Log.error(str)
-        end
-      end
-      logger = ApiLogger.new
+        logger.info("CM - FOUND CM SERVER [#{server_host}]") if debug
+      else
+        logger.error("CM - CM SERVER NOT FOUND !!!")
+      end  
       
       #####################################################################
       # Deploy the CM cluster.
@@ -187,6 +220,7 @@ if always_run or (node[:clouderamanager][:cmapi][:deployment_type] == 'auto' and
       else
         logger.error("CM - ERROR: Hadoop cluster deployment failed, will try again later")
         node[:clouderamanager][:cluster][:cm_api_configured] = false
+        node[:clouderamanager][:cluster][:auto_pkgs_installed] = false
         node.save 
       end
     end
